@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#087f5b">
+  <title>Kasa Pro | Yerel Harcama Takibi</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <header class="topbar safe-top">
+      <div class="topbar-inner">
+        <div class="brand"><span class="brand-mark">₺</span><div><h1>Kasa Pro</h1><p id="active-kasa-label">Hesap seçilmedi</p></div></div>
+        <div class="header-actions">
+          <button class="header-button accent" data-action="open-flow" title="Hesap ağ akış şeması"><span>⌘</span><b>Akış Şeması</b></button>
+          <button class="header-button" data-action="open-settings" title="Ayarlar">⚙</button>
+          <button class="header-button" data-action="toggle-account-menu" title="Hesap değiştir"><span id="account-button-label">Hesap Seç</span><span>⌄</span></button>
+          <button class="header-button icon-only" data-action="open-add-account" title="Yeni kasa ekle">＋</button>
+        </div>
+      </div>
+      <div id="account-menu" class="account-menu hidden"></div>
+    </header>
+
+    <main class="content safe-bottom">
+      <div id="notice" class="notice hidden"></div>
+      <section id="empty-state" class="empty-state hidden"></section>
+      <section id="dashboard" class="hidden">
+        <div id="summary" class="summary-grid"></div>
+        <div id="tab-content"></div>
+      </section>
+    </main>
+
+    <nav id="bottom-nav" class="bottom-nav hidden">
+      <button data-tab="list" class="nav-item active"><span>☷</span><small>İşlemler</small></button>
+      <button data-tab="network" class="nav-item"><span>⌘</span><small>Hesap Ağ Şeması</small></button>
+      <button data-tab="add" class="nav-item add-nav"><span>＋</span><small>Ekle</small></button>
+      <button data-tab="stats" class="nav-item"><span>▥</span><small>İstatistik</small></button>
+    </nav>
+  </div>
+
+  <div id="modal-root"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
