@@ -1,0 +1,9 @@
+  if (!account) { dashboard.classList.add('hidden'); nav.classList.add('hidden'); empty.classList.remove('hidden'); empty.innerHTML = `<div class="empty-inner"><div class="empty-icon">⌂</div><h2>Hesap Seçin veya Oluşturun</h2><p>Aşağıdaki hiyerarşik akış şemasındaki hesaplara tıklayarak işlem yapmak istediğiniz kasayı seçin.</p><button class="primary-button" data-action="open-flow">Hesap Ağ Şemasını Aç</button></div>`; return; }
+  empty.classList.add('hidden'); dashboard.classList.remove('hidden'); nav.classList.remove('hidden');
+  document.querySelectorAll('.nav-item').forEach(button => button.classList.toggle('active', button.dataset.tab === currentTab));
+  document.querySelector('#summary').innerHTML = summaryHTML(kasaTransactions(account.id));
+  document.querySelector('#tab-content').innerHTML = currentTab === 'list' ? listHTML() : currentTab === 'add' ? formHTML() : currentTab === 'stats' ? statsHTML() : networkHTML(true);
+  const menu = document.querySelector('#account-menu'); if (!menu.classList.contains('hidden')) menu.innerHTML = accountMenuHTML();
+}
+function includedCount(idValue) { return Math.max(0, descendants(idValue, true).size - 1); }
+function summaryHTML(transactions) { const income = transactions.filter(t => t.type === 'income').reduce((s,t) => s+t.amount,0); const expense = transactions.filter(t => t.type === 'expense').reduce((s,t) => s+t.amount,0); const bal = income - expense; return `<div class="summary-card income"><div class="summary-label">↗ Gelir</div><div class="summary-value">${money(income)}</div></div><div class="summary-card expense"><div class="summary-label">↘ Gider</div><div class="summary-value">${money(expense)}</div></div><div class="summary-card ${bal >= 0 ? 'balance' : 'negative'}"><div class="summary-label">▣ Bakiye</div><div class="summary-value">${money(bal)}</div></div>`; }
