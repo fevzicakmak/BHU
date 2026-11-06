@@ -62,7 +62,7 @@ function formHTML(data = {}) { const type = data.type || 'income'; const amount 
 function attachmentsHTML(list, removable) { return (list || []).map(a => `<div class="attachment" data-attachment-id="${a.id}">${a.type?.startsWith('image/') ? `<img src="${a.url}" alt="${escapeHTML(a.name)}">` : '<div class="attachment-icon">▤</div>'}<div class="attachment-info"><strong>${escapeHTML(a.name)}</strong><small>${(a.size/1024).toFixed(1)} KB</small></div>${removable ? `<button class="close-button" data-remove-attachment="${a.id}">×</button>` : `<a class="link-button" href="${a.url}" target="_blank" rel="noopener">Görüntüle</a>`}</div>`).join(''); }
 function statsHTML() { const txs = kasaTransactions(activeKasa().id), inc = txs.filter(t=>t.type==='income'), exp = txs.filter(t=>t.type==='expense'); const avg = list => list.length ? money(list.reduce((s,t)=>s+t.amount,0)/list.length) : '-'; const max = list => list.length ? money(Math.max(...list.map(t=>t.amount))) : '-'; const rows = [['Toplam İşlem',txs.length],['Gelir İşlemi',inc.length],['Gider İşlemi',exp.length],['Ort. Gelir',avg(inc)],['Ort. Gider',avg(exp)],['En Büyük Gelir',max(inc)],['En Büyük Gider',max(exp)]]; return `<div class="panel panel-pad"><h3 style="margin:0 0 12px">Detaylı İstatistikler</h3><div class="stats-detail">${rows.map(([a,b])=>`<div class="stats-line"><span>${a}</span><strong>${b}</strong></div>`).join('')}</div></div>`; }
 function networkHTML(showActions) { const roots = state.kasalar.filter(k => !k.parentId || !state.kasalar.some(p=>p.id===k.parentId)); return `<div class="panel network-panel"><div class="network-title"><div><h3>⌘ Hesap Ağ Akış Şeması <small style="color:#087f5b">${state.kasalar.length} Hesap</small></h3><p>Hesap seçmek için şemadaki herhangi bir butona tıklayın.</p></div>${showActions ? '<button class="primary-button" style="width:auto;padding:9px 12px" data-action="open-add-account">＋ Ana Hesap</button>' : ''}</div><div class="tree">${roots.map(treeNodeHTML).join('') || '<div style="padding:45px;color:#71807b">Henüz kayıtlı hesap bulunmuyor.</div>'}</div></div>`; }
-function treeNodeHTML(k) { const children = state.kasalar.filter(x=>x.parentId===k.id); return `<div class="tree-root"><div class="tree-node ${k.id===state.activeKasaId?'active':''}"><button class="node-select" data-select-account="${k.id}"><strong>${escapeHTML(k.name)}</strong><small>${money(balance(k.id))} · ${includedCount(k.id)} alt hesap</small></button><div class="node-actions"><button data-action="add-sub-account" data-account-id="${k.id}">＋ Alt</button><button data-action="edit-account" data-account-id="${k.id}">Düzenle</button><button data-action="delete-account" data-account-id="${k.id}">Sil</button></div></div>${children.length ? `<div class="tree-children">${children.map(treeNodeHTML).join('')}</div>` : ''}</div>`; }
+function treeNodeHTML(k) { const children = state.kasalar.filter(x=>x.parentId===k.id); return `<div class="tree-root"><div class="tree-node ${k.id===state.activeKasaId?'active':''}" draggable="true" data-drag-account="${k.id}"><button class="node-select" data-select-account="${k.id}"><strong>${escapeHTML(k.name)}</strong><small>${money(balance(k.id))} · ${includedCount(k.id)} alt hesap</small></button><div class="node-actions"><button data-action="add-sub-account" data-account-id="${k.id}">＋ Alt</button><button data-action="edit-account" data-account-id="${k.id}">Düzenle</button><button data-action="delete-account" data-account-id="${k.id}">Sil</button></div></div>${children.length ? `<div class="tree-children">${children.map(treeNodeHTML).join('')}</div>` : ''}</div>`; }
 function accountMenuHTML() { return `<div class="menu-heading">Hesap Listesi</div>${sortedAccounts().map(k => `<div class="account-row ${k.id===state.activeKasaId?'selected':''}"><button class="account-select" data-select-account="${k.id}" style="padding-left:${Math.min(depth(k),4)*14}px"><strong>${depth(k) ? '↳ ' : ''}${escapeHTML(k.name)} ${k.id===state.activeKasaId?'✓':''}</strong><small>${money(balance(k.id))}</small></button><button class="row-icon" data-action="edit-account" data-account-id="${k.id}" title="Düzenle">✎</button><button class="row-icon" data-action="transfer-account" data-account-id="${k.id}" title="Transfer">⇄</button><button class="row-icon" data-action="delete-account" data-account-id="${k.id}" title="Sil">⌫</button></div>`).join('') || '<div class="panel-pad" style="color:#71807b;font-size:13px">Henüz kasa eklenmedi.</div>'}`; }
 
 function openModal(content, large = false) { activeModal = true; document.querySelector('#modal-root').innerHTML = `<div class="modal-backdrop" data-action="close-modal"><div class="modal ${large?'large':''}" data-stop-click>${content}</div></div>`; }
@@ -96,3 +96,34 @@ document.addEventListener('change', async event => { const el=event.target; if(e
 document.addEventListener('click', event => { if (event.target.matches('input, select, textarea') && event.target.closest('.modal')) event.stopPropagation(); }, true);
 function start(){ render(); }
 start();
+
+// Hierarchical account drag and drop: move only the root parent link; descendants stay attached.
+let draggedAccountId = null;
+document.addEventListener('dragstart', event => {
+  const node = event.target.closest?.('[data-drag-account]');
+  if (!node || event.target.closest('button') && event.target !== node) { event.preventDefault(); return; }
+  draggedAccountId = node.dataset.dragAccount;
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', draggedAccountId);
+});
+document.addEventListener('dragover', event => {
+  const target = event.target.closest?.('[data-drag-account]');
+  if (!target || !draggedAccountId || target.dataset.dragAccount === draggedAccountId) return;
+  if (allDescendantIds(draggedAccountId).has(target.dataset.dragAccount)) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+});
+document.addEventListener('drop', event => {
+  const target = event.target.closest?.('[data-drag-account]');
+  const sourceId = draggedAccountId;
+  draggedAccountId = null;
+  if (!target || !sourceId) return;
+  const targetId = target.dataset.dragAccount;
+  if (sourceId === targetId || allDescendantIds(sourceId).has(targetId)) return;
+  const source = state.kasalar.find(k => k.id === sourceId);
+  if (!source || !state.kasalar.some(k => k.id === targetId)) return;
+  event.preventDefault();
+  source.parentId = targetId;
+  save(); render(); toast('Hesap ve alt hesapları taşındı');
+});
+document.addEventListener('dragend', () => { draggedAccountId = null; });
