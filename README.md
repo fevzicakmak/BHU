@@ -127,3 +127,5 @@ GitHub Actions sözdizimi, veri/öneri testleri, masaüstü/mobil kullanım, hes
 Native JavaScript testleri taklit Capacitor köprüsü kullanır; gerçek iOS dosya koruması veya gerçek Apple ödeme işlemi yaptıklarını göstermez. İmzalı cihaz/TestFlight kontrolleri ayrıca tamamlanmalıdır.
 
 macOS CI ayrıca uygulamayı ayrı bir iPhone simülatöründe iki kez soğuk açar ve sentetik kayıt dosyasının gerçek native köprüden okunmasını kontrol eder (`scripts/smoke-ios.py`). Bu test; gerçek satın alma, native yazma/dosya koruması veya gerçek cihaz kabulü yerine geçmez. Simülatör paketi çalıştırılabilir dosya izinlerini koruyan ZIP olarak saklanır.
+
+Simülatör açılış kontrolü etkin Xcode SDK sürümüyle eşleşen bir çalışma ortamı seçer. Test yalnızca geçici bir uygulama kopyasını yerel ad-hoc imzalar; Apple dağıtım sertifikası veya App Store imzası kullanmaz. Asıl derleme paketi değiştirilmez.
