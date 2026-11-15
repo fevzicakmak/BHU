@@ -235,11 +235,11 @@ function statsHTML(txs) {
 }
 function networkHTML() {
   const roots = state.kasalar.filter(k => !k.parentId);
-  return `<div class="panel network-panel" data-drop-root><div class="network-title"><div><h2 class="section-title">⌘ Hesap ağ şeması <small>${state.kasalar.length} hesap</small></h2><p>Kartları tutamaçlarından sürükleyin. Boş alana bırakılan hesap ana hesap olur.<br>“Düzenle” ile de üst hesabı değiştirebilirsiniz.</p></div><button class="primary-button" style="width:auto" data-action="add-account">＋ Ana hesap</button></div><div class="tree">${roots.map(treeNodeHTML).join('') || '<div class="network-empty"><span class="empty-icon">⌂</span><h2>Kasalarınızı tek yerde takip edin</h2><p>Bir ana hesap oluşturun, gerekiyorsa alt hesaplar ekleyin.</p><button class="primary-button" data-action="add-account">İlk hesabımı oluştur</button></div>'}</div>${roots.length ? '<div class="root-drop-hint">Ana hesap yapmak için tutamacı buraya bırakın</div>' : ''}</div>`;
+  return `<div class="panel network-panel" data-drop-root><div class="network-title"><div><h2 class="section-title">⌘ Hesap ağ şeması <small>${state.kasalar.length} hesap</small></h2><p>Kartın üst kısmından tutup sürükleyin; yeşil hedefe bırakın.<br>Telefonda ⠿ düğmesine dokunup hedef hesabı seçebilirsiniz.</p></div><button class="primary-button" style="width:auto" data-action="add-account">＋ Ana hesap</button></div><p id="account-drag-help" class="sr-only">Hesabı sürükleyin veya taşı düğmesine basıp bir hedef seçin. Klavyede ok tuşlarıyla hedef seçin, Enter ile bırakın, Escape ile iptal edin.</p><div class="tree">${roots.map(treeNodeHTML).join('') || '<div class="network-empty"><span class="empty-icon">⌂</span><h2>Kasalarınızı tek yerde takip edin</h2><p>Bir ana hesap oluşturun, gerekiyorsa alt hesaplar ekleyin.</p><button class="primary-button" data-action="add-account">İlk hesabımı oluştur</button></div>'}</div>${roots.length ? '<div class="root-drop-hint" data-root-drop-area>Ana hesap yapmak için buraya bırakın</div>' : ''}</div>`;
 }
 function treeNodeHTML(k) {
   const children = state.kasalar.filter(child => child.parentId === k.id);
-  return `<div class="tree-root"><div class="tree-node ${k.id === state.activeKasaId ? 'active' : ''}" data-drag-id="${esc(k.id)}"><div class="node-top"><button class="node-select" data-select-account="${esc(k.id)}"><strong>${esc(k.name)}</strong><small>${money(balance(k.id))} · ${descendants(k.id, true).size - 1} alt hesap</small></button><span class="drag-handle" data-drag-handle aria-hidden="true" title="Hesabı sürükleyin">⠿</span></div>${k.parentId && !k.includeInParentTotals ? '<span class="excluded-badge">Üst hesap toplamına dahil değil</span>' : ''}<div class="node-actions"><button data-action="add-account" data-parent-id="${esc(k.id)}">＋ Alt</button><button data-action="edit-account" data-account-id="${esc(k.id)}">Düzenle</button><button data-action="delete-account" data-account-id="${esc(k.id)}">Sil</button></div></div>${children.length ? `<div class="tree-children">${children.map(treeNodeHTML).join('')}</div>` : ''}</div>`;
+  return `<div class="tree-root"><div class="tree-node ${k.id === state.activeKasaId ? 'active' : ''}" data-drag-id="${esc(k.id)}"><div class="node-top"><button class="node-select" data-select-account="${esc(k.id)}"><strong>${esc(k.name)}</strong><small>${money(balance(k.id))} · ${descendants(k.id, true).size - 1} alt hesap</small></button><button type="button" class="drag-handle" data-drag-handle aria-expanded="false" aria-label="${esc(k.name)} hesabını taşı" aria-describedby="account-drag-help" title="Sürükleyin veya dokunup hedef seçin">⠿</button></div>${k.parentId && !k.includeInParentTotals ? '<span class="excluded-badge">Üst hesap toplamına dahil değil</span>' : ''}<div class="node-actions"><button data-action="add-account" data-parent-id="${esc(k.id)}">＋ Alt</button><button data-action="edit-account" data-account-id="${esc(k.id)}">Düzenle</button><button data-action="delete-account" data-account-id="${esc(k.id)}">Sil</button></div></div>${children.length ? `<div class="tree-children">${children.map(treeNodeHTML).join('')}</div>` : ''}</div>`;
 }
 function accountMenuHTML() {
   return `<div class="menu-heading">Hesaplar</div>${sortedAccounts().map(k => `<div class="account-row ${k.id === state.activeKasaId ? 'selected' : ''}"><button class="account-select" data-select-account="${esc(k.id)}" style="padding-left:${Math.min(accountDepth(k), 5) * 12}px"><strong>${k.parentId ? '↳ ' : ''}${esc(k.name)}</strong><small>${money(balance(k.id))}</small></button><button class="row-icon" data-action="edit-account" data-account-id="${esc(k.id)}" aria-label="${esc(k.name)} hesabını düzenle">✎</button><button class="row-icon" data-action="move-account-transactions" data-account-id="${esc(k.id)}" aria-label="${esc(k.name)} hesabının işlemlerini taşı">⇄</button></div>`).join('') || '<p class="panel-pad">Henüz hesap yok.</p>'}`;
@@ -636,59 +636,6 @@ window.addEventListener('storage', event => {
 window.addEventListener('beforeunload', event => { if (draft.dirty || filePending || saving) { event.preventDefault(); event.returnValue = ''; } });
 window.addEventListener('error', event => { console.error(event.error); notice('Beklenmeyen bir hata oluştu. Kaydedilmemiş alanları kontrol edin; gerekirse yedek alın.', true); });
 window.addEventListener('unhandledrejection', event => { console.error(event.reason); showError(new Error('İşlem tamamlanamadı. Kaydedilmemiş alanlarınızı kontrol edin.')); });
-
-// Pointer events work on mouse and touch. Only the handle blocks scrolling.
-(function installAccountDrag() {
-  let drag = null, ignoreClickUntil = 0;
-  function reset() {
-    if (!drag) return;
-    drag.node.classList.remove('bhu-moving');
-    drag.target?.classList.remove('bhu-target', 'bhu-invalid');
-    drag.ghost?.remove();
-    try { drag.handle.releasePointerCapture(drag.pointer); } catch (_) { /* Pointer already released. */ }
-    drag = null;
-  }
-  const nodeAt = (x, y) => document.elementFromPoint(x, y)?.closest('[data-drag-id]');
-  document.addEventListener('pointerdown', event => {
-    const handle = event.target.closest('[data-drag-handle]');
-    if (!handle || drag || (event.pointerType === 'mouse' && event.button !== 0)) return;
-    const node = handle.closest('[data-drag-id]');
-    drag = { pointer: event.pointerId, handle, node, id: node.dataset.dragId, x: event.clientX, y: event.clientY, active: false, target: null, ghost: null };
-    handle.setPointerCapture(event.pointerId);
-  });
-  document.addEventListener('pointermove', event => {
-    const item = drag;
-    if (!item || item.pointer !== event.pointerId) return;
-    if (!item.active && Math.hypot(event.clientX - item.x, event.clientY - item.y) < 6) return;
-    if (!item.active) {
-      item.active = true; item.node.classList.add('bhu-moving');
-      item.ghost = document.createElement('div'); item.ghost.className = 'bhu-ghost'; item.ghost.textContent = item.node.querySelector('strong').textContent; document.body.appendChild(item.ghost);
-    }
-    if (event.cancelable) event.preventDefault();
-    item.ghost.style.left = `${event.clientX}px`; item.ghost.style.top = `${event.clientY}px`;
-    const next = nodeAt(event.clientX, event.clientY);
-    if (next !== item.target) { item.target?.classList.remove('bhu-target', 'bhu-invalid'); item.target = next; }
-    if (next) { const invalid = descendants(item.id).has(next.dataset.dragId); next.classList.toggle('bhu-invalid', invalid); next.classList.toggle('bhu-target', !invalid); }
-    const panel = $('.network-panel');
-    if (panel) { const rect = panel.getBoundingClientRect(); if (event.clientX > rect.right - 35) panel.scrollLeft += 12; if (event.clientX < rect.left + 35) panel.scrollLeft -= 12; }
-  }, { passive: false });
-  document.addEventListener('pointerup', async event => {
-    const item = drag;
-    if (!item || item.pointer !== event.pointerId) return;
-    const active = item.active;
-    const target = active ? nodeAt(event.clientX, event.clientY) : null;
-    const inRoot = active && document.elementFromPoint(event.clientX, event.clientY)?.closest('[data-drop-root]');
-    const sourceId = item.id, targetId = target?.dataset.dragId || null;
-    reset(); if (!active) return;
-    ignoreClickUntil = Date.now() + 500;
-    if (targetId && descendants(sourceId).has(targetId)) { toast('Hesap kendi içine veya altına taşınamaz'); return; }
-    if (!targetId && !inRoot) return;
-    if (await commit(next => { const account = next.kasalar.find(k => k.id === sourceId); if (!account) throw new Error('Hesap bulunamadı.'); account.parentId = targetId; })) toast(targetId ? 'Hesap hiyerarşisi güncellendi' : 'Hesap ana seviyeye taşındı');
-  });
-  document.addEventListener('pointercancel', reset);
-  window.addEventListener('blur', reset);
-  document.addEventListener('click', event => { if (Date.now() < ignoreClickUntil && event.target.closest('[data-drag-id]')) { event.preventDefault(); event.stopImmediatePropagation(); } }, true);
-})();
 
 let importCheckpoint = false;
 loadInitialState();

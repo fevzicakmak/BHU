@@ -10,6 +10,7 @@ Dosyaları bir statik web sunucusundan veya GitHub Pages üzerinden sunun. HTTPS
 - `styles.css`: responsive arayüz ve hesap ağacı.
 - `core.js`: doğrulama, eski veri dönüşümü, kuruş hesabı ve filtreler.
 - `app.js`: arayüz, form taslağı, yerel kayıt, yedekleme ve etkileşimler.
+- `drag.js`: fare/dokunmatik/klavye ile hesap taşıma, kenarda otomatik kaydırma ve geri alma.
 
 ## Günlük kullanım
 
@@ -19,7 +20,10 @@ Dosyaları bir statik web sunucusundan veya GitHub Pages üzerinden sunun. HTTPS
 4. **Kaydet ve devam et**, aynı hesap/tarih/türle boş bir sonraki işlem açar. **Ctrl/Cmd+Enter** işlemi kaydeder.
 5. Hesap makinesi, hesap seçimi ve uygulama sekmeleri açık taslağı silmez. Taslak bu oturumun belleğindedir; sayfa kapatılırsa kaybolur. Kaydedilmemiş taslakta çıkış uyarısı gösterilir.
 6. Tarih, tutar ve arama filtreleri anında uygulanır. İşlemler ekranındaki özet, filtrelenmiş listeyi; diğer ekranlar tüm dönemi gösterir.
-7. Hesap hiyerarşisini kartın tutamacıyla veya **Düzenle → Üst hesap** seçimiyle değiştirin. Kartın geri kalan alanı mobilde kaydırma için kullanılabilir.
+7. Hesap kartının üst kısmından veya geniş **⠿** düğmesinden tutup sürükleyin. Yeşil hedefi ve bırakma açıklamasını kontrol edip bırakın. Kenarda bekletince ağaç yatay, sayfa dikey kayar. Fare sabit kalsa da kaydırma sürer.
+8. Telefonda **⠿** düğmesine dokunup hedef hesaba dokunarak da taşıyabilirsiniz. Bu modda ağacı normal şekilde kaydırabilirsiniz. **Ana hesap yap** alanı her zaman ekranın altında görünür. **İptal / Escape** taşıma yapmadan çıkar.
+9. Klavyede **⠿** düğmesine odaklanıp Enter basın. Oklarla hedef seçin; Home ana seviyeyi, End son uygun hesabı seçer. Enter/Boşluk bırakır, Escape iptal eder. **Düzenle → Üst hesap** seçimi de korunur.
+10. Taşıma sonrasında **Geri al** düğmesi 10 saniye gösterilir. Hesap yeniden taşınmışsa eski taşıma üzerine yazılmaz. Kaydetme başarısızsa hiyerarşi değiştirilmez. Alt hesaplar kaynakla birlikte taşınır. Dar boşluklar yakın hedefe çekilir; kendi altına veya 32 seviye sınırının dışına taşıma engellenir.
 
 **İşlemleri taşı**, mevcut kayıtların hesap bağlantısını değiştirir. Yeni gelir/gider oluşturmaz; para havalesi veya çift taraflı muhasebe fişi değildir. Bir hesabın yalnızca kendi işlemleri topluca taşınır, alt hesapların işlemleri taşınmaz.
 
@@ -50,6 +54,7 @@ Harici bağımlılık gerektirmeyen veri testleri:
 ```sh
 node --check app.js
 node --check core.js
+node --check drag.js
 node --test tests/core.test.js
 ```
 
@@ -59,8 +64,9 @@ Tarayıcı senaryoları Python Playwright ve Chromium gerektirir:
 python -m pip install playwright==1.62.0
 python -m playwright install chromium
 python tests/browser.py
+python tests/drag.py
 ```
 
 Yerel `/usr/bin/chromium` varsa kullanılır; `BROWSER_EXECUTABLE` ile değiştirilebilir. Yoksa Playwright'ın kurulu Chromium'u kullanılır. Testler gerçek uygulama dosyalarını yerel HTTP yanıtlarıyla sunar; üretim verilerine dokunmaz. Masaüstü/mobil form, hesap hiyerarşisi, dosya ekleme, kayıt kotası hatası, sekme çakışması, yedek geri yükleme, güvenli metin gösterimi ve eski veri dönüşümünü kontrol eder. Ekran görüntüleri yerel `test-artifacts/` klasörüne yazılır.
 
-GitHub Actions sözdizimi, temel veri testleri ve masaüstü/mobil tarayıcı senaryolarını çalıştırır.
+GitHub Actions sözdizimi, temel veri testleri, masaüstü/mobil kullanım ve hesap taşıma senaryolarını çalıştırır. Hesap taşıma testleri gerçek dokunma olayları, klavye, hedef toleransı, iptal, geri alma ve imleç sabitken devam eden yatay/dikey kaydırmayı kapsar.
