@@ -4,39 +4,45 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#087f5b">
+  <meta name="description" content="Hiyerarşik hesaplarla yerel gelir, gider ve kasa takibi.">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'self'">
   <title>Kasa Pro | Yerel Harcama Takibi</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css?v=2">
+  <script src="core.js?v=2" defer></script>
+  <script src="app.js?v=2" defer></script>
 </head>
 <body>
-  <div id="app" class="app-shell">
+  <a class="skip-link" href="#tab-content">İçeriğe geç</a>
+  <div id="app" class="app-shell" tabindex="-1">
     <header class="topbar safe-top">
       <div class="topbar-inner">
-        <div class="brand"><span class="brand-mark">₺</span><div><h1>Kasa Pro</h1><p id="active-kasa-label">Hesap seçilmedi</p></div></div>
+        <div class="brand"><span class="brand-mark" aria-hidden="true">₺</span><div><h1>Kasa Pro</h1><p id="active-kasa-label">Hesaplar yükleniyor…</p></div></div>
         <div class="header-actions">
-          <button class="header-button accent" data-action="open-flow" title="Hesap ağ akış şeması"><span>⌘</span><b>Akış Şeması</b></button>
-          <button class="header-button" data-action="open-settings" title="Ayarlar">⚙</button>
-          <button class="header-button" data-action="toggle-account-menu" title="Hesap değiştir"><span id="account-button-label">Hesap Seç</span><span>⌄</span></button>
-          <button class="header-button icon-only" data-action="open-add-account" title="Yeni kasa ekle">＋</button>
+          <button class="header-button accent" data-action="open-flow" title="Hesap ağ şeması" aria-label="Hesap ağ şemasını aç"><span aria-hidden="true">⌘</span><b>Hesaplar</b></button>
+          <button class="header-button" data-action="open-settings" aria-label="Ayarlar ve yedekleme" title="Ayarlar ve yedekleme">⚙</button>
+          <button id="account-menu-button" class="header-button account-switch" data-action="toggle-account-menu" aria-expanded="false" aria-controls="account-menu"><span id="account-button-label">Hesap Seç</span><span aria-hidden="true">⌄</span></button>
+          <button class="header-button icon-only" data-action="add-account" aria-label="Yeni ana hesap oluştur" title="Yeni ana hesap">＋</button>
         </div>
       </div>
-      <div id="account-menu" class="account-menu hidden"></div>
+      <div id="account-menu" class="account-menu hidden" aria-label="Hesap listesi"></div>
     </header>
     <main class="content safe-bottom">
-      <div id="notice" class="notice hidden"></div>
-      <section id="empty-state" class="empty-state hidden"></section>
-      <section id="dashboard" class="hidden">
-        <div id="summary" class="summary-grid"></div>
-        <div id="tab-content"></div>
-      </section>
+      <div id="sync-banner" class="sync-banner hidden" role="status"><span>Başka bir sekmede veriler değişti. Taslağınız korunur.</span><button class="link-button" data-action="reload-data">Güncel verileri yükle</button></div>
+      <div id="notice" class="notice hidden" role="alert"></div>
+      <div id="summary" class="summary-grid"></div>
+      <p id="summary-caption" class="summary-caption"></p>
+      <div id="tab-content" tabindex="-1"></div>
     </main>
-    <nav id="bottom-nav" class="bottom-nav hidden">
-      <button data-tab="list" class="nav-item active"><span>☷</span><small>İşlemler</small></button>
-      <button data-tab="network" class="nav-item"><span>⌘</span><small>Hesap Ağ Şeması</small></button>
-      <button data-tab="add" class="nav-item add-nav"><span>＋</span><small>Ekle</small></button>
-      <button data-tab="stats" class="nav-item"><span>▥</span><small>İstatistik</small></button>
+    <nav id="bottom-nav" class="bottom-nav safe-bottom" aria-label="Ana gezinme">
+      <button data-tab="list" class="nav-item"><span aria-hidden="true">☷</span><small>İşlemler</small></button>
+      <button data-tab="network" class="nav-item active"><span aria-hidden="true">⌘</span><small>Hesap ağ şeması</small></button>
+      <button data-tab="add" class="nav-item add-nav"><span aria-hidden="true">＋</span><small>İşlem ekle</small></button>
+      <button data-tab="stats" class="nav-item"><span aria-hidden="true">▥</span><small>İstatistik</small></button>
     </nav>
   </div>
   <div id="modal-root"></div>
-  <script src="app.js" defer></script>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <noscript><p>Uygulamayı kullanmak için JavaScript'i etkinleştirin.</p></noscript>
 </body>
 </html>
