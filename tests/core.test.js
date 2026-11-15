@@ -45,6 +45,7 @@ test('filters combine dates, Turkish search, type and amount without mutating re
   const f = { ...filters(), searchText: 'ipek', minAmount: '0', maxAmount: '0,10', startDate: '2026-11-15', endDate: '2026-11-15' };
   assert.deepEqual(Core.filterTransactions(txs, f).map(t => t.id), ['t1']);
   assert.equal(txs.length, 2);
+  assert.equal(Core.filterTransactions([{ ...txs[0], customerName: '  İPEK   ÇAĞRI ' }], { ...filters(), searchText: 'İpek Çağrı' }).length, 1);
   assert.throws(() => Core.filterTransactions(txs, { ...f, endDate: '2026-11-01' }));
   assert.throws(() => Core.filterTransactions(txs, { ...filters(), minAmount: '10', maxAmount: '1' }));
 });

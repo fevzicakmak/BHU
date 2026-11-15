@@ -11,6 +11,8 @@ Dosyaları bir statik web sunucusundan veya GitHub Pages üzerinden sunun. HTTPS
 - `core.js`: doğrulama, eski veri dönüşümü, kuruş hesabı ve filtreler.
 - `app.js`: arayüz, form taslağı, yerel kayıt, yedekleme ve etkileşimler.
 - `drag.js`: fare/dokunmatik/klavye ile hesap taşıma, kenarda otomatik kaydırma ve geri alma.
+- `suggestions.js`: yerel önerilerin indekslenmesi, Türkçe eşleştirme ve sıralama.
+- `autocomplete.js`: erişilebilir öneri listesi, dokunmatik/klavye seçimi ve hesap araması.
 
 ## Günlük kullanım
 
@@ -28,6 +30,26 @@ Dosyaları bir statik web sunucusundan veya GitHub Pages üzerinden sunun. HTTPS
 **İşlemleri taşı**, mevcut kayıtların hesap bağlantısını değiştirir. Yeni gelir/gider oluşturmaz; para havalesi veya çift taraflı muhasebe fişi değildir. Bir hesabın yalnızca kendi işlemleri topluca taşınır, alt hesapların işlemleri taşınmaz.
 
 **Üst hesabın toplamına dahil et** kapalıysa ilgili alt hesap ve onun altındaki hesaplar üst toplamdan hariç tutulur. Kendi ekranlarında kayıtları korunur.
+
+## Otomatik tamamlama
+
+Öneriler yalnızca mevcut yerel kayıtlardan üretilir; bir sunucuya gönderilmez. Yeni bir değer yazmak serbesttir. Öneri seçmek işlem kaydetmez, tutarı/tarihi veya diğer girişleri kendiliğinden değiştirmez.
+
+| Alan | Davranış |
+| --- | --- |
+| Cari / müşteri | Seçilen hesap ve alt hesaplarındaki geçmiş cariler. Büyük/küçük harf ve gereksiz boşluk tekrarları tek öneri olur. |
+| Açıklama | Seçilen hesap, gelir/gider türü ve cari bağlamı kullanılır. Cariyle ilişkili açıklamalar önce gösterilir; hazır açıklamalar da sunulur. |
+| İşlem araması | Listelenen hesap kapsamındaki cari ve açıklamalar önerilir. Seçilen ifade aramaya uygulanır. |
+| İşlemin hesabı, üst hesap, taşıma hedefi | Seçicinin yanındaki **⌕** düğmesiyle hesap adı aranır. Yerel seçici de çalışmaya devam eder. Üst/alt hesap döngüsü ve kaynak-hedef kısıtları önerilerde korunur. |
+| Yeni hesap adı | Mevcut hesap adlarını yeniden doldurmak yerine yeni ad yazılır; tekrar eden adlar doğrulamada engellenir. |
+| Tutar, tarih ve filtre tutarları | Yanlış finansal veri doldurmamak için geçmiş değer otomatik seçilmez. Doğrudan tutar girişi, tarih seçici ve gün kısayolları kullanılır. |
+
+- `ipek cagri` gibi Türkçe karakter kullanılmadan yazılan ifadeler de `İpek Çağrı` önerisini bulabilir. Kayıttaki yazım korunur.
+- Arama tüm geçmişi tarar; yalnızca son 40 kayıtla sınırlı değildir. Listede en fazla 8 metin veya 30 hesap önerisi gösterilir; daraltmak için yazın.
+- Öneriler kullanım sayısı ve güncelliğe göre sıralanır; açıklamalarda cari bağlamı öne çıkar. Öneri indeksi veri/hesap/bağlam değiştiğinde yenilenir, her tuşta geçmiş kayıtlar tekrar işlenmez.
+- **↑/↓** ile öneri seçilir, **Enter** ile uygulanır. **Escape** yalnızca önerileri kapatır; açık hesap penceresini kapatmaz. **Tab** metni olduğu gibi bırakır; yeni bir değer zorla seçilmez. Listede etkin öneri yokken ilk Enter listeyi kapatır, işlem kaydetmez.
+- Telefonda öneriye dokunabilirsiniz. Listeyi kaydırmak seçim yapmaz. Öneriler odak ve ekran klavyesiyle birlikte konumlanır; **×** ile kapatılabilir.
+- Eşleşmeyen hesap metni mevcut hesap seçimini değiştirmez. Hesap gerçekten seçilip işlem onaylanmadan kayıt taşınmaz.
 
 ## Kayıt ve veri güvenliği
 
@@ -55,7 +77,9 @@ Harici bağımlılık gerektirmeyen veri testleri:
 node --check app.js
 node --check core.js
 node --check drag.js
-node --test tests/core.test.js
+node --check suggestions.js
+node --check autocomplete.js
+node --test tests/core.test.js tests/suggestions.test.js
 ```
 
 Tarayıcı senaryoları Python Playwright ve Chromium gerektirir:
@@ -65,8 +89,9 @@ python -m pip install playwright==1.62.0
 python -m playwright install chromium
 python tests/browser.py
 python tests/drag.py
+python tests/autocomplete.py
 ```
 
 Yerel `/usr/bin/chromium` varsa kullanılır; `BROWSER_EXECUTABLE` ile değiştirilebilir. Yoksa Playwright'ın kurulu Chromium'u kullanılır. Testler gerçek uygulama dosyalarını yerel HTTP yanıtlarıyla sunar; üretim verilerine dokunmaz. Masaüstü/mobil form, hesap hiyerarşisi, dosya ekleme, kayıt kotası hatası, sekme çakışması, yedek geri yükleme, güvenli metin gösterimi ve eski veri dönüşümünü kontrol eder. Ekran görüntüleri yerel `test-artifacts/` klasörüne yazılır.
 
-GitHub Actions sözdizimi, temel veri testleri, masaüstü/mobil kullanım ve hesap taşıma senaryolarını çalıştırır. Hesap taşıma testleri gerçek dokunma olayları, klavye, hedef toleransı, iptal, geri alma ve imleç sabitken devam eden yatay/dikey kaydırmayı kapsar.
+GitHub Actions sözdizimi, veri/öneri testleri, masaüstü/mobil kullanım, hesap taşıma ve otomatik tamamlama senaryolarını çalıştırır. Hesap taşıma testleri gerçek dokunma olayları, klavye, hedef toleransı, iptal, geri alma ve imleç sabitken devam eden yatay/dikey kaydırmayı kapsar.

@@ -33,6 +33,8 @@ let draft = blankDraft();
 let calc = { display: '0', previous: null, operation: null, overwrite: false };
 const commonIncome = ['Satış', 'Hizmet bedeli', 'Tahsilat', 'Maaş', 'İade', 'Diğer gelir'];
 const commonExpense = ['Kira', 'Fatura', 'Malzeme', 'Ulaşım', 'Yemek', 'Maaş ödemesi', 'Diğer gider'];
+let suggestionState = null;
+const suggestionIndexes = new Map();
 
 function blankDraft(accountId = null) {
   return { id: null, original: null, kasaId: accountId, type: 'income', amount: '', customerName: '', description: '', date: today(), attachments: [], dirty: false };
@@ -168,6 +170,7 @@ function render() {
   if (!menu.classList.contains('hidden')) menu.innerHTML = accountMenuHTML();
   updateSaveButtons();
   updateSyncBanner();
+  document.dispatchEvent(new Event('kasa:render'));
 }
 function summaryHTML(txs) {
   const total = Core.totals(txs);
@@ -176,10 +179,10 @@ function summaryHTML(txs) {
 function filterHTML() {
   const active = Object.entries(filters).some(([key, value]) => key === 'type' ? value !== 'all' : value);
   return `<div class="panel filter-panel no-print">
-    <div class="search-line"><div class="input-wrap"><span class="input-icon" aria-hidden="true">⌕</span><input id="search-input" aria-label="İşlemlerde ara" value="${esc(filters.searchText)}" placeholder="Cari veya açıklama ara…" type="search"></div><button class="icon-button ${filterExpanded || active ? 'active' : ''}" data-action="toggle-filters" aria-label="Filtreler" aria-expanded="${filterExpanded}">☷</button></div>
+    <div class="search-line"><div class="input-wrap"><span class="input-icon" aria-hidden="true">⌕</span><input id="search-input" data-autocomplete="search" autocomplete="off" name="transaction-search" aria-label="İşlemlerde ara" value="${esc(filters.searchText)}" placeholder="Cari veya açıklama ara…" type="search"></div><button class="icon-button ${filterExpanded || active ? 'active' : ''}" data-action="toggle-filters" aria-label="Filtreler" aria-expanded="${filterExpanded}">☷</button></div>
     ${filterExpanded ? `<div class="filters"><div class="quick-dates">${[['all', 'Tüm dönem'], ['today', 'Bugün'], ['month', 'Bu ay']].map(([key, label]) => `<button data-action="quick-date" data-range="${key}">${label}</button>`).join('')}</div>
     <div class="filter-block"><span class="field-label">İşlem türü</span><div class="segmented">${[['all', 'Tümü'], ['income', 'Gelir'], ['expense', 'Gider']].map(([key, label]) => `<button data-filter-type="${key}" class="${filters.type === key ? 'selected' : ''}" aria-pressed="${filters.type === key}">${label}</button>`).join('')}</div></div>
-    <div class="filter-grid">${[['start-date', 'Başlangıç', 'date', filters.startDate], ['end-date', 'Bitiş', 'date', filters.endDate], ['min-amount', 'Min. tutar (₺)', 'text', filters.minAmount], ['max-amount', 'Maks. tutar (₺)', 'text', filters.maxAmount]].map(([id, label, type, value]) => `<div class="field"><label for="${id}">${label}</label><input id="${id}" type="${type}" ${type === 'text' ? 'inputmode="decimal" placeholder="0,00"' : ''} value="${esc(value)}"></div>`).join('')}</div>
+    <div class="filter-grid">${[['start-date', 'Başlangıç', 'date', filters.startDate], ['end-date', 'Bitiş', 'date', filters.endDate], ['min-amount', 'Min. tutar (₺)', 'text', filters.minAmount], ['max-amount', 'Maks. tutar (₺)', 'text', filters.maxAmount]].map(([id, label, type, value]) => `<div class="field"><label for="${id}">${label}</label><input id="${id}" autocomplete="off" type="${type}" ${type === 'text' ? 'inputmode="decimal" placeholder="0,00"' : ''} value="${esc(value)}"></div>`).join('')}</div>
     <div class="filter-block"><span class="field-label">Gruplama</span><div class="segmented four">${[['none', 'Yok'], ['daily', 'Günlük'], ['monthly', 'Aylık'], ['yearly', 'Yıllık']].map(([key, label]) => `<button data-group-by="${key}" class="${groupBy === key ? 'selected' : ''}" aria-pressed="${groupBy === key}">${label}</button>`).join('')}</div></div>${active ? '<button class="clear-filters" data-action="clear-filters">Filtreleri temizle</button>' : ''}</div>` : ''}</div>`;
 }
 function groupLabel(key) {
@@ -209,20 +212,34 @@ function formHTML() {
     <div class="form-heading"><div><p class="eyebrow">KASA HAREKETİ</p><h2>${draft.id ? 'İşlemi düzenle' : 'Yeni işlem'}</h2></div>${draft.dirty || draft.id ? '<button type="button" class="link-button" data-action="reset-draft">Yeni işlem</button>' : ''}</div>
     <div class="form-body"><div class="type-toggle">${[['income', '＋ Gelir'], ['expense', '− Gider']].map(([type, label]) => `<button type="button" data-form-type="${type}" class="${draft.type === type ? `selected ${type}` : ''}" aria-pressed="${draft.type === type}">${label}</button>`).join('')}</div>
     <div class="field amount-field"><label for="form-amount">Tutar (₺) <span aria-hidden="true">*</span></label><div class="amount-entry"><span aria-hidden="true">₺</span><input id="form-amount" name="amount" type="text" inputmode="decimal" autocomplete="off" required maxlength="20" placeholder="0,00" value="${esc(draft.amount)}" aria-describedby="amount-help form-error"><button type="button" class="calc-trigger" data-action="open-calculator" aria-label="Hesap makinesini aç">⌗</button></div><p id="amount-help" class="field-hint">Tutarı yazın; hesaplamak için sağdaki simgeyi kullanın.</p></div>
-    <div class="form-grid"><div class="field"><label for="form-account">İşlemin hesabı *</label><select id="form-account" required>${accountOptions(draft.kasaId)}</select></div><div class="field"><label for="form-date">Tarih *</label><input id="form-date" type="date" min="1900-01-01" max="9999-12-31" required value="${esc(draft.date)}"><div class="date-shortcuts"><button type="button" data-action="form-date" data-offset="0">Bugün</button><button type="button" data-action="form-date" data-offset="-1">Dün</button></div></div></div>
-    <div class="field"><label for="form-customer">Cari / müşteri <span class="optional">isteğe bağlı</span></label><input id="form-customer" list="customer-suggestions" maxlength="200" autocomplete="off" value="${esc(draft.customerName)}" placeholder="Müşteri veya cari adı"><datalist id="customer-suggestions">${suggestions('customerName').map(s => `<option value="${esc(s)}"></option>`).join('')}</datalist></div>
-    <div class="field"><label for="form-description">Açıklama <span class="optional">isteğe bağlı</span></label><input id="form-description" list="description-suggestions" maxlength="2000" autocomplete="off" value="${esc(draft.description)}" placeholder="İşlem ne içindi?"><datalist id="description-suggestions">${suggestions('description').map(s => `<option value="${esc(s)}"></option>`).join('')}</datalist><div id="description-chips" class="suggestion-chips">${descriptionChips()}</div></div>
+    <div class="form-grid"><div class="field"><label for="form-account">İşlemin hesabı *</label><select id="form-account" name="account" data-searchable="İşlemin hesabı" required>${accountOptions(draft.kasaId)}</select></div><div class="field"><label for="form-date">Tarih *</label><input id="form-date" name="transaction-date" autocomplete="off" type="date" min="1900-01-01" max="9999-12-31" required value="${esc(draft.date)}"><div class="date-shortcuts"><button type="button" data-action="form-date" data-offset="0">Bugün</button><button type="button" data-action="form-date" data-offset="-1">Dün</button></div></div></div>
+    <div class="field"><label for="form-customer">Cari / müşteri <span class="optional">isteğe bağlı</span></label><input id="form-customer" name="customerName" data-autocomplete="customerName" list="customer-suggestions" maxlength="200" autocomplete="off" value="${esc(draft.customerName)}" placeholder="Müşteri veya cari adı"><datalist id="customer-suggestions">${suggestions('customerName').map(s => `<option value="${esc(s)}"></option>`).join('')}</datalist></div>
+    <div class="field"><label for="form-description">Açıklama <span class="optional">isteğe bağlı</span></label><input id="form-description" name="description" data-autocomplete="description" list="description-suggestions" maxlength="2000" autocomplete="off" value="${esc(draft.description)}" placeholder="İşlem ne içindi?"><datalist id="description-suggestions">${suggestions('description').map(s => `<option value="${esc(s)}"></option>`).join('')}</datalist><div id="description-chips" class="suggestion-chips">${descriptionChips()}</div></div>
     <details class="attachment-section" ${draft.attachments.length ? 'open' : ''}><summary>⌕ Belge veya fotoğraf ekle <span>${draft.attachments.length ? `(${draft.attachments.length})` : 'isteğe bağlı'}</span></summary><div class="attachment-body"><label class="upload-label" for="file-input">＋ Dosya seç</label><input id="file-input" type="file" multiple accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif,.pdf,.doc,.docx,.xls,.xlsx,.txt"><p class="field-hint">Yeni dosya başına en fazla 1 MB. Büyük fotoğrafları eklemeden önce küçültün.</p><div id="form-attachments" class="attachment-list">${attachmentsHTML(draft.attachments, true)}</div><p id="file-error" class="inline-error" role="alert" tabindex="-1"></p></div></details>
     <p id="form-error" class="inline-error" role="alert" tabindex="-1"></p></div>
     <div class="form-footer"><p id="draft-status" class="field-hint"></p><div class="form-save-actions"><button type="submit" class="primary-button ${draft.type === 'expense' ? 'expense' : ''}" data-save>${draft.id ? 'Değişiklikleri kaydet' : draft.type === 'income' ? 'Geliri kaydet' : 'Gideri kaydet'}</button>${!draft.id ? '<button type="submit" class="secondary-button" name="saveAnother" value="yes" data-save>Kaydet ve devam et</button>' : ''}</div></div></form>`;
 }
-function suggestions(field) {
-  const ids = descendants(draft.kasaId);
-  const past = state.transactions.filter(t => ids.has(t.kasaId)).slice().reverse().map(t => t[field]).filter(Boolean);
-  const common = field === 'description' ? draft.type === 'expense' ? commonExpense : commonIncome : [];
-  return [...new Set([...past, ...common])].slice(0, 40);
+function entrySuggestions(field, query = '', limit = 8) {
+  if (suggestionState !== state) { suggestionIndexes.clear(); suggestionState = state; }
+  const scope = field === 'search' ? state.activeKasaId : draft.kasaId;
+  const context = JSON.stringify([scope, field === 'description' ? draft.type : '', field === 'description' ? window.KasaSuggestions.fold(draft.customerName) : '']);
+  let cached = suggestionIndexes.get(field);
+  if (!cached || cached.context !== context) {
+    const ids = descendants(scope, field === 'search');
+    const index = window.KasaSuggestions.createIndex({ transactions: state.transactions, accountIds: [...ids], field,
+      type: draft.type, customerName: draft.customerName, common: draft.type === 'expense' ? commonExpense : commonIncome });
+    cached = { context, index }; suggestionIndexes.set(field, cached);
+  }
+  return cached.index.query(query, limit);
 }
-function descriptionChips() { return suggestions('description').slice(0, 5).map(s => `<button type="button" data-description="${esc(s)}">${esc(s)}</button>`).join(''); }
+function suggestions(field) { return entrySuggestions(field, '', 40).map(option => option.value); }
+function descriptionChips() { return entrySuggestions('description', '', 5).map(s => `<button type="button" data-description="${esc(s.value)}">${esc(s.value)}</button>`).join(''); }
+function refreshEntrySuggestions() {
+  if ($('#customer-suggestions')) $('#customer-suggestions').innerHTML = suggestions('customerName').map(s => `<option value="${esc(s)}"></option>`).join('');
+  if ($('#description-suggestions')) $('#description-suggestions').innerHTML = suggestions('description').map(s => `<option value="${esc(s)}"></option>`).join('');
+  if ($('#description-chips')) $('#description-chips').innerHTML = descriptionChips();
+  document.dispatchEvent(new Event('kasa:suggestions'));
+}
 function attachmentsHTML(files, removable) {
   return files.map(a => `<div class="attachment">${['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(a.type) ? `<img src="${esc(a.url)}" alt="" loading="lazy">` : '<span class="attachment-icon" aria-hidden="true">▤</span>'}<span class="attachment-info"><strong>${esc(a.name)}</strong><small>${(a.size / 1024).toFixed(1)} KB</small></span>${removable ? `<button type="button" class="close-button" data-remove-attachment="${esc(a.id)}" aria-label="${esc(a.name)} belgesini kaldır">×</button>` : `<button type="button" class="link-button" data-download-attachment="${esc(a.id)}">İndir</button>`}</div>`).join('');
 }
@@ -251,12 +268,14 @@ function openModal(title, content, footer = '') {
   if (modalCleanup) { modalCleanup(); modalCleanup = null; }
   $('#modal-root').innerHTML = `<div class="modal-backdrop"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1"><div class="modal-head"><h2 id="modal-title">${esc(title)}</h2><button type="button" class="close-button" data-action="close-modal" aria-label="Pencereyi kapat">×</button></div><div class="modal-body">${content}</div>${footer ? `<div class="modal-footer">${footer}</div>` : ''}</section></div>`;
   document.body.classList.add('modal-open');
+  document.dispatchEvent(new Event('kasa:render'));
   const focusTarget = $('.modal [autofocus]') || $('.modal');
   focusTarget.focus();
 }
 function closeModal() {
   if (modalCleanup) { modalCleanup(); modalCleanup = null; }
   $('#modal-root').replaceChildren();
+  document.dispatchEvent(new Event('kasa:render'));
   pendingImport = null; importCheckpoint = false;
   document.body.classList.remove('modal-open');
   if (modalTrigger?.isConnected) modalTrigger.focus();
@@ -266,7 +285,7 @@ function closeModal() {
 function accountModal(accountId = null, parentId = null) {
   const account = state.kasalar.find(k => k.id === accountId);
   const parent = account?.parentId || parentId || '';
-  openModal(account ? 'Hesabı düzenle' : parent ? 'Alt hesap ekle' : 'Yeni ana hesap', `<form id="account-form" data-account-id="${esc(accountId || '')}" novalidate><div class="field"><label for="account-name">Hesap adı *</label><input id="account-name" maxlength="120" value="${esc(account?.name || '')}" required autofocus></div><div class="field"><label for="account-parent">Üst hesap</label><select id="account-parent"><option value="">Üst hesap yok (ana hesap)</option>${accountOptions(parent, accountId ? descendants(accountId) : new Set())}</select></div><label class="check-field"><input id="account-included" type="checkbox" ${account?.includeInParentTotals !== false ? 'checked' : ''}>Üst hesabın toplamına dahil et</label><p class="field-hint">Ana hesaplarda bu seçim kullanılmaz. Hariç tutulan alt hesabın kendi toplamı korunur.</p><p id="account-error" class="inline-error" role="alert" tabindex="-1"></p><div class="form-actions"><button type="button" class="secondary-button" data-action="close-modal">İptal</button><button type="submit" class="primary-button" data-save>${account ? 'Kaydet' : 'Hesabı oluştur'}</button></div></form>`);
+  openModal(account ? 'Hesabı düzenle' : parent ? 'Alt hesap ekle' : 'Yeni ana hesap', `<form id="account-form" data-account-id="${esc(accountId || '')}" novalidate><div class="field"><label for="account-name">Hesap adı *</label><input id="account-name" name="account-name" autocomplete="off" maxlength="120" value="${esc(account?.name || '')}" required autofocus></div><div class="field"><label for="account-parent">Üst hesap</label><select id="account-parent" name="parent-account" data-searchable="Üst hesap"><option value="">Üst hesap yok (ana hesap)</option>${accountOptions(parent, accountId ? descendants(accountId) : new Set())}</select></div><label class="check-field"><input id="account-included" type="checkbox" ${account?.includeInParentTotals !== false ? 'checked' : ''}>Üst hesabın toplamına dahil et</label><p class="field-hint">Ana hesaplarda bu seçim kullanılmaz. Hariç tutulan alt hesabın kendi toplamı korunur.</p><p id="account-error" class="inline-error" role="alert" tabindex="-1"></p><div class="form-actions"><button type="button" class="secondary-button" data-action="close-modal">İptal</button><button type="submit" class="primary-button" data-save>${account ? 'Kaydet' : 'Hesabı oluştur'}</button></div></form>`);
 }
 async function saveAccount(form) {
   const name = $('#account-name').value.trim();
@@ -332,7 +351,7 @@ function moveModal(type, sourceId, deleting = false) {
   if (!source) return;
   if (state.kasalar.length < 2) { notice('İşlemleri taşımak için önce başka bir hesap oluşturun.'); return; }
   const count = tx ? 1 : state.transactions.filter(t => t.kasaId === source.id).length;
-  openModal('İşlemleri başka hesaba taşı', `<p><strong>${esc(source.name)}</strong> hesabından ${count} işlem taşınacak.</p><p class="field-hint">İşlemlerin hesap bağlantısı değişir; yeni gelir veya gider oluşmaz. Alt hesapların işlemleri taşınmaz.</p><form id="move-form" data-kind="${type}" data-id="${esc(sourceId)}"><div class="field"><label for="move-target">Hedef hesap</label><select id="move-target">${accountOptions('', new Set([source.id]))}</select></div>${type === 'account' ? `<label class="check-field"><input type="checkbox" id="delete-source" ${deleting ? 'checked' : ''}>Taşıdıktan sonra kaynak hesabı sil</label><p class="field-hint">Kaynak silinirse alt hesapları bir üst seviyeye alınır.</p>` : ''}<p id="move-error" class="inline-error" role="alert" tabindex="-1"></p><button type="submit" class="primary-button" data-save>İşlemleri taşı</button></form>`);
+  openModal('İşlemleri başka hesaba taşı', `<p><strong>${esc(source.name)}</strong> hesabından ${count} işlem taşınacak.</p><p class="field-hint">İşlemlerin hesap bağlantısı değişir; yeni gelir veya gider oluşmaz. Alt hesapların işlemleri taşınmaz.</p><form id="move-form" data-kind="${type}" data-id="${esc(sourceId)}"><div class="field"><label for="move-target">Hedef hesap</label><select id="move-target" name="target-account" data-searchable="Hedef hesap">${accountOptions('', new Set([source.id]))}</select></div>${type === 'account' ? `<label class="check-field"><input type="checkbox" id="delete-source" ${deleting ? 'checked' : ''}>Taşıdıktan sonra kaynak hesabı sil</label><p class="field-hint">Kaynak silinirse alt hesapları bir üst seviyeye alınır.</p>` : ''}<p id="move-error" class="inline-error" role="alert" tabindex="-1"></p><button type="submit" class="primary-button" data-save>İşlemleri taşı</button></form>`);
 }
 function removeAccount(next, id) {
   const account = next.kasalar.find(k => k.id === id);
@@ -601,10 +620,7 @@ document.addEventListener('change', async event => {
   const el = event.target;
   if (draftFields[el.id]) {
     setDraftField(draftFields[el.id], el.value);
-    if (el.id === 'form-account') {
-      $('#customer-suggestions').innerHTML = suggestions('customerName').map(s => `<option value="${esc(s)}"></option>`).join('');
-      $('#description-chips').innerHTML = descriptionChips();
-    }
+    if (el.id === 'form-account' || el.id === 'form-customer') refreshEntrySuggestions();
   }
   if (el.id === 'file-input') await readAttachments(el.files);
   if (el.id === 'import-input') { importCheckpoint = false; await inspectImport(el.files[0]); if (el.isConnected) el.value = ''; }
@@ -617,7 +633,7 @@ document.addEventListener('keydown', event => {
     return;
   }
   if (modal && event.key === 'Tab') {
-    const elements = [...modal.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), a[href], [tabindex="0"]')].filter(el => el.getClientRects().length);
+    const elements = [...modal.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), a[href], [tabindex="0"]')].filter(el => el.tabIndex >= 0 && el.getClientRects().length);
     if (!elements.length) { event.preventDefault(); modal.focus(); return; }
     const first = elements[0], last = elements.at(-1);
     if (event.shiftKey && (document.activeElement === first || document.activeElement === modal)) { event.preventDefault(); last.focus(); }

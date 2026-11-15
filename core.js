@@ -140,14 +140,14 @@
     return { income, expense, balance: income - expense };
   }
   function filterTransactions(transactions, filters) {
-    const q = filters.searchText.trim().toLocaleLowerCase('tr-TR');
+    const q = normalizeName(filters.searchText);
     const min = filters.minAmount ? parseCents(filters.minAmount, true) : 0;
     const max = filters.maxAmount ? parseCents(filters.maxAmount, true) : MAX_CENTS;
     ensure(!filters.startDate || validDate(filters.startDate), 'Başlangıç tarihi geçersiz.');
     ensure(!filters.endDate || validDate(filters.endDate), 'Bitiş tarihi geçersiz.');
     ensure(!filters.startDate || !filters.endDate || filters.startDate <= filters.endDate, 'Başlangıç tarihi bitiş tarihinden sonra olamaz.');
     ensure(min <= max, 'Minimum tutar maksimum tutardan büyük olamaz.');
-    return transactions.filter(t => (!q || `${t.customerName} ${t.description}`.toLocaleLowerCase('tr-TR').includes(q))
+    return transactions.filter(t => (!q || normalizeName(`${t.customerName} ${t.description}`).includes(q))
       && (filters.type === 'all' || t.type === filters.type) && (!filters.startDate || t.date >= filters.startDate)
       && (!filters.endDate || t.date <= filters.endDate) && t.amountCents >= min && t.amountCents <= max)
       .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt));

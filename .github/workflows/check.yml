@@ -13,8 +13,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --check app.js && node --check core.js && node --check drag.js
-      - run: node --test tests/core.test.js
+      - run: node --check app.js && node --check core.js && node --check drag.js && node --check suggestions.js && node --check autocomplete.js
+      - run: node --test tests/core.test.js tests/suggestions.test.js
   browser:
     runs-on: ubuntu-latest
     steps:
@@ -26,6 +26,7 @@ jobs:
       - run: python -m playwright install --with-deps chromium
       - run: python tests/browser.py
       - run: python tests/drag.py
+      - run: python tests/autocomplete.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
