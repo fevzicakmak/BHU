@@ -68,9 +68,9 @@ Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı ş
 
 ## 5. Xcode ve TestFlight
 
-- [x] [CI 43741362516](https://github.com/fevzicakmak/BHU/actions/runs/43741362516) üzerinde macOS/Xcode native bağımlılık çözümü ve imzasız Simulator derlemesi başarılı.
+- [x] [CI 43770765202](https://github.com/fevzicakmak/BHU/actions/runs/43770765202) üzerinde macOS/Xcode native bağımlılık çözümü ve imzasız Simulator derlemesi başarılı.
 - [x] Aynı çalıştırmada 33 Node testi, 45 Chromium senaryosu ve ayrı Playwright WebKit kontrolü başarılı.
-- [ ] Native simülatöre kurulum ve uygulamanın gerçek köprüden veri okuyarak iki soğuk açılışı başarıyla tamamlandı. Son incelenen çalıştırma kurulum aşamasında zaman aşımına uğradı; native açılış kanıtı yok.
+- [ ] Native simülatöre kurulum ve uygulamanın gerçek köprüden veri okuyarak iki soğuk açılışı başarıyla tamamlandı. Son incelenen çalıştırma simülatör servis kontrolünde, BHU kurulmadan durdu; native açılış kanıtı yok.
 - [ ] Gerçek iPhone ve iPad'e kurulup [TestFlight planı](testflight-test-plan.md) uygulandı.
 - [ ] Dağıtım imzası/provisioning doğru; `Archive` ve `Validate App` başarılı.
 - [ ] Organizer / onaylı yükleme aracıyla App Store Connect'e build yüklendi.

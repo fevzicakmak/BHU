@@ -5,6 +5,7 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 | Dosya | Amaç |
 | --- | --- |
 | [app-store-metadata.tr.md](app-store-metadata.tr.md) | Türkçe mağaza metinleri, satın alma açıklaması ve inceleme notları |
+| [app-store-connect-setup.tr.md](app-store-connect-setup.tr.md) | Hesap sahibi için Team ID, uygulama/IAP kaydı, imzalama ve TestFlight adımları |
 | [privacy-policy.tr.md](privacy-policy.tr.md) | Fevzi Çakmak ve onaylı destek adresini içeren gizlilik politikası |
 | [privacy-data-map.md](privacy-data-map.md) | Veri akışları, App Privacy ve Privacy Manifest kontrolü |
 | [release-checklist.md](release-checklist.md) | Apple hesabı, imzalama, ürün tanımı ve yayın sırası |
@@ -32,7 +33,7 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 
 ## Son incelenen doğrulama kanıtı
 
-15 Kasım 2026 tarihindeki [CI çalıştırması 43741362516](https://github.com/fevzicakmak/BHU/actions/runs/43741362516) için:
+15 Kasım 2026 tarihindeki [CI çalıştırması 43770765202](https://github.com/fevzicakmak/BHU/actions/runs/43770765202) için:
 
 | Kontrol | Kanıtlanan sonuç |
 | --- | --- |
@@ -40,8 +41,8 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 | Chromium uygulama/taşıma/autocomplete/native-adapter senaryoları | 45 senaryo başarılı; native-adapter senaryoları taklit köprü kullanır |
 | Playwright WebKit kontrolü | Başarılı; gerçek iOS WKWebView veya cihaz kabulü yerine geçmez |
 | macOS bağımlılık çözümü ve imzasız iOS Simulator derlemesi | Başarılı |
-| Native simülatöre kurulum / soğuk açılış / gerçek köprü okuması | **Kanıtlanmadı:** açılış kontrolü kurulum aşamasında zaman aşımına uğradı; uygulamanın açıldığı veya native veriyi okuduğu gösterilmedi |
-| Bu çalıştırmanın simülatör uygulama ZIP'i | Kurulum kontrolü başarısız olduğu için paketleme/yükleme adımı atlandı; hata inceleme çıktısı ayrı tutuldu |
+| Native simülatöre kurulum / soğuk açılış / gerçek köprü okuması | **Kanıtlanmadı:** simülatör ana ekranı görüntülendi; uygulama kayıt servisi kontrolüne yeterli süre kalmadığı için BHU kurulmadan test durdu. Servislerin bekleme süreleri ayrıldı; yeni çalıştırma bekleniyor |
+| Bu çalıştırmanın simülatör uygulama ZIP'i | Hazır olma kontrolü başarısız olduğu için paketleme/yükleme adımı atlandı; hata inceleme çıktısı ayrı tutuldu |
 
 Bu sonuçlar imzalı IPA, gerçek Apple satın alma, native yazma/dosya koruması veya TestFlight kabulü değildir. Native başlangıç kontrolünün başarılı tekrarından sonra yeni çalıştırma numarasıyla bu tablo güncellenmelidir.
 

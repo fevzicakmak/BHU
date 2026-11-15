@@ -179,30 +179,36 @@ def main():
         command(['open', '-a', str(simulator_app), '--args', '-CurrentDeviceUDID', device], limit=20,
                 stage='Attach Simulator UI to owned device')
         run('bootstatus', device, '-b', limit=180, stage='Wait for OS boot status')
-        ready_deadline = min(deadline, time.monotonic() + 90)
         ready_screenshot = ARTIFACTS / 'native-ios-ready.png'
-        last_error = None
-        ready_attempt = 0
-        while time.monotonic() < ready_deadline:
-            ready_attempt += 1
-            try:
-                run('io', device, 'screenshot', '--type=png', str(ready_screenshot),
-                    limit=min(30, max(1, ready_deadline-time.monotonic())), stage=f'Readiness framebuffer attempt {ready_attempt}')
-                if not ready_screenshot.is_file() or ready_screenshot.read_bytes()[:8] != b'\x89PNG\r\n\x1a\n':
-                    raise RuntimeError('Simulator framebuffer did not return a PNG screenshot.')
-                registry = run('listapps', device, limit=min(30, max(1, ready_deadline-time.monotonic())),
-                               stage=f'Readiness application registry attempt {ready_attempt}')
-                if not registry:
-                    raise RuntimeError('Simulator application registry returned no response.')
-                metadata['readiness'] = {'framebufferPNG': True, 'applicationRegistryResponded': True, 'attempts': ready_attempt}
-                break
-            except (RuntimeError, TimeoutError) as error:
-                last_error = str(error)
-                print(f'Simulator services not ready: {last_error}', flush=True)
-                if time.monotonic() < ready_deadline:
-                    time.sleep(2)
-        else:
-            raise RuntimeError(f'Simulator service readiness expired before installing BHU: {last_error}')
+        metadata['readiness'] = {}
+        # Give each independent service its own bounded readiness phase. A slow
+        # first framebuffer must not leave the installation registry a 1s budget.
+        for service, budget in (('framebuffer', 120), ('application registry', 90)):
+            ready_deadline = min(deadline, time.monotonic() + budget)
+            last_error = None
+            ready_attempt = 0
+            while time.monotonic() < ready_deadline:
+                ready_attempt += 1
+                try:
+                    limit = min(30, max(1, ready_deadline-time.monotonic()))
+                    stage = f'Readiness {service} attempt {ready_attempt}'
+                    if service == 'framebuffer':
+                        run('io', device, 'screenshot', '--type=png', str(ready_screenshot), limit=limit, stage=stage)
+                        if not ready_screenshot.is_file() or ready_screenshot.read_bytes()[:8] != b'\x89PNG\r\n\x1a\n':
+                            raise RuntimeError('Simulator framebuffer did not return a PNG screenshot.')
+                    else:
+                        registry = run('listapps', device, limit=limit, stage=stage)
+                        if not registry:
+                            raise RuntimeError('Simulator application registry returned no response.')
+                    metadata['readiness'][service] = {'responded': True, 'attempts': ready_attempt}
+                    break
+                except (RuntimeError, TimeoutError) as error:
+                    last_error = str(error)
+                    print(f'Simulator services not ready: {last_error}', flush=True)
+                    if time.monotonic() < ready_deadline:
+                        time.sleep(2)
+            else:
+                raise RuntimeError(f'Simulator {service} readiness expired before installing BHU: {last_error}')
         run('install', device, str(test_app), limit=120, stage='Install signed simulator test copy')
         container = Path(run('get_app_container', device, args.bundle_id, 'data')).resolve()
         if not container.is_dir() or device not in container.parts:
