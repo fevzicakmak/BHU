@@ -38,7 +38,9 @@ jobs:
           retention-days: 7
 
   ios-build:
-    runs-on: macos-15
+    # Keep the host architecture explicit; the ARM image stalled in simulator
+    # graphics readiness before BHU was installed. The same SDK is used here.
+    runs-on: macos-15-intel
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4

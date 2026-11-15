@@ -33,7 +33,7 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 
 ## Son incelenen doğrulama kanıtı
 
-15 Kasım 2026 tarihindeki [CI çalıştırması 43770765202](https://github.com/fevzicakmak/BHU/actions/runs/43770765202) için:
+15 Kasım 2026 tarihindeki [CI çalıştırması 43771599329](https://github.com/fevzicakmak/BHU/actions/runs/43771599329) için:
 
 | Kontrol | Kanıtlanan sonuç |
 | --- | --- |
@@ -41,7 +41,7 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 | Chromium uygulama/taşıma/autocomplete/native-adapter senaryoları | 45 senaryo başarılı; native-adapter senaryoları taklit köprü kullanır |
 | Playwright WebKit kontrolü | Başarılı; gerçek iOS WKWebView veya cihaz kabulü yerine geçmez |
 | macOS bağımlılık çözümü ve imzasız iOS Simulator derlemesi | Başarılı |
-| Native simülatöre kurulum / soğuk açılış / gerçek köprü okuması | **Kanıtlanmadı:** simülatör ana ekranı görüntülendi; uygulama kayıt servisi kontrolüne yeterli süre kalmadığı için BHU kurulmadan test durdu. Servislerin bekleme süreleri ayrıldı; yeni çalıştırma bekleniyor |
+| Native simülatöre kurulum / soğuk açılış / gerçek köprü okuması | **Kanıtlanmadı:** ARM test makinesindeki simülatör görüntü servisi zaman aşımına uğradı; BHU kurulmadı. Aynı SDK ve aynı doğrulama koşullarıyla açıkça seçilmiş Intel test makinesinde yeniden deneniyor |
 | Bu çalıştırmanın simülatör uygulama ZIP'i | Hazır olma kontrolü başarısız olduğu için paketleme/yükleme adımı atlandı; hata inceleme çıktısı ayrı tutuldu |
 
 Bu sonuçlar imzalı IPA, gerçek Apple satın alma, native yazma/dosya koruması veya TestFlight kabulü değildir. Native başlangıç kontrolünün başarılı tekrarından sonra yeni çalıştırma numarasıyla bu tablo güncellenmelidir.
