@@ -13,15 +13,16 @@ Bu liste, kod hazırlığından mağaza gönderimine kadar yapılacak somut işl
 - [ ] App Store Connect uygulama kaydı ve SKU oluşturuldu.
 - [ ] Paid Apps Agreement, vergi ve ödeme/banka bilgileri tamamlandı.
 - [x] Kamuya açık destek adresi **fvzckmk35@gmail.com** olarak onaylandı; `privacy.html` ve `support.html` içerikleri Fevzi Çakmak kimliğiyle tamamlandı.
-- [ ] https://fevzicakmak.github.io/BHU/privacy.html ve https://fevzicakmak.github.io/BHU/support.html yayından sonra erişilebilirlik/içerik kontrolünden geçti.
+- [x] https://fevzicakmak.github.io/BHU/privacy.html ve https://fevzicakmak.github.io/BHU/support.html 15 Kasım 2026'da canlı HTTP 200, kimlik/iletişim, bağlantı ve mobil taşma kontrolünden geçti.
 
 Kod veya depo içine Apple parolası, özel anahtar, dağıtım sertifikası, provisioning profile ya da App Store Connect API anahtarı yazılmaz. Bu kimlik bilgileri gerekli aşamada sahibinin güvenli hesabı/CI secret yönetimiyle sağlanır.
 
 ## 2. Uygulama paketi
 
-- [ ] Native paket kendi web dosyalarını içeriyor; uzak bir sitenin yüklenmesine bağlı değil.
+- [x] Paketleme betiği uygulama/gizlilik/destek dosyalarını ve yerel Capacitor köprüsünü `dist/` içine alıyor; CI native senkronizasyon ve derleme başarılı. Gerçek çevrimdışı açılış aşağıdaki ayrı kontroldür.
 - [ ] Uçak modunda ilk açılış ve daha önce kaydedilmiş işlemler çalışıyor.
-- [ ] Üretim Capacitor yapılandırmasında geliştirme `server.url`, canlı yeniden yükleme adresi veya hata ayıklama köprüsü yok.
+- [x] Kaynak Capacitor yapılandırmasında uzak `server.url` veya canlı yeniden yükleme adresi yok.
+- [ ] Son Release arşivinde geliştirme/hata ayıklama ayarları ve paket içeriği ayrıca doğrulandı.
 - [ ] Native JSON depolaması başarıyı gerçekten dosyaya yazıldıktan sonra bildiriyor; hata halinde formu ve önceki dosyayı koruyor.
 - [ ] Web/Safari kayıtları JSON yedeğiyle native uygulamaya aktarılabiliyor. İki uygulama alanının kendiliğinden ortak veri kullandığı varsayılmıyor.
 - [ ] App Store sürüm/build numarası tekil ve doğru; görünen ad, ikon ve launch ekranı nihai.
@@ -53,7 +54,7 @@ Geliştirme `.storekit` dosyasında başarılı satın alma görmek, gerçek ür
 
 - [ ] [Veri haritası](privacy-data-map.md) son native kod/bağımlılıklar/ağ kayıtlarıyla karşılaştırıldı.
 - [x] [Gizlilik politikası](privacy-policy.tr.md) gerçek kimlik, onaylı iletişim ve 15 Kasım 2026 tarihiyle tamamlandı.
-- [ ] Politikanın kamuya açık HTTPS URL'si son yayın üzerinde doğrulandı.
+- [x] Politikanın kamuya açık HTTPS URL'si 15 Kasım 2026'da son canlı sayfada HTTP 200 ve onaylı kimlik/iletişim içeriğiyle doğrulandı.
 - [ ] App Privacy yanıtları son veri akışıyla tutarlı. “Data Not Collected” koşulsuz varsayılmadı.
 - [ ] Privacy Manifest ve Required Reason API beyanları arşivden doğrulandı.
 - [ ] Kullanılmayan hassas izinler/yetenekler yok; dosya seçicisindeki isteğe bağlı kamera yolunun Türkçe kullanım açıklaması ve izin ret davranışı gerçek cihazda test edildi.
@@ -67,8 +68,9 @@ Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı ş
 
 ## 5. Xcode ve TestFlight
 
-- [ ] Desteklenen güncel Xcode/macOS ortamında native bağımlılıklar çözüldü.
-- [ ] Otomatik testler ve imzasız simulator build başarılı.
+- [x] [CI 43741362516](https://github.com/fevzicakmak/BHU/actions/runs/43741362516) üzerinde macOS/Xcode native bağımlılık çözümü ve imzasız Simulator derlemesi başarılı.
+- [x] Aynı çalıştırmada 33 Node testi, 45 Chromium senaryosu ve ayrı Playwright WebKit kontrolü başarılı.
+- [ ] Native simülatöre kurulum ve uygulamanın gerçek köprüden veri okuyarak iki soğuk açılışı başarıyla tamamlandı. Son incelenen çalıştırma kurulum aşamasında zaman aşımına uğradı; native açılış kanıtı yok.
 - [ ] Gerçek iPhone ve iPad'e kurulup [TestFlight planı](testflight-test-plan.md) uygulandı.
 - [ ] Dağıtım imzası/provisioning doğru; `Archive` ve `Validate App` başarılı.
 - [ ] Organizer / onaylı yükleme aracıyla App Store Connect'e build yüklendi.

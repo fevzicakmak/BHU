@@ -93,7 +93,7 @@ Yerel depolama kotası tarayıcıya göre değişir. Yeni belge başına 1 MB, y
 
 En fazla 500 hesap, 32 hiyerarşi seviyesi ve 20.000 işlem desteklenir. Tek işlem 0,01–10.000.000.000 TL arasında olabilir. Güvenli tam sayı sınırını aşan toplamlar reddedilir.
 
-Veriler şifrelenmez; cihaz ve tarayıcı profiline erişebilen kişiler bunları okuyabilir. Cihazlar arasında otomatik eşitleme veya sunucu yedeği yoktur. **Ayarlar → Yedek indir** ile düzenli yedek alın. Yedek dosyaları belgeleri de içerir; güvenli saklayın. Tarayıcı verilerini temizlemek kayıtları siler. İndirme başlatıldı mesajı, dosyanın cihazda başarıyla saklandığını doğrulamaz.
+Uygulamanın kendi parola veya yedek şifrelemesi yoktur. Web kayıtları tarayıcı profilinde tutulur; iOS kayıt dosyası işletim sisteminin dosya korumasını kullanır. Dışa aktarılan JSON yedekleri okunabilir metindir. Cihazlar arasında otomatik eşitleme veya sunucu yedeği yoktur. **Ayarlar → Yedek indir** ile düzenli yedek alın. Yedek dosyaları belgeleri de içerir; güvenli saklayın. Tarayıcı verilerini temizlemek web kayıtlarını siler. İndirme başlatıldı mesajı, dosyanın cihazda başarıyla saklandığını doğrulamaz.
 
 ## Kontroller
 
@@ -108,11 +108,11 @@ node --check autocomplete.js
 node --test tests/*.test.js
 ```
 
-Tarayıcı senaryoları Python Playwright ve Chromium gerektirir:
+Tarayıcı senaryoları Python Playwright, Chromium ve WebKit gerektirir:
 
 ```sh
 python -m pip install playwright==1.62.0
-python -m playwright install chromium
+python -m playwright install chromium webkit
 python tests/browser.py
 python tests/drag.py
 python tests/autocomplete.py

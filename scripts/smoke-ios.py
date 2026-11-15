@@ -33,7 +33,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('app', type=Path)
     parser.add_argument('bundle_id')
-    parser.add_argument('--timeout', type=int, default=300, help='Command/startup budget; failure diagnostics add bounded time')
+    parser.add_argument('--timeout', type=int, default=600, help='Command/startup budget; failure diagnostics add bounded time')
     args = parser.parse_args()
     if sys.platform != 'darwin':
         raise SystemExit('Requires macOS, Xcode and a matching installed iOS Simulator runtime.')
@@ -49,20 +49,34 @@ def main():
     console_master = None
     console_log = None
     staging = None
-    metadata = {'bundleId': args.bundle_id, 'hostArchitecture': os.uname().machine}
+    metadata = {'bundleId': args.bundle_id, 'hostArchitecture': os.uname().machine, 'timings': []}
 
-    def command(parts, limit=45, check=True):
+    def command(parts, limit=45, check=True, stage=None):
         remaining = deadline - time.monotonic()
         if remaining <= 0:
-            raise TimeoutError('Native startup smoke exceeded its total time budget.')
-        result = subprocess.run(parts, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                timeout=min(limit, remaining), check=False)
-        if check and result.returncode:
-            raise RuntimeError(f'{parts[0]} {parts[1]} failed ({result.returncode}):\n{result.stdout[-3000:]}\n{result.stderr[-3000:]}')
-        return result.stdout.strip()
+            raise TimeoutError(f'Native startup time budget exhausted before {stage or parts[0]}.')
+        started = time.monotonic()
+        if stage:
+            print(f'BEGIN {stage}', flush=True)
+        record = {'stage': stage or ' '.join(parts[:3]), 'command': parts}
+        try:
+            result = subprocess.run(parts, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                    timeout=min(limit, remaining), check=False)
+            record['exitCode'] = result.returncode
+            if check and result.returncode:
+                raise RuntimeError(f'{stage or parts[0]} failed ({result.returncode}):\n{result.stdout[-3000:]}\n{result.stderr[-3000:]}')
+            return result.stdout.strip()
+        except subprocess.TimeoutExpired as error:
+            record['timedOut'] = True
+            raise TimeoutError(f'{stage or " ".join(parts[:3])} timed out after {min(limit, remaining):.1f}s.') from error
+        finally:
+            record['seconds'] = round(time.monotonic() - started, 2)
+            metadata['timings'].append(record)
+            if stage:
+                print(f'END {stage}: {record["seconds"]:.2f}s' + (' TIMEOUT' if record.get('timedOut') else ''), flush=True)
 
-    def run(*parts, limit=45, check=True):
-        return command(['xcrun', 'simctl', *parts], limit=limit, check=check)
+    def run(*parts, limit=45, check=True, stage=None):
+        return command(['xcrun', 'simctl', *parts], limit=limit, check=check, stage=stage)
 
     def pump_console(timeout=.25):
         if console_master is None or console_log is None:
@@ -106,6 +120,10 @@ def main():
             ('native-ios-unified.log', ['xcrun', 'simctl', 'spawn', device, 'log', 'show', '--last', '3m', '--style', 'compact', '--info', '--predicate',
              f'process == "App" OR subsystem BEGINSWITH "com.apple.WebKit" OR eventMessage CONTAINS[c] "{args.bundle_id}" OR eventMessage CONTAINS[c] "KasaStorage"'], 25),
             ('native-ios-launchctl.log', ['xcrun', 'simctl', 'spawn', device, 'launchctl', 'list'], 10),
+            ('native-ios-host-processes.log', ['ps', '-axo', 'pid,ppid,%cpu,%mem,etime,comm'], 5),
+            ('native-ios-host-memory.log', ['memory_pressure', '-Q'], 5),
+            ('native-ios-host-coresimulator.log', ['/usr/bin/log', 'show', '--last', '3m', '--style', 'compact', '--info', '--predicate',
+             'subsystem BEGINSWITH "com.apple.CoreSimulator" OR process == "Simulator" OR process == "SimulatorTrampoline"'], 20),
         ]
         for name, parts, timeout in captures:
             try:
@@ -152,9 +170,40 @@ def main():
             raise RuntimeError(f'Unexpected disposable simulator identifier: {device}')
         metadata['deviceUDID'] = device
         print(f'Active SDK {sdk}; booting matching {template["name"]} ({runtime}).', flush=True)
-        run('boot', device)
-        run('bootstatus', device, '-b', limit=180)
-        run('install', device, str(test_app), limit=45)
+        run('boot', device, stage='Boot disposable simulator')
+        simulator_app = Path(metadata['activeXcode']) / 'Applications' / 'Simulator.app'
+        if not simulator_app.is_dir():
+            raise RuntimeError(f'Active Xcode Simulator.app not found: {simulator_app}')
+        # A booted launchd is not sufficient evidence that headless graphics and
+        # MobileInstallation are ready. Attach the active Xcode's Simulator UI.
+        command(['open', '-a', str(simulator_app), '--args', '-CurrentDeviceUDID', device], limit=20,
+                stage='Attach Simulator UI to owned device')
+        run('bootstatus', device, '-b', limit=180, stage='Wait for OS boot status')
+        ready_deadline = min(deadline, time.monotonic() + 90)
+        ready_screenshot = ARTIFACTS / 'native-ios-ready.png'
+        last_error = None
+        ready_attempt = 0
+        while time.monotonic() < ready_deadline:
+            ready_attempt += 1
+            try:
+                run('io', device, 'screenshot', '--type=png', str(ready_screenshot),
+                    limit=min(30, max(1, ready_deadline-time.monotonic())), stage=f'Readiness framebuffer attempt {ready_attempt}')
+                if not ready_screenshot.is_file() or ready_screenshot.read_bytes()[:8] != b'\x89PNG\r\n\x1a\n':
+                    raise RuntimeError('Simulator framebuffer did not return a PNG screenshot.')
+                registry = run('listapps', device, limit=min(30, max(1, ready_deadline-time.monotonic())),
+                               stage=f'Readiness application registry attempt {ready_attempt}')
+                if not registry:
+                    raise RuntimeError('Simulator application registry returned no response.')
+                metadata['readiness'] = {'framebufferPNG': True, 'applicationRegistryResponded': True, 'attempts': ready_attempt}
+                break
+            except (RuntimeError, TimeoutError) as error:
+                last_error = str(error)
+                print(f'Simulator services not ready: {last_error}', flush=True)
+                if time.monotonic() < ready_deadline:
+                    time.sleep(2)
+        else:
+            raise RuntimeError(f'Simulator service readiness expired before installing BHU: {last_error}')
+        run('install', device, str(test_app), limit=120, stage='Install signed simulator test copy')
         container = Path(run('get_app_container', device, args.bundle_id, 'data')).resolve()
         if not container.is_dir() or device not in container.parts:
             raise RuntimeError('Unexpected simulator data container; refusing to seed it.')
@@ -172,6 +221,8 @@ def main():
         records = []
 
         for attempt in (1, 2):
+            launched_at = time.monotonic()
+            print(f'BEGIN Native cold launch {attempt}', flush=True)
             log_path = ARTIFACTS / f'native-ios-startup-{attempt}.log'
             console_log = log_path.open('wb')
             console_master, slave = pty.openpty()
@@ -209,7 +260,7 @@ def main():
                             'screenshot': screenshot.name, 'log': log_path.name})
             run('terminate', device, args.bundle_id, check=False, limit=15)
             stop_console()
-            print(f'PASS real native bridge and unchanged persistent snapshot on cold launch {attempt}.', flush=True)
+            print(f'PASS real native bridge and unchanged persistent snapshot on cold launch {attempt} ({time.monotonic()-launched_at:.2f}s).', flush=True)
 
         metadata.update({'launches': records, 'doesNotVerify': ['StoreKit purchases or restoration', 'native writes/file protection',
                         'real-device document/photo/printing flows', 'App Store distribution signing or upload']})

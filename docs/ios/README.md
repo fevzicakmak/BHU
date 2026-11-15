@@ -30,6 +30,23 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 - Destek URL'si: https://fevzicakmak.github.io/BHU/support.html
 - Kamuya açık sayfaların geçerlilik tarihi: **15 Kasım 2026**. Sayfalar kökteki `privacy.html` ve `support.html` dosyalarıdır; native pakete de çevrimdışı eklenebilir.
 
+## Son incelenen doğrulama kanıtı
+
+15 Kasım 2026 tarihindeki [CI çalıştırması 43741362516](https://github.com/fevzicakmak/BHU/actions/runs/43741362516) için:
+
+| Kontrol | Kanıtlanan sonuç |
+| --- | --- |
+| Node veri/öneri/native-adapter testleri | 33 test başarılı |
+| Chromium uygulama/taşıma/autocomplete/native-adapter senaryoları | 45 senaryo başarılı; native-adapter senaryoları taklit köprü kullanır |
+| Playwright WebKit kontrolü | Başarılı; gerçek iOS WKWebView veya cihaz kabulü yerine geçmez |
+| macOS bağımlılık çözümü ve imzasız iOS Simulator derlemesi | Başarılı |
+| Native simülatöre kurulum / soğuk açılış / gerçek köprü okuması | **Kanıtlanmadı:** açılış kontrolü kurulum aşamasında zaman aşımına uğradı; uygulamanın açıldığı veya native veriyi okuduğu gösterilmedi |
+| Bu çalıştırmanın simülatör uygulama ZIP'i | Kurulum kontrolü başarısız olduğu için paketleme/yükleme adımı atlandı; hata inceleme çıktısı ayrı tutuldu |
+
+Bu sonuçlar imzalı IPA, gerçek Apple satın alma, native yazma/dosya koruması veya TestFlight kabulü değildir. Native başlangıç kontrolünün başarılı tekrarından sonra yeni çalıştırma numarasıyla bu tablo güncellenmelidir.
+
+[Gizlilik](https://fevzicakmak.github.io/BHU/privacy.html) ve [destek](https://fevzicakmak.github.io/BHU/support.html) sayfaları 15 Kasım 2026'da canlı ortamda HTTP 200 ile açıldı; BHU / Fevzi Çakmak / onaylı e-posta, bağlantılar ve 375 px mobil taşma kontrolü doğrulandı.
+
 ## Tamamlanması gereken mağaza adımları
 
 1. Gerçek Apple Developer Team ID / erişimi, kesin Bundle ID ve App Store Connect uygulama kaydı.
@@ -37,4 +54,12 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 3. Dağıtım imzası, gerçek cihaz/TestFlight kabulü ve son derlemeye ait App Privacy / export-compliance yanıtları.
 4. iPhone/iPad gerçek ekran görüntüleri, son sürüm ve mağaza gönderimi.
 
-Mağaza metni ve kontrol listeleri bu adımları yapılmış saymaz. Gizlilik ve destek sayfaları ise onaylanmış kimlik/iletişim bilgisiyle yayımlanmak üzere tamamlandı; yayından sonra gerçek HTTPS URL'leri kontrol edilmelidir.
+Mağaza metni ve kontrol listeleri bu adımları yapılmış saymaz. Gizlilik ve destek sayfaları onaylanmış kimlik/iletişim bilgisiyle yayımlandı ve canlı URL'leri kontrol edildi. İçerikleri son App Store build'inin veri akışıyla yeniden karşılaştırılmalıdır.
+
+## Hesap sahibinden sıradaki bilgiler
+
+1. Apple Developer üyeliğindeki **10 karakterli Team ID** ve bu takımda App Store yayınlama yetkisinin bulunduğu doğrulaması.
+2. `com.fevzicakmak.bhu` Bundle ID'sinin kendi takımında kayıt durumu ve bu kimlikle açılmış **BHU App Store Connect uygulama kaydı**.
+3. `com.fevzicakmak.bhu.multipleaccounts` ürününün aynı uygulama altında **Non-Consumable** olarak oluşturulup oluşturulmadığı; Türkiye hedef 399 TL fiyatı ve gerekli ücretli uygulama sözleşmeleri/vergi/banka adımlarının durumu.
+
+Bu kimlikler şu anda koddaki aday değerlerdir. Team ID, Bundle ID ve ürün kimliği yapılandırma bilgisidir; Apple parolası, dağıtım özel anahtarı veya App Store Connect API özel anahtarı belgeye/sohbete yazılmamalıdır. Dağıtım imzası ve yükleme sahibinin güvenli Xcode/CI kimlik bilgileriyle tamamlanır.
