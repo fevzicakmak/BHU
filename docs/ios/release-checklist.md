@@ -5,12 +5,15 @@ Bu liste, kod hazırlığından mağaza gönderimine kadar yapılacak somut işl
 ## 1. Kimlik ve Apple hesabı
 
 - [x] App Store görünen adı **BHU** olarak seçildi.
-- [ ] BHU adının mağaza kullanılabilirliği ve hak sahibi/satıcı kimliği doğrulandı.
-- [ ] Apple Developer Program üyeliği etkin; doğru Team erişimi var.
+- [x] Hak sahibi/yayıncı kimliği kullanıcı tarafından **Fevzi Çakmak** olarak doğrulandı.
+- [ ] BHU adının mağaza kullanılabilirliği ve App Store Connect satıcı kaydı doğrulandı.
+- [x] Apple Developer Program üyeliğinin etkin olduğu kullanıcı tarafından doğrulandı.
+- [ ] Doğru Apple Developer Team ID ve erişimi yapılandırıldı.
 - [ ] Kesin Bundle ID seçildi ve geliştirici hesabında kaydedildi. Geliştirme yapılandırmasındaki geçici ID üretim kimliği olarak yanlışlıkla kullanılmadı.
 - [ ] App Store Connect uygulama kaydı ve SKU oluşturuldu.
 - [ ] Paid Apps Agreement, vergi ve ödeme/banka bilgileri tamamlandı.
-- [ ] Destek iletişim adresi, kamuya açık destek URL'si ve nihai gizlilik politikası URL'si gerçek ve çalışır durumda.
+- [x] Kamuya açık destek adresi **fvzckmk35@gmail.com** olarak onaylandı; `privacy.html` ve `support.html` içerikleri Fevzi Çakmak kimliğiyle tamamlandı.
+- [ ] https://fevzicakmak.github.io/BHU/privacy.html ve https://fevzicakmak.github.io/BHU/support.html yayından sonra erişilebilirlik/içerik kontrolünden geçti.
 
 Kod veya depo içine Apple parolası, özel anahtar, dağıtım sertifikası, provisioning profile ya da App Store Connect API anahtarı yazılmaz. Bu kimlik bilgileri gerekli aşamada sahibinin güvenli hesabı/CI secret yönetimiyle sağlanır.
 
@@ -49,7 +52,8 @@ Geliştirme `.storekit` dosyasında başarılı satın alma görmek, gerçek ür
 ## 4. Gizlilik, izinler ve mağaza metni
 
 - [ ] [Veri haritası](privacy-data-map.md) son native kod/bağımlılıklar/ağ kayıtlarıyla karşılaştırıldı.
-- [ ] [Gizlilik politikası taslağı](privacy-policy.tr.md) gerçek kimlik/iletişim/tarihle tamamlandı ve kamuya açık HTTPS URL'de yayımlandı.
+- [x] [Gizlilik politikası](privacy-policy.tr.md) gerçek kimlik, onaylı iletişim ve 15 Kasım 2026 tarihiyle tamamlandı.
+- [ ] Politikanın kamuya açık HTTPS URL'si son yayın üzerinde doğrulandı.
 - [ ] App Privacy yanıtları son veri akışıyla tutarlı. “Data Not Collected” koşulsuz varsayılmadı.
 - [ ] Privacy Manifest ve Required Reason API beyanları arşivden doğrulandı.
 - [ ] Kullanılmayan hassas izinler/yetenekler yok; dosya seçicisindeki isteğe bağlı kamera yolunun Türkçe kullanım açıklaması ve izin ret davranışı gerçek cihazda test edildi.

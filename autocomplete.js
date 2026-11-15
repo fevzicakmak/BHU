@@ -78,7 +78,7 @@
       top = Math.max(top, (document.querySelector('.topbar')?.getBoundingClientRect().bottom || 0) + 8);
       const nav = document.querySelector('.bottom-nav'); if (nav) bottom = Math.min(bottom, nav.getBoundingClientRect().top - 8);
     }
-    if (rect.top < top || rect.bottom > bottom) input.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'instant' });
+    if (rect.top < top || rect.bottom > bottom) input.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'auto' });
   }
   function openText(input) {
     if (input.disabled || input.readOnly) return;

@@ -25,7 +25,7 @@ npm run ios:open
 - Yedekler/ekler iOS paylaşım menüsüyle dışa aktarılır, yedekler sistem dosya seçicisiyle alınır, hesap raporları iOS yazdırma menüsüne gönderilir. Kamera izni yalnızca kullanıcı fotoğraf çekmeyi seçtiğinde istenir.
 - Web demo sürümünün tarayıcı depolaması ve mevcut kullanım davranışı korunur; StoreKit satın alma sistemi iOS içindir.
 
-Mağaza metinleri, gizlilik/destek taslakları ve gerçek cihaz kontrol listesi: [iOS yayın hazırlığı](docs/ios/README.md). Apple Developer üyeliği, yayıncı kimliği, destek/gizlilik adresleri, gerçek App Store ürünü ve imzalama tamamlanmadan uygulama mağazaya gönderilmemelidir. StoreKit test dosyasındaki ürün ve 399 TL örnek fiyat gerçek satış ürünü oluşturmaz.
+Mağaza metinleri, gizlilik/destek taslakları ve gerçek cihaz kontrol listesi: [iOS yayın hazırlığı](docs/ios/README.md). Yayıncı **Fevzi Çakmak**, herkese açık destek adresi **fvzckmk35@gmail.com** olarak onaylandı; Apple Developer üyeliğinin aktif olduğu hesap sahibi tarafından bildirildi. [Gizlilik](https://fevzicakmak.github.io/BHU/privacy.html) ve [destek](https://fevzicakmak.github.io/BHU/support.html) sayfaları hazırlanmıştır. Team erişimi, gerçek App Store ürünü, dağıtım imzası ve gerçek cihaz/TestFlight kabulü tamamlanmadan uygulama mağazaya gönderilmemelidir. StoreKit test dosyasındaki ürün ve 399 TL örnek fiyat gerçek satış ürünü oluşturmaz.
 
 ## Çalıştırma
 
@@ -117,6 +117,7 @@ python tests/browser.py
 python tests/drag.py
 python tests/autocomplete.py
 python tests/native.py
+python tests/webkit.py
 ```
 
 Yerel `/usr/bin/chromium` varsa kullanılır; `BROWSER_EXECUTABLE` ile değiştirilebilir. Yoksa Playwright'ın kurulu Chromium'u kullanılır. Testler gerçek uygulama dosyalarını yerel HTTP yanıtlarıyla sunar; üretim verilerine dokunmaz. Masaüstü/mobil form, hesap hiyerarşisi, dosya ekleme, kayıt kotası hatası, sekme çakışması, yedek geri yükleme, güvenli metin gösterimi ve eski veri dönüşümünü kontrol eder. Ekran görüntüleri yerel `test-artifacts/` klasörüne yazılır.
@@ -124,3 +125,5 @@ Yerel `/usr/bin/chromium` varsa kullanılır; `BROWSER_EXECUTABLE` ile değişti
 GitHub Actions sözdizimi, veri/öneri testleri, masaüstü/mobil kullanım, hesap taşıma ve otomatik tamamlama senaryolarını çalıştırır. Hesap taşıma testleri gerçek dokunma olayları, klavye, hedef toleransı, iptal, geri alma ve imleç sabitken devam eden yatay/dikey kaydırmayı kapsar.
 
 Native JavaScript testleri taklit Capacitor köprüsü kullanır; gerçek iOS dosya koruması veya gerçek Apple ödeme işlemi yaptıklarını göstermez. İmzalı cihaz/TestFlight kontrolleri ayrıca tamamlanmalıdır.
+
+macOS CI ayrıca uygulamayı ayrı bir iPhone simülatöründe iki kez soğuk açar ve sentetik kayıt dosyasının gerçek native köprüden okunmasını kontrol eder (`scripts/smoke-ios.py`). Bu test; gerçek satın alma, native yazma/dosya koruması veya gerçek cihaz kabulü yerine geçmez. Simülatör paketi çalıştırılabilir dosya izinlerini koruyan ZIP olarak saklanır.

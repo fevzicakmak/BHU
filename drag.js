@@ -348,7 +348,7 @@
       const forward = ['ArrowDown', 'ArrowRight'].includes(event.key);
       const index = event.key === 'Home' ? 0 : event.key === 'End' ? choices.length - 1 : current < 0 ? (forward ? 0 : choices.length - 1) : (current + (forward ? 1 : -1) + choices.length) % choices.length;
       setTarget(item, choices[index]);
-      choices[index].node?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+      choices[index].node?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'auto' });
     } else if ((event.key === 'Enter' || event.key === ' ') && item.target && event.target === item.handle) {
       event.preventDefault(); event.stopImmediatePropagation(); finish(item);
     }

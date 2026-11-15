@@ -1,73 +1,68 @@
-# BHU gizlilik politikası — yayın taslağı
+# Gizlilik Politikası
 
-**Bu belge nihai olarak yayımlanmış bir politika değildir.** Geliştirici/hak sahibi kimliği, iletişim adresi, geçerlilik tarihi ve son iOS derlemesinin veri akışı doğrulanarak tamamlanmalıdır. Kimliği veya iletişimi bilinmeyen bir taraf adına hukuki taahhüt uydurulmadı.
+BHU · Son güncelleme ve geçerlilik tarihi: 15 Kasım 2026
 
-## 1. Kapsam ve hizmet sağlayıcı
+BHU'nun geliştiricisi ve hizmet sağlayıcısı **Fevzi Çakmak**'tır. Gizlilik ve destek için [fvzckmk35@gmail.com](mailto:fvzckmk35@gmail.com) adresine yazabilirsiniz.
 
-Bu metin BHU'nun native iOS sürümünü kapsar. Mağaza adı BHU olarak seçilmiştir; geliştirici/hizmet sağlayıcı kimliği ve kamuya açık iletişim adresi yayın öncesinde bu bölüme eklenecektir.
+## 1. Kapsam
 
-Ayrı bir web sürümü kullanıldığında kayıtlar o tarayıcının yerel depolamasında tutulur. Web sitesini sunan barındırma hizmetinin erişim günlükleri ve ağ istekleri, cihazda paketlenmiş iOS sürümünün yerel kayıt akışıyla aynı değildir. Bu taslak, web barındırma hizmeti adına veri işleme taahhüdü vermez.
+Bu politika BHU'nun iOS uygulamasını ve web sürümünü kapsar. “Hesap”, uygulamada oluşturduğunuz ana kasa veya alt hesap anlamındadır. BHU giriş hesabı oluşturmanızı istemez; banka hesabınıza bağlanmaz ve gerçek para transferi yapmaz.
 
-## 2. Girdiğiniz kayıtlar
+## 2. Girdiğiniz bilgiler ve yerel kayıt
 
-Uygulamaya hesap adları ve ilişkileri, gelir/gider türü, tutar, tarih, açıklama, cari/müşteri adı ve seçtiğiniz belge/fotoğraf dosyalarını girebilirsiniz. Kullanım sırasında seçili hesap bilgisi ve teknik kayıt sürümü gibi yerel çalışma bilgileri de tutulur.
+Hesap adları ve ilişkileri, gelir/gider türü, tutar, tarih, cari/müşteri adı, açıklama ve seçtiğiniz belge/fotoğraflar uygulamada işlenir. Seçili hesap ve kayıt sürümü gibi yerel çalışma bilgileri de saklanır.
 
-“Hesap”, bir kasa veya finansal kayıt grubu anlamındadır; uygulama bir kullanıcı giriş hesabı oluşturmanızı istemez. Banka hesabınıza bağlanmaz ve uygulamaya banka parolası veya ödeme kartı bilgisi girmeniz gerekmez.
+iOS sürümünde finansal kayıtlar cihazdaki uygulama alanında tutulur. Web sürümünde kayıtlar kullanılan tarayıcının yerel depolamasındadır. Finansal defteriniz geliştiriciye ait bir sunucuya otomatik yüklenmez. Cari ve açıklama önerileri mevcut kayıtlarınızdan cihaz üzerinde üretilir; bu amaçla harici yapay zekâ veya arama hizmetine gönderilmez.
 
-Native iOS sürümü için bu verilerin cihazdaki uygulama alanında saklanması tasarlanmıştır. Otomatik tamamlama, kayıtlarınızdan cihaz üzerinde üretilir. Öneri oluşturmak için açıklama veya cari adları harici bir yapay zekâ/arama hizmetine gönderilmez.
+Web sürümü ile iOS uygulaması aynı veri alanını otomatik paylaşmaz. Aralarında geçiş için kullanıcı tarafından dışa ve içe aktarılan JSON yedeği kullanılır.
 
-## 3. Satın alma
+## 3. Apple üzerinden satın alma
 
-Ücretsiz kullanım bir ana hesabı ve o ana hesabın alt hesaplarını kapsar. İkinci ana hesap için tek seferlik, kalıcı Çoklu Hesap uygulama içi satın alımı sunulur. Abonelik yoktur; alt hesap başına ücret alınmaz.
+Ücretsiz iOS kullanımı bir ana hesabı ve onun alt hesaplarını kapsar. İkinci ana hesap için tek seferlik, kalıcı Çoklu Hesap satın alımı sunulur. Abonelik veya alt hesap başına ücret yoktur. Güncel fiyat satın alma ekranında Apple'ın yerelleştirilmiş ürün bilgisiyle gösterilir.
 
-Satın alma ve geri yükleme işlemleri Apple'ın StoreKit / App Store hizmetleriyle yürütülür. Uygulama, özelliği açabilmek için Apple'ın doğruladığı ürün ve işlem hakkı bilgisini değerlendirir. Uygulama içinde geliştiriciye ödeme kartı bilgisi girilmez. Apple'ın kendi hizmetlerinde işlediği veriler Apple'ın ilgili politika ve koşullarına tabidir.
+Satın alma ve geri yükleme Apple'ın StoreKit / App Store hizmetleri üzerinden yürütülür. Uygulama, Çoklu Hesap hakkını Apple'ın doğruladığı ürün ve işlem bilgisiyle değerlendirir. Ödeme kartı bilginizi geliştiriciye girmeniz gerekmez. Apple hesabı, ödeme ve Apple hizmetlerinin işleyişi Apple'ın ilgili koşul ve politikalarına tabidir.
 
-Uygulamaya ait ayrı bir satın alma doğrulama sunucusu veya kullanıcı hesabı eklenirse bu politika ve App Privacy beyanı yeni veri akışına göre güncellenmelidir. Yerel bir ayar ya da yedek dosyası tek başına satın alma hakkı oluşturmaz.
+BHU ayrı bir kullanıcı hesabı veya geliştiriciye ait satın alma doğrulama sunucusu kullanmaz. Satın alma hakkı bir yedek JSON dosyasıyla veya yerel ayarla oluşturulamaz.
 
-## 4. Dışa aktarma, içe aktarma ve paylaşım
+## 4. Belgeler, kamera, paylaşım ve yazdırma
 
-JSON yedek dosyası hesapları, işlemleri ve ekli belgeleri içerebilir. iOS paylaşım/dosya seçim arayüzünde dosyanın kaydedileceği konumu veya paylaşılacağı uygulamayı siz seçersiniz. Seçtiğiniz üçüncü taraf uygulama veya bulut depolama hizmeti dosyayı kendi koşulları çerçevesinde işleyebilir.
+Uygulama, yalnızca seçtiğiniz belge veya fotoğrafı işleminize eklemek için okur. Dosya seçicisinin isteğe bağlı kamera ile çekim yolunu kullanırsanız iOS kamera izni isteyebilir. Kamera siz bu yolu seçmeden arka planda kullanılmaz. Kamera iznini vermemek normal gelir/gider kaydını engellemez. Mikrofon veya konum izni kullanılmaz.
 
-Yazdırma seçeneğini kullanırsanız rapor içeriği iOS'un yazdırma arayüzünde seçtiğiniz yazıcı veya ilgili sistem hizmetiyle işlenebilir. Yazıcıyı ve yazdırma onayını siz seçersiniz.
+JSON yedeği hesaplarınızı, işlemlerinizi ve ekli belgelerinizi içerebilir. Sistem paylaşım sayfasında dosyanın kaydedileceği veya gönderileceği uygulamayı/konumu siz seçersiniz. Seçtiğiniz üçüncü taraf veya bulut hizmeti dosyayı kendi koşullarıyla işleyebilir. Geliştirici bu dosyayı otomatik olarak almaz.
 
-Dosya/fotoğraf seçicisinin isteğe bağlı kamera ile çekim yolunu kullanırsanız iOS kamera izni isteyebilir. Kamera, siz bu yolu seçmeden arka planda kullanılmak üzere tasarlanmamıştır. Kamera iznini vermemek gelir/gider kayıtlarınızı kullanmanızı engellememelidir.
+Yazdırma seçeneğinde rapor, iOS arayüzünde seçtiğiniz yazıcı veya ilgili sistem hizmetiyle işlenebilir. Yazıcıyı ve yazdırma onayını siz yönetirsiniz.
 
-İçe aktarmak için seçtiğiniz dosya uygulama tarafından okunur ve doğrulanır. Uygulama, siz dosya seçmeden cihazdaki bütün belgeleri taramak üzere tasarlanmamıştır. Yedek yüklemek mevcut kayıtları değiştirebildiğinden ekrandaki önizlemeyi ve yedekleme uyarısını inceleyin.
+Dışa aktarılan JSON dosyasına BHU tarafından ayrıca parola konulmaz. Dosyayı uygun bir konumda saklayın ve yalnızca uygun alıcılarla paylaşın.
 
-Dışa aktarılan JSON dosyasının kendisi uygulama tarafından parola ile şifrelenmez. Dosya finansal veya üçüncü kişilere ait bilgiler içeriyorsa yalnızca uygun bir konumda saklayın ve uygun alıcılarla paylaşın.
+## 5. Ağ, analiz ve web barındırma
 
-## 5. Ağ, analiz ve reklam
+BHU içinde reklam veya üçüncü taraf takip/analiz SDK'sı bulunmaz. Native iOS uygulamasının kayıt ekranları paket içindedir ve uzak bir web sayfasının yüklenmesine dayanmaz. Apple satın alma işlemleri, işletim sistemi hizmetleri ve sizin seçtiğiniz paylaşım hedefleri ağ erişimi gerektirebilir.
 
-İncelenen web uygulamasında reklam, kullanıcı takibi veya üçüncü taraf analiz SDK'sı bulunmamaktadır. Hazırlanan iOS sürümünde de bu bileşenlerin kullanılmaması planlanmıştır. Native uygulama dosyaları paket içinde bulunur; kayıt ekranlarını açmak için uzak bir web sitesinin yüklenmesine dayanılmamalıdır.
+Web sürümünü sunan GitHub Pages, bağlantı sırasında IP adresi gibi teknik erişim bilgilerini kendi hizmetleri kapsamında işleyebilir. Bu web erişim bilgileri, cihazınızda tuttuğunuz finansal kayıtların geliştiriciye gönderildiği anlamına gelmez. [GitHub gizlilik bildirimi](https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement) ve [Apple gizlilik politikası](https://www.apple.com/legal/privacy/) ilgili hizmetlerin veri işleyişini açıklar.
 
-Apple satın alma doğrulaması, App Store hizmetleri ve işletim sistemi hizmetleri ağ erişimi gerektirebilir. Bu, cihazdaki finansal defterin geliştiriciye otomatik yüklendiği anlamına gelmez. Son derlemeye yeni bir SDK, analiz, hata raporlama veya sunucu hizmeti eklenirse bu bölüm yeniden değerlendirilir.
+## 6. Saklama, silme ve yedekler
 
-## 6. Saklama, yedekleme ve silme
+Yerel kayıtlar siz uygulamada silene, bir yedekle değiştirene veya uygulamanın cihazdaki verilerini kaldırana kadar saklanır. iOS'ta uygulamayı tamamen silmek cihazdaki kayıtları da silebilir. Uygulamayı “offload” ederek kaldırmak ile tamamen silmek aynı işlem değildir. Web'de tarayıcı verilerini temizlemek o tarayıcıdaki kayıtları silebilir.
 
-Yerel kayıtlar siz uygulama içinden silene, bir yedekle değiştirene veya uygulamanın cihazdaki verilerini kaldırana kadar tutulur. iOS'un “uygulamayı kaldır/offload” ve “uygulamayı sil/delete” işlemleri farklı sonuç verebilir; son sürümün gerçek cihaz testleri ve destek metniyle bu davranış doğrulanmalıdır.
+Yerel kayıtları veya uygulamayı silmek, daha önce dışa aktardığınız dosyaları ve üçüncü taraf konumlarına gönderdiğiniz kopyaları silmez. Bu kopyaları ilgili konumda siz yönetirsiniz. BHU kendi otomatik cihazlar arası eşitlemesini veya geliştiriciye ait sunucu yedeğini sunmaz. İşletim sistemi ayarlarınıza bağlı iPhone/iCloud cihaz yedekleri ayrı olabilir.
 
-Kayıtları silmek daha önce dışa aktardığınız dosyaları veya üçüncü taraf konumlarına gönderdiğiniz kopyaları silmez. Bu kopyaların silinmesini ilgili konumda siz yönetirsiniz. Uygulama kendi cihazlar arası eşitleme veya geliştiriciye ait otomatik sunucu yedeği sunmaz. İşletim sistemi ayarlarınıza bağlı iPhone/iCloud cihaz yedekleri ayrı olabilir; son native depolama yapılandırmasına göre bu cümle netleştirilmelidir.
+Geliştirici cihazınızdaki defterin uzak bir kopyasına sahip olmadığından yerel kayıtlarınızı sizin adınıza uzaktan silemez veya yedeği olmayan kayıtları geri getirmeyi vaat edemez. Uygulamada bir giriş hesabı bulunmaz; kasa hesabı silmek bir kullanıcı üyeliği kapatmak değildir.
 
 ## 7. Güvenlik
 
-iOS sürümünde yerel dosyalar için uygulama alanı ve işletim sisteminin veri koruma mekanizmalarının kullanılması planlanmıştır. Bu, dışa aktarılan JSON dosyasına ayrıca uygulama parolası konduğu veya cihazda erişimi olan herkese karşı mutlak koruma sağlandığı anlamına gelmez.
+iOS sürümünde kayıtlar uygulamaya ait dosyada atomik yazmayla saklanır ve işletim sisteminin dosya korumasından yararlanır. Bu koruma ilk cihaz kilidi açıldıktan sonra dosyaya erişime izin verir; ayrı bir BHU uygulama parolası değildir. Web sürümünün yerel tarayıcı verilerine cihaz veya tarayıcı profiline erişebilen kişiler erişebilir.
 
-Yerel verilerin yazılması başarısız olursa uygulamanın başarılı kayıt mesajı vermemesi ve açık formu koruması hedeflenir. Düzenli yedek alın; bozuk veya uyumsuz bir yedek yüklenmeden önce doğrulanmalıdır.
+Yazma başarısız olduğunda önceki kayıt ve açık form korunur; işlem başarıyla kaydedilmiş sayılmaz. Düzenli JSON yedeği alın ve dosyaları uygun şekilde koruyun.
 
-## 8. Destek iletişimi
+## 8. Destek için paylaştığınız bilgiler
 
-**Yayın öncesi eklenecek:** Hizmet sağlayıcının gerçek adı/unvanı, düzenli takip edilen iletişim adresi ve destek sayfası URL'si.
+[fvzckmk35@gmail.com](mailto:fvzckmk35@gmail.com) adresine gönüllü olarak gönderdiğiniz iletişim bilgileri ve hata açıklamaları destek talebinizi ele almak için e-posta hizmeti üzerinden işlenir. Yazışmalar talebin çözümü, gerekli takip ve varsa yasal yükümlülükler için ihtiyaç duyulan süre boyunca tutulur. Destek yazışmanızın silinmesini aynı adresten talep edebilirsiniz.
 
-Destek isterken mümkünse sorun adımlarını ve uygulama/iOS sürümünü paylaşın. Gerçek finansal defterinizi, müşteri belgelerinizi, Apple hesabı parolanızı veya ödeme kartı bilgilerinizi göndermeniz istenmemelidir. Kullanıcının destek için gönüllü gönderdiği bilgiler yalnızca talebi ele almak için işlenmeli; bu bilgiler için saklama ve silme yöntemi hizmet sağlayıcı tarafından belirlenip açıklanmalıdır.
+Olağan destek için tam finansal defterinizi göndermeniz gerekmez. Ekran görüntülerinde müşteri bilgilerini gizleyin; Apple parolanızı veya ödeme kartı bilgilerinizi paylaşmayın.
 
-## 9. Değişiklikler
+## 9. Politika değişiklikleri ve iletişim
 
-Politika, son veri akışına uygun olarak güncellenir. Nihai yayımlanan metinde geçerlilik tarihi bulunmalıdır. Satın alma, depolama veya üçüncü taraf hizmetlerinin kapsamı değişirse kullanıcıya uygulama ve politika üzerinden açıklanmalıdır.
+Depolama, satın alma veya üçüncü taraf hizmetlerinin kapsamı değişirse bu politika güncellenir. Geçerli tarih sayfanın üstünde gösterilir. Sorularınız ve gizlilikle ilgili talepleriniz için geliştirici Fevzi Çakmak'a [fvzckmk35@gmail.com](mailto:fvzckmk35@gmail.com) üzerinden ulaşabilirsiniz.
 
-## Yayın öncesi doldurma kontrolü
+Kamuya açık sayfa: https://fevzicakmak.github.io/BHU/privacy.html
 
-- Gerçek geliştirici/hizmet sağlayıcı kimliği ve iletişim bilgisi.
-- BHU adının mağaza kullanılabilirliği, geçerlilik tarihi ve herkesçe erişilebilir politika URL'si.
-- Son native veri yolu, dosya koruma özelliği ve işletim sistemi yedekleme davranışı.
-- Kullanılan tüm SDK'lar ve App Privacy / Privacy Manifest beyanları.
-- Destek iletileri için gerçek saklama ve silme düzeni.

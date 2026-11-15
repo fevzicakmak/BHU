@@ -1,6 +1,6 @@
 # App Store Türkçe metadata taslağı
 
-**Durum:** İncelemeye hazır metin taslağı. Satıcı, destek/gizlilik URL'leri, kesin App Store fiyat noktası, Product ID ve gerçek cihaz ekran görüntüleri tamamlanmadan gönderilmez.
+**Durum:** BHU adı, yayıncı Fevzi Çakmak ve kamuya açık destek iletişimi kullanıcı tarafından onaylandı. Gerçek App Store Connect ürün kaydı/fiyat noktası, Team erişimi, imzalı derleme, gerçek cihaz ekran görüntüleri ve mağaza gönderimi henüz tamamlanmış sayılmaz.
 
 ## Önerilen alanlar
 
@@ -11,12 +11,14 @@
 | Birincil kategori | Finance önerisi; nihai sınıflandırma satıcıya ait |
 | İkincil kategori | Productivity değerlendirilebilir |
 | Birincil dil | Türkçe |
+| Yayıncı / hizmet sağlayıcı | Fevzi Çakmak |
+| Kamuya açık destek e-postası | fvzckmk35@gmail.com |
 | Ücret | Uygulama ücretsiz indirilir; Çoklu Hesap uygulama içi satın alımı ayrı tanımlanır |
 | Satın alma türü | Non-Consumable; tek seferlik, kalıcı çoklu ana hesap hakkı |
-| Destek URL'si | **Eksik:** gerçek, erişilebilir destek sayfası |
-| Gizlilik politikası URL'si | **Eksik:** kimlik/iletişim bilgileri tamamlanmış gerçek politika sayfası |
+| Destek URL'si | https://fevzicakmak.github.io/BHU/support.html |
+| Gizlilik politikası URL'si | https://fevzicakmak.github.io/BHU/privacy.html |
 | Pazarlama URL'si | İsteğe bağlı; bir URL uydurulmadı |
-| Telif hakkı | **Eksik:** hak sahibinin gerçek adı/unvanı ve yayın yılı |
+| Telif hakkı | 2026 Fevzi Çakmak |
 | Bundle ID / SKU | Kesin kayıt geliştirici hesabında oluşturulacak; kodda geliştirme değeri bulunması hak sahipliği oluşturmaz |
 
 Bu metinler finansal kayıt takibini anlatır. Uygulamanın banka hesabına bağlandığı, para transfer ettiği, fatura kestiği, vergi beyanı hazırladığı veya resmi muhasebe hizmeti sunduğu iddia edilmez.

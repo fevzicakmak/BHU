@@ -1,5 +1,7 @@
 # Gerçek iOS / TestFlight kabul planı
 
+Ürün adı **BHU**, yayıncı **Fevzi Çakmak**, kamuya açık destek adresi **fvzckmk35@gmail.com** olarak onaylandı. Türkiye Çoklu Hesap hedef fiyatı **399 TL**; gerçek App Store Connect fiyatı ve imzalı build ayrıca doğrulanmalıdır.
+
 ## Kapsam ve kayıt formu
 
 Bu plan, otomatik web kontrollerinden ayrıdır. Her çalıştırmada aşağıdaki bilgileri kaydedin:
@@ -91,11 +93,13 @@ En az bir gerçek iPhone ve bir gerçek iPad kullanın; native hedef şu aşamad
 
 ## H. Kalıcı kayıt ve güncelleme
 
-1. Native depolama yazma hatası simülasyonu kullanın. Başarı mesajı verilmemeli; taslak ve önceki kayıt korunmalı.
-2. Kaydetme sırasında uygulamayı arka plana alın/force quit yapın. Yeniden açılışta önceki veya tamamlanmış yeni geçerli JSON bulunmalı; kısmi dosya sessizce boş veri sayılmamalı.
-3. Eski build üzerine yeni build kurun. Kayıtlar ve doğrulanmış Çoklu Hesap hakkı korunmalı.
-4. Uygulamayı offload edip geri kurma ve tamamen silip kurma farkını gerçek cihazda kaydedin. Kullanıcıya sunulan destek metni gerçek davranışla uyuşmalı.
-5. OS cihaz yedeğine dahil olma davranışını son native dosya ayarlarıyla doğrulayın. Bu durum uygulamaya ait otomatik cihazlar arası eşitleme olarak tanıtılmamalı.
+1. Native depolama yazma hatası ve 24 MB uygulama kayıt sınırı simülasyonu kullanın. 25 MB yedek ve 32 MB köprü savunma sınırını da ayrı test edin.
+2. Native depolama yazma hatası simülasyonu kullanın. Başarı mesajı verilmemeli; taslak ve önceki kayıt korunmalı.
+3. Kaydetme sırasında uygulamayı arka plana alın/force quit yapın. Yeniden açılışta önceki veya tamamlanmış yeni geçerli JSON bulunmalı; kısmi dosya sessizce boş veri sayılmamalı.
+4. Eski build üzerine yeni build kurun. Kayıtlar ve doğrulanmış Çoklu Hesap hakkı korunmalı.
+5. Uygulamayı offload edip geri kurma ve tamamen silip kurma farkını gerçek cihazda kaydedin. Kullanıcıya sunulan destek metni gerçek davranışla uyuşmalı.
+6. OS cihaz yedeğine dahil olma davranışını son native dosya ayarlarıyla doğrulayın. Bu durum uygulamaya ait otomatik cihazlar arası eşitleme olarak tanıtılmamalı.
+
 
 ## Kabul ölçütü
 

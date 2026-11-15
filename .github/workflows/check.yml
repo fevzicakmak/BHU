@@ -23,11 +23,12 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m pip install playwright==1.62.0
-      - run: python -m playwright install --with-deps chromium
+      - run: python -m playwright install --with-deps chromium webkit
       - run: python tests/browser.py
       - run: python tests/drag.py
       - run: python tests/autocomplete.py
       - run: python tests/native.py
+      - run: python tests/webkit.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -54,8 +55,19 @@ jobs:
           -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
           -configuration Debug -derivedDataPath ios-build
           CODE_SIGNING_ALLOWED=NO build
+      - name: Launch native simulator and read the protected-store fixture
+        run: python3 scripts/smoke-ios.py ios-build/Build/Products/Debug-iphonesimulator/App.app com.fevzicakmak.bhu
+      - name: Package simulator bundle preserving executable permissions
+        run: ditto -c -k --sequesterRsrc --keepParent ios-build/Build/Products/Debug-iphonesimulator/App.app BHU-simulator.zip
       - uses: actions/upload-artifact@v4
         with:
           name: BHU-unsigned-simulator-app
-          path: ios-build/Build/Products/Debug-iphonesimulator/App.app
+          path: BHU-simulator.zip
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: BHU-native-startup-check
+          path: test-artifacts/native-ios-*
+          if-no-files-found: ignore
           retention-days: 7

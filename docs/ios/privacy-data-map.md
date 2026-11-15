@@ -14,7 +14,7 @@ Bu dosya mağaza beyanını hazırlamak içindir. “Data Not Collected” seçe
 | Yazdırma | Kullanıcının seçtiği iOS yazdırma hizmeti/yazıcı | Geliştiriciye otomatik aktarım yok | Seçilen yazıcı finansal raporu alabilir; kullanıcı hedefi ve iptali yönetir |
 | JSON içe aktarma | UIDocumentPicker ile kullanıcının seçtiği dosya | Geliştiriciye gönderilmez | İçerik doğrulanır; değiştirme öncesi kullanıcı onayı/yedek gerekir |
 | Çoklu Hesap satın alma hakkı | Apple StoreKit ve cihazda doğrulanmış işlem bilgisi | Ayrı doğrulama sunucusu planlanmadı | Satın al, iptal et, satın alımları geri yükle; Apple hesabı/ödeme altyapısı Apple tarafından yönetilir |
-| Destek için gönüllü gönderilen bilgiler | Gerçek destek kanalı henüz belirlenmedi | Kullanıcı iletişim kurarsa bu kanal bilgiyi alabilir | İletişim ve saklama/silme düzeni tanımlanmalı; finansal defter gönderme zorunluluğu olmamalı |
+| Destek için gönüllü gönderilen bilgiler | Fevzi Çakmak: fvzckmk35@gmail.com | Kullanıcı e-posta gönderirse destek kanalı bilgiyi alır | Kamuya açık politika destek amacı, gerekli saklama ve silme taleplerini açıklar; finansal defter gönderme zorunluluğu yok |
 | Analiz / reklam / izleme | İncelenen uygulamada bu SDK'lar yok | Planlanan aktarım yok | Son bağımlılık ağacı ve derlemenin ağ kayıtları yeniden kontrol edilmeli |
 
 ## Native yapılandırma notları
@@ -27,7 +27,7 @@ Platform hazırlığında bildirilen yapılandırma:
 - Yerel JSON yolu: uygulama alanı içinde `Application Support/KasaPro/state.json`.
 - Yazma: UTF-8 JSON, beklenen önceki veriyle karşılaştırma ve atomik dosya değiştirme.
 - Dosya koruması: `NSFileProtectionCompleteUntilFirstUserAuthentication`. İlk cihaz kilidi açıldıktan sonra erişim mümkündür; ayrı bir uygulama parolası veya dışa aktarılan dosya şifrelemesi değildir.
-- Native durum dosyası için üst sınır 32 MB; belge yedeği içe/dışa aktarmada 25 MB, tek belge paylaşımında 8 MB, yazdırılacak HTML'de 4 MB sınırı uygulanır. Hata halinde veri kırpılmamalıdır.
+- Uygulama katmanında native durum dosyası üst sınırı 24 MB; Swift köprüsünün savunma sınırı 32 MB; belge yedeği içe/dışa aktarmada 25 MB, tek belge paylaşımında 8 MB, yazdırılacak HTML'de 4 MB sınırı uygulanır. Hata halinde veri kırpılmamalıdır.
 - Uygulama veri dosyası normal iOS cihaz yedeğine dahil olabilir. Bu, uygulamanın kendi iCloud eşitlemesi veya geliştirici sunucu yedeği değildir.
 - JSON içe aktarmada sistem belge seçicisi ve security-scoped erişim; üst dosya sınırı 25 MB.
 - JSON dışa aktarmada sistem paylaşım sayfası; paylaşımın tamamlanması ile kullanıcının iptali ayrılmalıdır. Yazdırmada sistem yazdırma arayüzü ve seçilen yazıcı kullanılır.
@@ -41,7 +41,7 @@ Bu liste son Xcode projesi, `Info.plist`, Swift köprü kodu ve test sonuçları
 2. Yeni kurulum, ilk kayıt, dosya seçimi, yedek paylaşımı, satın alma ve geri yükleme sırasında ağ trafiğini gözleyin. Finansal JSON'un geliştiriciye veya üçüncü taraf bir analize gönderilmediğini doğrulayın.
 3. Apple'ın “collect” tanımını son akışa uygulayın. Yalnızca cihazda işlenen ve cihaz dışına aktarılmayan finansal kayıtlar, geliştirici tarafından uzaktan toplanan verilerle aynı değildir.
 4. StoreKit'in cihazdaki doğrulama bilgisini geliştiricinin ayrıca alıp almadığını değerlendirin. Sunucuya işlem/makbuz veya tanımlayıcı gönderme eklenirse satın alma geçmişi ve bağlantı beyanları yeniden değerlendirilir.
-5. Destek kanalı eklendiğinde kullanıcının gönüllü gönderdiği iletişim/ek dosyaları değerlendirin. Apple'ın isteğe bağlı açıklama istisnasını koşulları karşılamadan varsaymayın.
+5. Onaylı destek e-postası için kullanıcının gönüllü gönderdiği iletişim/ek dosyaları değerlendirin. Apple'ın isteğe bağlı açıklama istisnasını koşulları karşılamadan varsaymayın.
 6. Gerçek akış uygunsa “Data Not Collected” beyanı değerlendirilebilir. Aksi durumda tür, amaç, kullanıcıyla bağlantı ve takip durumunu doğru seçin.
 7. App Privacy yanıtları, uygulama içi politika, kamuya açık politika ve mağaza açıklaması birbirini tutmalı.
 
@@ -74,3 +74,11 @@ Yayın gününde kaynakların güncel halini kullanın:
 - [Privacy manifest files](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files)
 - [Overview of export compliance](https://developer.apple.com/help/app-store-connect/manage-app-information/overview-of-export-compliance/)
 - [App Review Guidelines: Privacy](https://developer.apple.com/app-store/review/guidelines/#privacy)
+
+## Onaylı yayın kimliği ve sayfalar
+
+- Yayıncı: Fevzi Çakmak.
+- Destek/gizlilik e-postası: fvzckmk35@gmail.com (kamuya açık kullanım onaylandı).
+- Politika: https://fevzicakmak.github.io/BHU/privacy.html
+- Destek: https://fevzicakmak.github.io/BHU/support.html
+- Geçerli tarih: 15 Kasım 2026.

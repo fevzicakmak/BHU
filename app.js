@@ -1,6 +1,7 @@
 'use strict';
 
 const Core = window.KasaCore;
+const copyData = value => typeof window.structuredClone === 'function' ? window.structuredClone(value) : JSON.parse(JSON.stringify(value));
 const STORAGE_KEY = 'kasa-pro-data-v1'; // Keep existing installations and data.
 const $ = selector => document.querySelector(selector);
 const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
@@ -104,7 +105,7 @@ async function commit(mutator, options = {}) {
   try {
     const write = async () => {
       if (loadError && !options.recovery) throw new Error('Mevcut veriler okunamadığı için kayıt korumaya alındı. Ayarlardan ham kaydı dışa aktarıp geçerli bir yedek yükleyin.');
-      const candidate = structuredClone(state);
+      const candidate = copyData(state);
       mutator(candidate); candidate.version = 2; candidate.revision = uid();
       const validated = Core.normalizeState(candidate);
       await device.checkAccess(state, validated, { importing: Boolean(options.importing) });
@@ -374,7 +375,7 @@ function transactionModal(t) {
 }
 function editTransaction(t) {
   if (draft.dirty && !confirm('Açık taslak yerine bu işlem düzenlensin mi? Taslaktaki değişiklikler silinir.')) return;
-  draft = { id: t.id, original: JSON.stringify(t), kasaId: t.kasaId, type: t.type, amount: Core.centsInput(t.amountCents), customerName: t.customerName, description: t.description, date: t.date, attachments: structuredClone(t.attachments), dirty: false };
+  draft = { id: t.id, original: JSON.stringify(t), kasaId: t.kasaId, type: t.type, amount: Core.centsInput(t.amountCents), customerName: t.customerName, description: t.description, date: t.date, attachments: copyData(t.attachments), dirty: false };
   closeModal();
   currentTab = 'add';
   render();
@@ -382,7 +383,7 @@ function editTransaction(t) {
 }
 async function saveTransaction(another) {
   if (filePending) return;
-  const snapshot = structuredClone(draft);
+  const snapshot = copyData(draft);
   let amountCents;
   try {
     amountCents = Core.parseCents(snapshot.amount);
@@ -458,7 +459,7 @@ function settingsModal() {
   let oldRecovery = null;
   try { if (!device.isNative) oldRecovery = localStorage.getItem('kasa-pro-recovery-v1'); } catch (_) { /* Current recovery is still available. */ }
   openModal('Ayarlar ve yedekleme', `<div class="storage-info"><strong>${device.isNative ? 'Veriler bu cihazda saklanır' : 'Veriler yalnızca bu tarayıcıda saklanır'}</strong><p>${device.isNative ? 'Hesaplarınız ve belgeleriniz uygulamanın korumalı dosyasında saklanır. Uygulamayı silmek kayıtları silebilir; düzenli JSON yedeği alın.' : 'Hesaplar, işlemler ve belgeler için düzenli JSON yedeği alın. Tarayıcı verilerini temizlemek kayıtları siler.'}</p><small>Bu uygulamanın yaklaşık depolama kullanımı: ${(chars * 2 / 1024 / 1024).toFixed(2)} MB</small></div>
-    <div class="settings-actions"><button class="tx-row" data-action="export-data"><span class="tx-icon income" aria-hidden="true">↓</span><span><strong>${device.isNative ? 'Yedeği paylaş / Dosyalara kaydet' : 'Yedek indir'}</strong><small>Hesaplar, işlemler ve belgeler</small></span></button>${device.isNative ? '<button class="tx-row" data-action="native-import"><span class="tx-icon income" aria-hidden="true">↑</span><span><strong>Dosyalardan yedek yükle</strong><small>Safari yedekleri de yüklenebilir</small></span></button>' : '<label class="tx-row import-label" for="import-input"><span class="tx-icon income" aria-hidden="true">↑</span><span><strong>Yedek yükle</strong><small>Önce kontrol edilir, sonra onayınızla yüklenir</small></span><input id="import-input" type="file" accept="application/json,.json"></label>'}${device.isNative ? '<button class="tx-row" data-action="open-multi-account"><span class="tx-icon income">＋</span><span><strong>Çoklu Hesap</strong><small>Tek seferlik satın alma · Satın alımları geri yükle</small></span></button>' : ''}<button class="tx-row" data-action="print-data"><span class="tx-icon" aria-hidden="true">▣</span><span><strong>İşlem listesini yazdır</strong><small>Seçili hesap ve mevcut filtreler</small></span></button>${recoveryRaw || oldRecovery ? '<button class="tx-row" data-action="download-recovery"><span class="tx-icon" aria-hidden="true">↶</span><span><strong>Önceki / ham kaydı indir</strong><small>Geçiş öncesindeki özgün veri</small></span></button>' : ''}</div><p id="settings-error" class="inline-error" role="alert" tabindex="-1"></p>`);
+    <div class="settings-actions"><button class="tx-row" data-action="export-data"><span class="tx-icon income" aria-hidden="true">↓</span><span><strong>${device.isNative ? 'Yedeği paylaş / Dosyalara kaydet' : 'Yedek indir'}</strong><small>Hesaplar, işlemler ve belgeler</small></span></button>${device.isNative ? '<button class="tx-row" data-action="native-import"><span class="tx-icon income" aria-hidden="true">↑</span><span><strong>Dosyalardan yedek yükle</strong><small>Safari yedekleri de yüklenebilir</small></span></button>' : '<label class="tx-row import-label" for="import-input"><span class="tx-icon income" aria-hidden="true">↑</span><span><strong>Yedek yükle</strong><small>Önce kontrol edilir, sonra onayınızla yüklenir</small></span><input id="import-input" type="file" accept="application/json,.json"></label>'}${device.isNative ? '<button class="tx-row" data-action="open-multi-account"><span class="tx-icon income">＋</span><span><strong>Çoklu Hesap</strong><small>Tek seferlik satın alma · Satın alımları geri yükle</small></span></button>' : ''}<button class="tx-row" data-action="print-data"><span class="tx-icon" aria-hidden="true">▣</span><span><strong>İşlem listesini yazdır</strong><small>Seçili hesap ve mevcut filtreler</small></span></button><a class="tx-row legal-link" href="https://fevzicakmak.github.io/BHU/privacy.html" target="_blank" rel="noopener"><span class="tx-icon" aria-hidden="true">◇</span><span><strong>Gizlilik politikası</strong><small>Verilerinizin kullanımı ve saklanması</small></span></a><a class="tx-row legal-link" href="https://fevzicakmak.github.io/BHU/support.html" target="_blank" rel="noopener"><span class="tx-icon" aria-hidden="true">?</span><span><strong>Yardım ve destek</strong><small>Yedekleme ve satın alma desteği</small></span></a>${recoveryRaw || oldRecovery ? '<button class="tx-row" data-action="download-recovery"><span class="tx-icon" aria-hidden="true">↶</span><span><strong>Önceki / ham kaydı indir</strong><small>Geçiş öncesindeki özgün veri</small></span></button>' : ''}</div><p id="settings-error" class="inline-error" role="alert" tabindex="-1"></p>`);
 }
 async function inspectImport(file) {
   if (!file) return;
@@ -709,7 +710,7 @@ document.addEventListener('keydown', event => {
   if (modal && event.key === 'Tab') {
     const elements = [...modal.querySelectorAll('button:not(:disabled), input:not(:disabled), select:not(:disabled), a[href], [tabindex="0"]')].filter(el => el.tabIndex >= 0 && el.getClientRects().length);
     if (!elements.length) { event.preventDefault(); modal.focus(); return; }
-    const first = elements[0], last = elements.at(-1);
+    const first = elements[0], last = elements[elements.length - 1];
     if (event.shiftKey && (document.activeElement === first || document.activeElement === modal)) { event.preventDefault(); last.focus(); }
     else if (!event.shiftKey && (document.activeElement === last || document.activeElement === modal)) { event.preventDefault(); first.focus(); }
   }

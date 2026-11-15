@@ -309,3 +309,5 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [tabindex]:focus-v
 .plan-card p, .plan-card li { font-size: 13px; line-height: 1.7; }
 .purchase-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 @media print { .app-loading { display: none; } }
+
+.legal-link { text-decoration: none; color: inherit; }
