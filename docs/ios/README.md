@@ -33,7 +33,7 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 
 ## Son incelenen doğrulama kanıtı
 
-15 Kasım 2026 tarihindeki [CI çalıştırması 43771599329](https://github.com/fevzicakmak/BHU/actions/runs/43771599329) için:
+15 Kasım 2026 tarihindeki [CI çalıştırması 43772430952](https://github.com/fevzicakmak/BHU/actions/runs/43772430952), uygulama kodu `0481ca083ecd3c3e061519d7c9874547cfb15074` için:
 
 | Kontrol | Kanıtlanan sonuç |
 | --- | --- |
@@ -41,10 +41,11 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 | Chromium uygulama/taşıma/autocomplete/native-adapter senaryoları | 45 senaryo başarılı; native-adapter senaryoları taklit köprü kullanır |
 | Playwright WebKit kontrolü | Başarılı; gerçek iOS WKWebView veya cihaz kabulü yerine geçmez |
 | macOS bağımlılık çözümü ve imzasız iOS Simulator derlemesi | Başarılı |
-| Native simülatöre kurulum / soğuk açılış / gerçek köprü okuması | **Kanıtlanmadı:** ARM test makinesindeki simülatör görüntü servisi zaman aşımına uğradı; BHU kurulmadı. Aynı SDK ve aynı doğrulama koşullarıyla açıkça seçilmiş Intel test makinesinde yeniden deneniyor |
-| Bu çalıştırmanın simülatör uygulama ZIP'i | Hazır olma kontrolü başarısız olduğu için paketleme/yükleme adımı atlandı; hata inceleme çıktısı ayrı tutuldu |
+| Native simülatöre kurulum / soğuk açılış / gerçek köprü okuması | **Başarılı:** Intel macOS, Xcode 26.3, iOS 26.2 / iPhone 17 Pro simülatöründe iki soğuk açılış; gerçek `KasaStorage.read`, sentetik kaydın JavaScript'e dönüşü ve dosyanın değişmemesi doğrulandı |
+| Simülatör ekran görüntüleri | İki açılışta BHU arayüzü ve aynı sentetik hesap görünür; yükleme katmanı kapanmış. Manuel görsel kontrol yapıldı |
+| Bu çalıştırmanın simülatör uygulama ZIP'i | [İmzasız simülatör paketi](https://github.com/fevzicakmak/BHU/actions/runs/43772430952/artifacts/14185660090) ve [başlangıç kanıtları](https://github.com/fevzicakmak/BHU/actions/runs/43772430952/artifacts/14184916904) yüklendi; CI çıktıları 7 gün saklanır |
 
-Bu sonuçlar imzalı IPA, gerçek Apple satın alma, native yazma/dosya koruması veya TestFlight kabulü değildir. Native başlangıç kontrolünün başarılı tekrarından sonra yeni çalıştırma numarasıyla bu tablo güncellenmelidir.
+Bu sonuçlar imzalı IPA, gerçek Apple satın alma, native yazma/dosya koruması veya TestFlight kabulü değildir. Gerçek iPhone/iPad, yedek yükleme/paylaşma ve sandbox satın alma/geri yükleme kabulü ayrıca tamamlanmalıdır. Önceki ARM makinesindeki simülatör servis zaman aşımları, aynı doğrulama koşullarıyla Intel test makinesine geçilerek aşıldı.
 
 [Gizlilik](https://fevzicakmak.github.io/BHU/privacy.html) ve [destek](https://fevzicakmak.github.io/BHU/support.html) sayfaları 15 Kasım 2026'da canlı ortamda HTTP 200 ile açıldı; BHU / Fevzi Çakmak / onaylı e-posta, bağlantılar ve 375 px mobil taşma kontrolü doğrulandı.
 

@@ -68,9 +68,9 @@ Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı ş
 
 ## 5. Xcode ve TestFlight
 
-- [x] [CI 43771599329](https://github.com/fevzicakmak/BHU/actions/runs/43771599329) üzerinde macOS/Xcode native bağımlılık çözümü ve imzasız Simulator derlemesi başarılı.
+- [x] [CI 43772430952](https://github.com/fevzicakmak/BHU/actions/runs/43772430952) üzerinde macOS/Xcode native bağımlılık çözümü ve imzasız Simulator derlemesi başarılı.
 - [x] Aynı çalıştırmada 33 Node testi, 45 Chromium senaryosu ve ayrı Playwright WebKit kontrolü başarılı.
-- [ ] Native simülatöre kurulum ve uygulamanın gerçek köprüden veri okuyarak iki soğuk açılışı başarıyla tamamlandı. Son incelenen çalıştırma simülatör servis kontrolünde, BHU kurulmadan durdu; native açılış kanıtı yok.
+- [x] Aynı çalıştırmada native simülatöre kurulum ve gerçek `KasaStorage.read` ile iki soğuk açılış başarılı. Sentetik kayıt JavaScript'e döndü, kayıt dosyası değişmedi ve iki ekran görüntüsü görsel kontrolden geçti. Bu kontrol native yazma/dosya koruması veya gerçek cihaz kabulü yerine geçmez.
 - [ ] Gerçek iPhone ve iPad'e kurulup [TestFlight planı](testflight-test-plan.md) uygulandı.
 - [ ] Dağıtım imzası/provisioning doğru; `Archive` ve `Validate App` başarılı.
 - [ ] Organizer / onaylı yükleme aracıyla App Store Connect'e build yüklendi.
