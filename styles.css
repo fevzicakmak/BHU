@@ -303,3 +303,9 @@ button:focus-visible, a:focus-visible, summary:focus-visible, [tabindex]:focus-v
 .autocomplete-caption { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 4px 6px 4px 12px; }
 .autocomplete-close { background: transparent; color: #52675d; width: 32px; min-height: 32px; border-radius: 8px; font-size: 20px; }
 .autocomplete-close:hover { background: #e5f1e9; }
+.app-loading { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; background: #f4faf6; color: #087f5b; font-size: 15px; font-weight: 700; }
+.plan-card { padding: 15px; border: 1px solid #cce5d7; border-radius: 13px; background: #f1faf5; }
+.plan-card h3 { font-size: 20px; margin: 8px 0; }
+.plan-card p, .plan-card li { font-size: 13px; line-height: 1.7; }
+.purchase-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+@media print { .app-loading { display: none; } }

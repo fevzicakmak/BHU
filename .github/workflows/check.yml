@@ -13,8 +13,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --check app.js && node --check core.js && node --check drag.js && node --check suggestions.js && node --check autocomplete.js
-      - run: node --test tests/core.test.js tests/suggestions.test.js
+      - run: node --check app.js && node --check core.js && node --check drag.js && node --check suggestions.js && node --check autocomplete.js && node --check native.js
+      - run: node --test tests/*.test.js
   browser:
     runs-on: ubuntu-latest
     steps:
@@ -27,10 +27,35 @@ jobs:
       - run: python tests/browser.py
       - run: python tests/drag.py
       - run: python tests/autocomplete.py
+      - run: python tests/native.py
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: browser-previews
           path: test-artifacts/
           if-no-files-found: ignore
+          retention-days: 7
+
+  ios-build:
+    runs-on: macos-15
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run ios:sync
+      - run: xcodebuild -version
+      - name: Compile iOS simulator app without signing
+        run: >-
+          xcodebuild -project ios/App/App.xcodeproj -scheme App
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          -configuration Debug -derivedDataPath ios-build
+          CODE_SIGNING_ALLOWED=NO build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BHU-unsigned-simulator-app
+          path: ios-build/Build/Products/Debug-iphonesimulator/App.app
           retention-days: 7

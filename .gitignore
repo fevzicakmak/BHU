@@ -1,2 +1,15 @@
 test-artifacts/
 __pycache__/
+
+node_modules/
+dist/
+ios/App/App/public/
+ios/App/App/capacitor.config.json
+ios/App/App/config.xml
+.build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.local.md
+
+ios-build/

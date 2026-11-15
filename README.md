@@ -1,6 +1,31 @@
-# BHU · Kasa Pro
+# BHU
 
 Tarayıcıda çalışan, ana hesap ve alt hesaplarla gelir/gider takibi. Mevcut hesap ağacı, sürükleyerek taşıma ve yerel kullanım düzeni korunur. Backend veya harici servis gerektirmez.
+
+
+## iOS / App Store hazırlığı
+
+Capacitor 8.6.2 ile iOS 15+ için iPhone ve iPad projesi `ios/` altında bulunur. Web arayüzü ve hesap mantığı korunur; iOS paketi tüm gerekli dosyaları cihazda içerir, bir uzak siteyi açmaz.
+
+```sh
+npm ci
+npm run ios:sync
+npm run ios:open
+```
+
+`ios:open` ve imzalı arşiv için macOS + Xcode gerekir. GitHub Actions macOS üzerinde imzasız simülatör uygulamasını derler. Bu çıktı App Store'a yüklenebilen imzalı bir IPA değildir.
+
+- Görünen uygulama adı **BHU**. Paket kimliği `com.fevzicakmak.bhu` ve ürün kimliği `com.fevzicakmak.bhu.multipleaccounts`, App Store Connect'te doğrulanacak aday kimliklerdir.
+- **Bir ana hesap ve alt hesapları ücretsiz.** İkinci ana hesap, tek seferlik kalıcı **Çoklu Hesap** satın alımını gerektirir. Hedef Türkiye fiyatı **399 TL**; gerçek fiyat App Store Connect'te ayarlanır ve arayüz Apple'ın yerelleştirilmiş fiyatını gösterir.
+- Sınır; oluşturma, hiyerarşi değişimi, silmeyle alt hesapların ana seviyeye alınması ve yeni çoklu hesap yedeği yüklemede denetlenir. Mevcut verilerin okunması, düzenlenmesi ve dışa aktarımı kısıtlanmaz. Satın alma doğrulanmadığında veri silinmez.
+- Ücretli hak StoreKit 2'nin doğruladığı non-consumable işlemlerden gelir. localStorage'a bir lisans bayrağı yazılmaz. Satın alımları geri yükleme ve iptal/bekleyen onay akışları vardır. Doğrulanmış mevcut satın alımlar çevrimdışı da kullanılabilir.
+- iOS kayıtları Application Support altındaki korumalı JSON dosyasına atomik olarak yazılır. Beklenen önceki kayıt eşleşmezse yazma reddedilir. Native kayıt hatasında tarayıcı depolamasına sessiz geçiş yapılmaz.
+- Eski aynı-WebView yerel kaydı varsa bir kez doğrulanarak aktarılır, özgün kopya tutulur. **Safari verileri otomatik okunamaz:** Safari'de JSON yedeği indirip iOS uygulamasında Dosyalardan yükleyin.
+- Native JSON kayıt üst sınırı 24 MB, dışa/içe aktarma 25 MB, köprü katmanının savunma sınırı 32 MB'dir. Native yedek kompakt JSON olarak üretilir. Dosya paylaşımı iptal edilirse yedek yükleme onayı açılmaz.
+- Yedekler/ekler iOS paylaşım menüsüyle dışa aktarılır, yedekler sistem dosya seçicisiyle alınır, hesap raporları iOS yazdırma menüsüne gönderilir. Kamera izni yalnızca kullanıcı fotoğraf çekmeyi seçtiğinde istenir.
+- Web demo sürümünün tarayıcı depolaması ve mevcut kullanım davranışı korunur; StoreKit satın alma sistemi iOS içindir.
+
+Mağaza metinleri, gizlilik/destek taslakları ve gerçek cihaz kontrol listesi: [iOS yayın hazırlığı](docs/ios/README.md). Apple Developer üyeliği, yayıncı kimliği, destek/gizlilik adresleri, gerçek App Store ürünü ve imzalama tamamlanmadan uygulama mağazaya gönderilmemelidir. StoreKit test dosyasındaki ürün ve 399 TL örnek fiyat gerçek satış ürünü oluşturmaz.
 
 ## Çalıştırma
 
@@ -9,6 +34,7 @@ Dosyaları bir statik web sunucusundan veya GitHub Pages üzerinden sunun. HTTPS
 - `index.html`: uygulama kabuğu ve gezinme.
 - `styles.css`: responsive arayüz ve hesap ağacı.
 - `core.js`: doğrulama, eski veri dönüşümü, kuruş hesabı ve filtreler.
+- `native.js`: platform sınırı, atomik iOS kayıt köprüsü, native dosyalar ve doğrulanmış satın alma erişimi.
 - `app.js`: arayüz, form taslağı, yerel kayıt, yedekleme ve etkileşimler.
 - `drag.js`: fare/dokunmatik/klavye ile hesap taşıma, kenarda otomatik kaydırma ve geri alma.
 - `suggestions.js`: yerel önerilerin indekslenmesi, Türkçe eşleştirme ve sıralama.
@@ -79,7 +105,7 @@ node --check core.js
 node --check drag.js
 node --check suggestions.js
 node --check autocomplete.js
-node --test tests/core.test.js tests/suggestions.test.js
+node --test tests/*.test.js
 ```
 
 Tarayıcı senaryoları Python Playwright ve Chromium gerektirir:
@@ -90,8 +116,11 @@ python -m playwright install chromium
 python tests/browser.py
 python tests/drag.py
 python tests/autocomplete.py
+python tests/native.py
 ```
 
 Yerel `/usr/bin/chromium` varsa kullanılır; `BROWSER_EXECUTABLE` ile değiştirilebilir. Yoksa Playwright'ın kurulu Chromium'u kullanılır. Testler gerçek uygulama dosyalarını yerel HTTP yanıtlarıyla sunar; üretim verilerine dokunmaz. Masaüstü/mobil form, hesap hiyerarşisi, dosya ekleme, kayıt kotası hatası, sekme çakışması, yedek geri yükleme, güvenli metin gösterimi ve eski veri dönüşümünü kontrol eder. Ekran görüntüleri yerel `test-artifacts/` klasörüne yazılır.
 
 GitHub Actions sözdizimi, veri/öneri testleri, masaüstü/mobil kullanım, hesap taşıma ve otomatik tamamlama senaryolarını çalıştırır. Hesap taşıma testleri gerçek dokunma olayları, klavye, hedef toleransı, iptal, geri alma ve imleç sabitken devam eden yatay/dikey kaydırmayı kapsar.
+
+Native JavaScript testleri taklit Capacitor köprüsü kullanır; gerçek iOS dosya koruması veya gerçek Apple ödeme işlemi yaptıklarını göstermez. İmzalı cihaz/TestFlight kontrolleri ayrıca tamamlanmalıdır.

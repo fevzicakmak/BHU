@@ -19,6 +19,10 @@ let state = emptyState();
 let storedRaw = null;
 let recoveryRaw = null;
 let loadError = '';
+let booting = true;
+const device = window.KasaNative.createRuntime({ core: Core, key: STORAGE_KEY });
+let billingContext = null;
+let purchaseBusy = false;
 let currentTab = 'network';
 let filters = emptyFilters();
 let groupBy = 'daily';
@@ -62,17 +66,13 @@ function sortedAccounts() {
 function accountOptions(selected, excluded = new Set()) {
   return sortedAccounts().filter(k => !excluded.has(k.id)).map(k => `<option value="${esc(k.id)}" ${k.id === selected ? 'selected' : ''}>${'— '.repeat(accountDepth(k))}${esc(k.name)}</option>`).join('');
 }
-function loadInitialState() {
+async function loadInitialState() {
   try {
-    storedRaw = localStorage.getItem(STORAGE_KEY);
-    if (storedRaw) {
-      const saved = JSON.parse(storedRaw);
-      state = Core.normalizeState(saved);
-      if (saved.version !== 2) recoveryRaw = storedRaw;
-    }
+    const loaded = await device.load();
+    storedRaw = loaded.raw; state = loaded.state; recoveryRaw = loaded.recoveryRaw;
   } catch (error) {
-    recoveryRaw = storedRaw;
-    loadError = `Mevcut veriler açılamadı: ${error.message} Ayarlardan ham kaydı indirebilir ve geçerli bir yedek yükleyebilirsiniz. Mevcut kayıt değiştirilmedi.`;
+    storedRaw = error.raw ?? null; recoveryRaw = storedRaw;
+    loadError = `Mevcut veriler açılamadı: ${error.message} Ayarlardan ham kaydı dışa aktarabilir ve geçerli bir yedek yükleyebilirsiniz. Mevcut kayıt değiştirilmedi.`;
   }
   draft = blankDraft(state.activeKasaId);
 }
@@ -98,48 +98,41 @@ function showError(error, inline = null) {
   else notice(message, true);
 }
 async function commit(mutator, options = {}) {
-  if (saving) return false;
+  if (saving || booting) return false;
   saving = true;
   updateSaveButtons();
   try {
-    const write = () => {
-      if (loadError && !options.recovery) throw new Error('Mevcut veriler okunamadığı için kayıt korumaya alındı. Ayarlardan ham kaydı indirip geçerli bir yedek yükleyin.');
+    const write = async () => {
+      if (loadError && !options.recovery) throw new Error('Mevcut veriler okunamadığı için kayıt korumaya alındı. Ayarlardan ham kaydı dışa aktarıp geçerli bir yedek yükleyin.');
       const candidate = structuredClone(state);
-      mutator(candidate);
-      candidate.version = 2;
-      candidate.revision = uid();
-      // Keep the original legacy snapshot when there is room; failure here must not prevent a valid main write.
+      mutator(candidate); candidate.version = 2; candidate.revision = uid();
+      const validated = Core.normalizeState(candidate);
+      await device.checkAccess(state, validated, { importing: Boolean(options.importing) });
       let createdRecovery = false;
-      if (recoveryRaw && !loadError) {
-        try { if (!localStorage.getItem('kasa-pro-recovery-v1')) { localStorage.setItem('kasa-pro-recovery-v1', recoveryRaw); createdRecovery = true; } } catch (_) { /* Original remains downloadable in this session. */ }
+      if (!device.isNative && recoveryRaw && !loadError) {
+        try { if (!localStorage.getItem('kasa-pro-recovery-v1')) { localStorage.setItem('kasa-pro-recovery-v1', recoveryRaw); createdRecovery = true; } } catch (_) { /* Original remains available this session. */ }
       }
       let result;
-      try { result = Core.saveSnapshot(localStorage, STORAGE_KEY, candidate, storedRaw); }
+      try { result = await device.save(validated, storedRaw); }
       catch (error) {
         if (createdRecovery && error.name === 'QuotaExceededError') {
-          localStorage.removeItem('kasa-pro-recovery-v1');
-          result = Core.saveSnapshot(localStorage, STORAGE_KEY, candidate, storedRaw);
+          localStorage.removeItem('kasa-pro-recovery-v1'); result = await device.save(validated, storedRaw);
         } else throw error;
       }
-      state = result.state;
-      storedRaw = result.raw;
-      externalChange = false;
+      state = result.state; storedRaw = result.raw; externalChange = false;
       if (options.recovery) loadError = '';
     };
-    // Serialize cooperating tabs, then compare snapshots inside the lock.
     if (navigator.locks?.request) await navigator.locks.request('kasa-pro-write', write);
-    else write();
+    else await write();
     if (options.render !== false) render();
     return true;
   } catch (error) {
-    try { externalChange = localStorage.getItem(STORAGE_KEY) !== storedRaw; } catch (_) { /* Storage unavailable. */ }
-    showError(error, options.errorTarget);
-    updateSyncBanner();
+    if (error.code === 'MULTI_ACCOUNT_REQUIRED') { showMultiAccountPaywall(); return false; }
+    if (!device.isNative) { try { externalChange = localStorage.getItem(STORAGE_KEY) !== storedRaw; } catch (_) { /* Storage unavailable. */ } }
+    if (error.code === 'STORAGE_CONFLICT') externalChange = true;
+    showError(error, options.errorTarget); updateSyncBanner();
     return false;
-  } finally {
-    saving = false;
-    updateSaveButtons();
-  }
+  } finally { saving = false; updateSaveButtons(); }
 }
 function updateSaveButtons() {
   document.querySelectorAll('[data-save]').forEach(button => { button.disabled = saving || filePending || (button.dataset.action === 'confirm-import' && !importCheckpoint); });
@@ -262,6 +255,75 @@ function accountMenuHTML() {
   return `<div class="menu-heading">Hesaplar</div>${sortedAccounts().map(k => `<div class="account-row ${k.id === state.activeKasaId ? 'selected' : ''}"><button class="account-select" data-select-account="${esc(k.id)}" style="padding-left:${Math.min(accountDepth(k), 5) * 12}px"><strong>${k.parentId ? '↳ ' : ''}${esc(k.name)}</strong><small>${money(balance(k.id))}</small></button><button class="row-icon" data-action="edit-account" data-account-id="${esc(k.id)}" aria-label="${esc(k.name)} hesabını düzenle">✎</button><button class="row-icon" data-action="move-account-transactions" data-account-id="${esc(k.id)}" aria-label="${esc(k.name)} hesabının işlemlerini taşı">⇄</button></div>`).join('') || '<p class="panel-pad">Henüz hesap yok.</p>'}`;
 }
 
+function showMultiAccountPaywall() {
+  if (!device.isNative || billingContext) return;
+  const fragment = document.createDocumentFragment();
+  const context = { fragment, focus: document.activeElement, trigger: modalTrigger, pendingImport, importCheckpoint };
+  while ($('#modal-root').firstChild) fragment.appendChild($('#modal-root').firstChild);
+  billingContext = context;
+  openModal('Çoklu Hesap', `<div class="plan-card"><p class="eyebrow">TEK SEFERLİK SATIN ALMA</p><h3>Ana hesaplarınızı ayrı ayrı takip edin</h3><p>Bir ana hesap ve onun alt hesapları ücretsizdir. İkinci ve sonraki ana hesaplar için Çoklu Hesap özelliğini bir kez satın alın.</p><ul><li>Birden fazla ana hesap</li><li>Ana hesaplar arasında işlem taşıma</li><li>Mevcut hesap ağacı, işlemler ve yedekleme</li></ul><p class="field-hint">Abonelik yoktur. Aynı Apple hesabındaki satın alımınızı geri yükleyebilirsiniz. Mevcut kayıtlarınızı görüntülemek ve yedeklemek için satın alma gerekmez.</p></div><p id="purchase-status" role="status" class="field-hint">Satın alma bilgileri yükleniyor…</p><p id="purchase-error" class="inline-error" role="alert" tabindex="-1"></p><button class="primary-button" data-action="purchase-multi-account" disabled>Satın alma bilgileri yükleniyor…</button><div class="purchase-actions"><button class="secondary-button" data-action="restore-purchases">Satın alımları geri yükle</button><button class="link-button" data-action="retry-purchase-status">Tekrar dene</button></div><p class="field-hint">Satın aldıktan sonra önceki ekrana dönüp işleminizi tamamlayın. Girdiğiniz bilgiler korunur.</p>`, '<button class="secondary-button" data-action="close-modal">Önceki ekrana dön</button>');
+  refreshPurchaseStatus();
+}
+function returnFromPaywall() {
+  const context = billingContext;
+  if (!context) return;
+  billingContext = null;
+  $('#modal-root').replaceChildren(context.fragment);
+  pendingImport = context.pendingImport; importCheckpoint = context.importCheckpoint; modalTrigger = context.trigger;
+  document.body.classList.toggle('modal-open', Boolean($('#modal-root').firstChild));
+  updateSaveButtons();
+  document.dispatchEvent(new Event('kasa:render'));
+  if (context.focus?.isConnected) context.focus.focus({ preventScroll: true });
+  else ($('.modal') || $(`[data-tab="${currentTab}"]`))?.focus();
+}
+async function refreshPurchaseStatus() {
+  const context = billingContext;
+  if (!context || purchaseBusy) return;
+  try {
+    const status = await device.getPurchaseStatus();
+    if (context !== billingContext) return;
+    const button = $('[data-action="purchase-multi-account"]');
+    button.disabled = status.isPro === true || !status.productAvailable || !status.price;
+    button.textContent = status.isPro ? 'Çoklu Hesap açık' : status.price ? `${status.price} · Bir kez satın al` : 'Satın alma şu anda kullanılamıyor';
+    $('#purchase-status').textContent = status.isPro ? 'Satın alımınız doğrulandı. Önceki ekrana dönüp işleminizi tamamlayabilirsiniz.' : status.price ? 'Tek ödeme · Abonelik yok' : 'Satın alma bilgileri alınamadı. Daha sonra tekrar deneyebilir veya önceki satın alımınızı geri yükleyebilirsiniz.';
+  } catch (_) {
+    if (context !== billingContext) return;
+    $('[data-action="purchase-multi-account"]').disabled = true;
+    $('[data-action="purchase-multi-account"]').textContent = 'Satın alma şu anda kullanılamıyor';
+    $('#purchase-status').textContent = 'Apple satın alma bilgilerine erişilemiyor. Bağlantınızı kontrol edip tekrar deneyin.';
+  }
+}
+async function handlePurchase(restoring) {
+  if (!billingContext || purchaseBusy) return;
+  const context = billingContext;
+  purchaseBusy = true;
+  document.querySelectorAll('.modal [data-action]').forEach(button => { button.disabled = true; });
+  $('#purchase-error').textContent = '';
+  try {
+    const status = restoring ? await device.restore() : await device.purchase();
+    if (billingContext !== context) return;
+    if (status.cancelled) $('#purchase-status').textContent = 'Satın alma iptal edildi. Kayıtlarınız değişmedi.';
+    else if (status.pending) $('#purchase-status').textContent = 'Satın alma Apple onayı bekliyor. Onaydan sonra tekrar deneyebilirsiniz.';
+    else if (status.isPro) { purchaseBusy = false; returnFromPaywall(); toast('Çoklu Hesap açıldı. İşleminizi tamamlayabilirsiniz.'); return; }
+    else $('#purchase-status').textContent = restoring ? 'Bu Apple hesabında Çoklu Hesap satın alımı bulunamadı.' : 'Satın alma doğrulanamadı. Kayıtlarınız değişmedi.';
+  } catch (error) {
+    if (billingContext === context) $('#purchase-error').textContent = error.message || 'Satın alma tamamlanamadı. Daha sonra tekrar deneyin.';
+  } finally {
+    purchaseBusy = false;
+    if (billingContext === context) {
+      document.querySelectorAll('.modal [data-action]').forEach(button => { button.disabled = false; });
+      // Obtain the actual Apple price again without inventing a fallback price.
+      const message = $('#purchase-status').textContent;
+      await refreshPurchaseStatus();
+      if ($('#purchase-status') && message) $('#purchase-status').textContent = message;
+    }
+  }
+}
+function printReportHTML() {
+  const txs = Core.filterTransactions(accountTransactions(activeAccount().id), filters), totals = Core.totals(txs);
+  return `<!doctype html><html lang="tr"><head><meta charset="utf-8"><title>${esc(activeAccount().name)}</title><style>body{font-family:-apple-system,sans-serif;color:#183c2a;font-size:12px;padding:20px}h1{font-size:22px}table{width:100%;border-collapse:collapse}th,td{padding:8px;border-bottom:1px solid #ddd;text-align:left;overflow-wrap:anywhere}td:last-child{text-align:right;white-space:nowrap}tr{break-inside:avoid}p{line-height:1.7}</style></head><body><h1>${esc(activeAccount().name)}</h1><p>Listelenen işlemler: ${txs.length}<br>Gelir: ${money(totals.income)} · Gider: ${money(totals.expense)} · Bakiye: ${money(totals.balance)}</p><table><thead><tr><th>Tarih</th><th>Cari / açıklama</th><th>Hesap</th><th>Tutar</th></tr></thead><tbody>${txs.map(tx => `<tr><td>${esc(dateText(tx.date))}</td><td>${esc(tx.customerName)}<br>${esc(tx.description)}</td><td>${esc(state.kasalar.find(k => k.id === tx.kasaId)?.name)}</td><td>${tx.type === 'income' ? '+' : '−'}${money(tx.amountCents)}</td></tr>`).join('')}</tbody></table></body></html>`;
+}
+
 function openModal(title, content, footer = '') {
   const alreadyOpen = Boolean($('#modal-root').firstElementChild);
   if (!alreadyOpen) modalTrigger = document.activeElement;
@@ -273,6 +335,7 @@ function openModal(title, content, footer = '') {
   focusTarget.focus();
 }
 function closeModal() {
+  if (billingContext) { if (!purchaseBusy) returnFromPaywall(); return; }
   if (modalCleanup) { modalCleanup(); modalCleanup = null; }
   $('#modal-root').replaceChildren();
   document.dispatchEvent(new Event('kasa:render'));
@@ -377,23 +440,25 @@ async function saveMove(form) {
   }, { errorTarget: '#move-error' });
   if (okay) { closeModal(); toast('İşlemler taşındı'); }
 }
-function downloadText(text, name, type = 'application/json') {
+async function downloadText(text, name, type = 'application/json') {
+  if (device.isNative) { const result = await device.exportBackup(text, name); return result.status === 'shared'; }
   const url = URL.createObjectURL(new Blob([text], { type }));
   const link = document.createElement('a');
   link.href = url; link.download = name; link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return true;
 }
-function exportData() {
+async function exportData() {
   if (loadError) { notice('Mevcut kayıt açılamadı. Önce ayarlardan ham kaydı indirin.', true); return; }
-  downloadText(JSON.stringify({ ...state, exportDate: new Date().toISOString() }, null, 2), `kasa-pro-yedek-${today()}.json`);
-  toast('Yedek indirmesi başlatıldı');
+  const completed = await downloadText(JSON.stringify({ ...state, exportDate: new Date().toISOString() }, null, device.isNative ? 0 : 2), `kasa-pro-yedek-${today()}.json`);
+  if (completed) toast(device.isNative ? 'Yedek paylaşımı tamamlandı' : 'Yedek indirmesi başlatıldı');
 }
 function settingsModal() {
   const chars = storedRaw?.length || 0;
   let oldRecovery = null;
-  try { oldRecovery = localStorage.getItem('kasa-pro-recovery-v1'); } catch (_) { /* Current recovery is still available. */ }
-  openModal('Ayarlar ve yedekleme', `<div class="storage-info"><strong>Veriler yalnızca bu tarayıcıda saklanır</strong><p>Hesaplar, işlemler ve belgeler için düzenli JSON yedeği alın. Tarayıcı verilerini temizlemek kayıtları siler.</p><small>Bu uygulamanın yaklaşık depolama kullanımı: ${(chars * 2 / 1024 / 1024).toFixed(2)} MB</small></div>
-    <div class="settings-actions"><button class="tx-row" data-action="export-data"><span class="tx-icon income" aria-hidden="true">↓</span><span><strong>Yedek indir</strong><small>Hesaplar, işlemler ve belgeler</small></span></button><label class="tx-row import-label" for="import-input"><span class="tx-icon income" aria-hidden="true">↑</span><span><strong>Yedek yükle</strong><small>Önce kontrol edilir, sonra onayınızla yüklenir</small></span><input id="import-input" type="file" accept="application/json,.json"></label><button class="tx-row" data-action="print-data"><span class="tx-icon" aria-hidden="true">▣</span><span><strong>İşlem listesini yazdır</strong><small>Seçili hesap ve mevcut filtreler</small></span></button>${recoveryRaw || oldRecovery ? '<button class="tx-row" data-action="download-recovery"><span class="tx-icon" aria-hidden="true">↶</span><span><strong>Önceki / ham kaydı indir</strong><small>Geçiş öncesindeki özgün veri</small></span></button>' : ''}</div><p id="settings-error" class="inline-error" role="alert" tabindex="-1"></p>`);
+  try { if (!device.isNative) oldRecovery = localStorage.getItem('kasa-pro-recovery-v1'); } catch (_) { /* Current recovery is still available. */ }
+  openModal('Ayarlar ve yedekleme', `<div class="storage-info"><strong>${device.isNative ? 'Veriler bu cihazda saklanır' : 'Veriler yalnızca bu tarayıcıda saklanır'}</strong><p>${device.isNative ? 'Hesaplarınız ve belgeleriniz uygulamanın korumalı dosyasında saklanır. Uygulamayı silmek kayıtları silebilir; düzenli JSON yedeği alın.' : 'Hesaplar, işlemler ve belgeler için düzenli JSON yedeği alın. Tarayıcı verilerini temizlemek kayıtları siler.'}</p><small>Bu uygulamanın yaklaşık depolama kullanımı: ${(chars * 2 / 1024 / 1024).toFixed(2)} MB</small></div>
+    <div class="settings-actions"><button class="tx-row" data-action="export-data"><span class="tx-icon income" aria-hidden="true">↓</span><span><strong>${device.isNative ? 'Yedeği paylaş / Dosyalara kaydet' : 'Yedek indir'}</strong><small>Hesaplar, işlemler ve belgeler</small></span></button>${device.isNative ? '<button class="tx-row" data-action="native-import"><span class="tx-icon income" aria-hidden="true">↑</span><span><strong>Dosyalardan yedek yükle</strong><small>Safari yedekleri de yüklenebilir</small></span></button>' : '<label class="tx-row import-label" for="import-input"><span class="tx-icon income" aria-hidden="true">↑</span><span><strong>Yedek yükle</strong><small>Önce kontrol edilir, sonra onayınızla yüklenir</small></span><input id="import-input" type="file" accept="application/json,.json"></label>'}${device.isNative ? '<button class="tx-row" data-action="open-multi-account"><span class="tx-icon income">＋</span><span><strong>Çoklu Hesap</strong><small>Tek seferlik satın alma · Satın alımları geri yükle</small></span></button>' : ''}<button class="tx-row" data-action="print-data"><span class="tx-icon" aria-hidden="true">▣</span><span><strong>İşlem listesini yazdır</strong><small>Seçili hesap ve mevcut filtreler</small></span></button>${recoveryRaw || oldRecovery ? '<button class="tx-row" data-action="download-recovery"><span class="tx-icon" aria-hidden="true">↶</span><span><strong>Önceki / ham kaydı indir</strong><small>Geçiş öncesindeki özgün veri</small></span></button>' : ''}</div><p id="settings-error" class="inline-error" role="alert" tabindex="-1"></p>`);
 }
 async function inspectImport(file) {
   if (!file) return;
@@ -519,28 +584,36 @@ async function handleAction(button) {
     setDraftField('amount', Core.centsInput(rounded));
     closeModal(); if ($('#form-amount')) { $('#form-amount').value = draft.amount; $('#form-amount').focus(); }
     toast('Sonuç en yakın kuruşa yuvarlanarak aktarıldı');
-  } else if (action === 'export-data') exportData();
+  } else if (action === 'export-data') await exportData();
+  else if (action === 'native-import') {
+    const selected = await device.importBackup();
+    if (selected.status === 'selected') await inspectImport(new File([selected.data], selected.fileName || 'yedek.json', { type: 'application/json' }));
+  } else if (action === 'open-multi-account') showMultiAccountPaywall();
+  else if (action === 'purchase-multi-account') await handlePurchase(false);
+  else if (action === 'restore-purchases') await handlePurchase(true);
+  else if (action === 'retry-purchase-status') await refreshPurchaseStatus();
   else if (action === 'download-recovery') {
     let raw = recoveryRaw;
     try { raw ||= localStorage.getItem('kasa-pro-recovery-v1'); } catch (_) { /* In-memory original is preferred. */ }
-    if (raw) downloadText(raw, `kasa-pro-ham-kayit-${today()}.json`);
+    if (raw) await downloadText(raw, `kasa-pro-ham-kayit-${today()}.json`);
   } else if (action === 'backup-before-import') {
-    if (storedRaw) downloadText(storedRaw, `kasa-pro-yukleme-oncesi-${today()}.json`);
-    else downloadText(JSON.stringify(state, null, 2), `kasa-pro-yukleme-oncesi-${today()}.json`);
+    const checkpoint = await downloadText(storedRaw || JSON.stringify(state, null, 2), `kasa-pro-yukleme-oncesi-${today()}.json`);
+    if (!checkpoint) return;
     importCheckpoint = true;
-    $('#import-checkpoint-status').textContent = 'İndirme başlatıldı. Dosyanızı sakladıktan sonra yedeği yükleyin.';
+    $('#import-checkpoint-status').textContent = device.isNative ? 'Yedek paylaşımı tamamlandı. Dosyanızı sakladıktan sonra devam edin.' : 'İndirme başlatıldı. Dosyanızı sakladıktan sonra yedeği yükleyin.';
     updateSaveButtons();
   } else if (action === 'confirm-import' && pendingImport && importCheckpoint) {
     if (draft.dirty && !confirm('Kaydedilmemiş işlem taslağı da silinecek. Yedek yüklensin mi?')) return;
     const loaded = pendingImport;
-    if (await commit(next => Object.assign(next, loaded), { recovery: true, render: false, errorTarget: '#import-error' })) {
+    if (await commit(next => Object.assign(next, loaded), { recovery: true, importing: true, render: false, errorTarget: '#import-error' })) {
       draft = blankDraft(state.activeKasaId); filters = emptyFilters(); currentTab = 'network';
       $('#notice').classList.add('hidden'); closeModal(); render(); toast('Yedek doğrulanarak yüklendi');
     }
   } else if (action === 'print-data') {
     if (!activeAccount()) { notice('Önce bir hesap seçin.'); return; }
-    closeModal(); currentTab = 'list'; render(); window.print();
-  } else if (action === 'reload-data') reloadExternalData();
+    closeModal(); currentTab = 'list'; render();
+    if (device.isNative) await device.printReport(printReportHTML(), activeAccount().name); else window.print();
+  } else if (action === 'reload-data') await reloadExternalData();
 }
 function closeAccountMenu() { $('#account-menu').classList.add('hidden'); $('#account-menu-button').setAttribute('aria-expanded', 'false'); }
 async function selectAccount(id) {
@@ -551,10 +624,10 @@ async function selectAccount(id) {
     if (currentTab === 'add' && draft.kasaId !== id) toast('Taslak korundu. Kaydedilecek hesabı formdan seçebilirsiniz.');
   }
 }
-function reloadExternalData() {
+async function reloadExternalData() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const loaded = raw ? Core.normalizeState(JSON.parse(raw)) : emptyState();
+    const result = await device.load();
+    const raw = result.raw, loaded = result.state;
     state = loaded; storedRaw = raw; externalChange = false; loadError = '';
     if (!draft.dirty && !draft.id) draft = blankDraft(state.activeKasaId);
     render(); toast('Güncel veriler yüklendi; açık taslağınız korundu');
@@ -589,6 +662,7 @@ document.addEventListener('click', async event => {
     if (target.dataset.downloadAttachment) {
       const file = state.transactions.flatMap(t => t.attachments).find(a => a.id === target.dataset.downloadAttachment);
       if (file) {
+        if (device.isNative) { await device.exportAttachment(file); return; }
         // Download as a Blob, never navigate to user-supplied document URLs.
         const base64 = file.url.slice(file.url.indexOf(',') + 1), decoded = atob(base64);
         const bytes = Uint8Array.from(decoded, char => char.charCodeAt(0));
@@ -628,7 +702,7 @@ document.addEventListener('change', async event => {
 document.addEventListener('keydown', event => {
   const modal = $('.modal');
   if (event.key === 'Escape') {
-    if (modal && !saving) { event.preventDefault(); closeModal(); }
+    if (modal) { event.preventDefault(); if (!saving && !purchaseBusy) closeModal(); }
     else { closeAccountMenu(); $('#account-menu-button').focus(); }
     return;
   }
@@ -646,7 +720,7 @@ document.addEventListener('keydown', event => {
   if (!modal && currentTab === 'add' && (event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); saveTransaction(false); }
 });
 window.addEventListener('storage', event => {
-  if (event.key !== STORAGE_KEY && event.key !== null) return;
+  if (device.isNative || (event.key !== STORAGE_KEY && event.key !== null)) return;
   try { externalChange = localStorage.getItem(STORAGE_KEY) !== storedRaw; updateSyncBanner(); } catch (error) { showError(error); }
 });
 window.addEventListener('beforeunload', event => { if (draft.dirty || filePending || saving) { event.preventDefault(); event.returnValue = ''; } });
@@ -654,7 +728,11 @@ window.addEventListener('error', event => { console.error(event.error); notice('
 window.addEventListener('unhandledrejection', event => { console.error(event.reason); showError(new Error('İşlem tamamlanamadı. Kaydedilmemiş alanlarınızı kontrol edin.')); });
 
 let importCheckpoint = false;
-loadInitialState();
-render();
-if (loadError) notice(loadError, true);
-else if (recoveryRaw) notice('Eski kayıtlarınız açıldı. Tutarlar kuruş hassasiyetine dönüştürüldü; özgün kaydı ayarlardan indirebilirsiniz. İlk değişiklikte yeni biçim kaydedilir.', true);
+(async function start() {
+  try { await loadInitialState(); }
+  finally {
+    booting = false; $('#app').removeAttribute('inert'); $('#app-loading')?.remove(); render();
+    if (loadError) notice(loadError, true);
+    else if (recoveryRaw) notice('Önceki kayıtlarınız açıldı. Özgün kaydı ayarlardan dışa aktarabilirsiniz. İlk değişiklikte yeni biçim kaydedilir.', true);
+  }
+})();

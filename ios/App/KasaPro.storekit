@@ -1,0 +1,35 @@
+{
+  "identifier" : "A08325AC-4149-48D1-B8AB-B6A6055B8F73",
+  "nonRenewingSubscriptions" : [
+  ],
+  "products" : [
+    {
+      "displayPrice" : "399.00",
+      "familyShareable" : false,
+      "internalID" : "6822315790",
+      "localizations" : [
+        {
+          "description" : "Birden fazla ana hesap oluşturma hakkını kalıcı olarak açar. Bu fiyat yalnızca yerel StoreKit testidir.",
+          "displayName" : "BHU Çoklu Hesap",
+          "locale" : "tr_TR"
+        }
+      ],
+      "productID" : "com.fevzicakmak.bhu.multipleaccounts",
+      "referenceName" : "BHU Çoklu Hesap - LOCAL TEST ONLY",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "tr_TR",
+    "_storefront" : "TUR",
+    "_storeKitErrors" : [
+    ]
+  },
+  "subscriptionGroups" : [
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

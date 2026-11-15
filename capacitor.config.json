@@ -1,0 +1,10 @@
+{
+  "appId": "com.fevzicakmak.bhu",
+  "appName": "BHU",
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#f5f8f6",
+    "preferredContentMode": "mobile"
+  }
+}
