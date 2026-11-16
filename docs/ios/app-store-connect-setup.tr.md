@@ -68,4 +68,6 @@ Kullanıcının Mac'i yoktur. Mevcut hazırlıkta Apple Distribution sertifikas�
 
 ## Teknik hazırlığa geri iletilecekler
 
+Mevcut imzalı `1.0 / 3.1` paketin [ayrı Apple doğrulaması](https://github.com/fevzicakmak/BHU/actions/runs/43952679236/job/133599032266) `-1011 / AUTHENTICATION_FAILED` ile reddedildi. Yeni paket üretilmeden önce App Store Connect **Users and Access → Integrations → App Store Connect API → Team Keys** kaydı ile GitHub'daki API kimliklerinin ve `.p8` dosyasının aynı anahtara ait olduğu doğrulanmalıdır. Bu kontrol imzalama sertifikasını, profili veya ücretsiz/ücretli hesap kuralını değiştirmez; hangi API alanının yanlış olduğu henüz belirlenmedi.
+
 Team ID, Bundle ID, BHU/ürün kaydı, AB bölgelerinin çıkarılması ve **Active** görülen sözleşme/banka/W-8BEN bilgileri yeniden istenmez. Kullanıcı 149,99 TL için **Next → Confirm** yaptığını bildirdi; son ürün **Save** ve DSA onayı hâlâ doğrulanmadı. İmzalama dosyaları/Secrets gerçek Mac işinde kullanıldı ve imzalı IPA doğrulaması geçti; API Secrets CLI çağrılarında kullanıldı, fakat Apple kabulü doğrulanmadı. Sıradaki teknik adım gerçek Apple yanıtı/teslim alındısını ve ardından App Store Connect/TestFlight durumunu doğrulamaktır; gerçek cihaz ve satın alma kabulü henüz tamamlanmadı. İmzalama/yükleme için gereken gizli bilgiler güvenli Xcode veya CI secret yönetiminde kalmalıdır.
