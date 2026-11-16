@@ -11,20 +11,19 @@ const MAX_RESPONSE = 1024 * 1024;
 export class StatusError extends Error {}
 const checked = (condition, message) => { if (!condition) throw new StatusError(message); };
 
-export function createToken(env, nowSeconds = Math.floor(Date.now() / 1000), scope = ['GET /v1/apps', 'GET /v1/builds']) {
+export function createToken(env, nowSeconds = Math.floor(Date.now() / 1000)) {
   const kid = env.APP_STORE_CONNECT_KEY_ID?.trim();
   const issuer = env.APP_STORE_CONNECT_ISSUER_ID?.trim();
   checked(/^[A-Z0-9]{10}$/.test(kid || ''), 'Invalid APP_STORE_CONNECT_KEY_ID.');
   checked(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(issuer || ''), 'Invalid APP_STORE_CONNECT_ISSUER_ID.');
   checked(Number.isSafeInteger(nowSeconds) && nowSeconds > 0, 'Invalid token timestamp.');
-  checked(Array.isArray(scope) && scope.length > 0 && scope.every(value => /^GET \/v1\/(?:apps|builds)(?:\?[^\s#]*)?$/.test(value) || /^GET \/v1\/builds\/[A-Za-z0-9-]+\/buildBetaDetail(?:\?[^\s#]*)?$/.test(value)), 'Invalid read-only token scope.');
   try {
     const pem = env.APP_STORE_CONNECT_PRIVATE_KEY;
     checked(typeof pem === 'string' && pem.trim().startsWith('-----BEGIN PRIVATE KEY-----'), 'Invalid App Store Connect private key.');
     const key = createPrivateKey(pem);
     checked(key.asymmetricKeyType === 'ec' && key.asymmetricKeyDetails?.namedCurve === 'prime256v1', 'Invalid App Store Connect private key.');
     const encode = value => Buffer.from(JSON.stringify(value)).toString('base64url');
-    const input = `${encode({ alg: 'ES256', kid, typ: 'JWT' })}.${encode({ iss: issuer, iat: nowSeconds, exp: nowSeconds + 300, aud: 'appstoreconnect-v1', scope })}`;
+    const input = `${encode({ alg: 'ES256', kid, typ: 'JWT' })}.${encode({ iss: issuer, iat: nowSeconds, exp: nowSeconds + 300, aud: 'appstoreconnect-v1' })}`;
     return `${input}.${sign('sha256', Buffer.from(input), { key, dsaEncoding: 'ieee-p1363' }).toString('base64url')}`;
   } catch (_) { throw new StatusError('Invalid App Store Connect private key.'); }
 }
@@ -60,8 +59,8 @@ export async function getStatus({ version, build, env = process.env, fetchImpl =
   async function get(path, parameters, stage, optional = false) {
     const url = new URL(path, ORIGIN);
     if (parameters) url.search = new URLSearchParams(parameters).toString();
-    // Scope the resource path; keep encoded filters only on the actual request URL.
-    const token = createToken(env, nowSeconds, [`GET ${url.pathname}`]);
+    // Use standard Team API claims; requests below enforce GET and the exact BHU filters.
+    const token = createToken(env, nowSeconds);
     let response;
     try {
       response = await fetchImpl(url.href, { method: 'GET', redirect: 'error', signal: AbortSignal.timeout(20000), headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
@@ -70,7 +69,9 @@ export async function getStatus({ version, build, env = process.env, fetchImpl =
       try { await response.body?.cancel(); } catch (_) { /* Primary processing status remains valid. */ }
       return null;
     }
-    checked(response.ok, `${stage} failed (HTTP ${Number.isInteger(response.status) ? response.status : 'unknown'}).`);
+    const serverTime = Date.parse(response.headers?.get('date') || '');
+    const clock = Number.isFinite(serverTime) ? `; server clock delta ${Math.round(serverTime / 1000 - nowSeconds)}s` : '';
+    checked(response.ok, `${stage} failed (HTTP ${Number.isInteger(response.status) ? response.status : 'unknown'}${clock}).`);
     return jsonResponse(response, stage);
   }
   const apps = await get('/v1/apps', { 'filter[bundleId]': BUNDLE_ID, 'fields[apps]': 'bundleId', limit: '2' }, 'App lookup');

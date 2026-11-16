@@ -46,7 +46,8 @@ function mockedAPI({ apps = [app()], builds = [build()], included = [preRelease(
     assert.match(headers.get('authorization') ?? '', /^Bearer [A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/);
     const requestToken = headers.get('authorization').slice('Bearer '.length);
     const requestClaims = JSON.parse(Buffer.from(requestToken.split('.')[1], 'base64url'));
-    assert.deepEqual(requestClaims.scope, [`GET ${url.pathname}`]);
+    assert.equal(requestClaims.aud, 'appstoreconnect-v1');
+    assert.equal(requestClaims.scope, undefined, 'Use the standard Team API token claims');
     if (url.pathname === '/v1/apps') {
       assert.equal(url.searchParams.get('filter[bundleId]'), BUNDLE);
       if (failApps) return failApps;
