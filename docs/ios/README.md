@@ -4,6 +4,8 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 
 İkonun kaynak dosyası [`assets/branding/BHU-AppIcon-1024.png`](../../assets/branding/BHU-AppIcon-1024.png) olmalıdır: 1024×1024 PNG, alfa kanalı/şeffaflık içermez. Pillow ile `python3 scripts/generate-ios-artwork.py` doğrulayıp Xcode AppIcon yuvasına aynı baytları kopyalar; `python3 scripts/generate-ios-artwork.py --check` yazmadan eşleşmeyi denetler. Bu betik yalnız uygulama ikonunu yönetir.
 
+İkon doğrulaması: [`287c970` kaynağının macOS çalıştırması](https://github.com/fevzicakmak/BHU/actions/runs/43911561535) 1024×1024 opak PNG eşleşmesini ve Xcode `actool` ile iPhone/iPad asset kataloğu derlemesini geçti. Aynı çalıştırmada 9 imzalama yardımcısı testi ve Debug/Release takım ayarları da geçti. Bu sonuç imzalı IPA veya mağazaya yükleme kanıtı değildir; App Store Connect ikonu yeni derleme yüklendiğinde alır.
+
 | Dosya | Amaç |
 | --- | --- |
 | [app-store-metadata.tr.md](app-store-metadata.tr.md) | Türkçe mağaza metinleri, satın alma açıklaması ve inceleme notları |
