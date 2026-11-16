@@ -1,6 +1,8 @@
 # Gerçek iOS / TestFlight kabul planı
 
-Ürün adı **BHU**, yayıncı **Fevzi Çakmak**, kamuya açık destek adresi **fvzckmk35@gmail.com** olarak onaylandı. Türkiye Çoklu Hesap güncel hedef fiyatı **149,99 TL**. Kullanıcı fiyat seçiminde **Next → Confirm** yaptığını bildirdi; son ürün **Save**, satış bölgeleri ve gerçek StoreKit fiyatı ayrıca doğrulanmalıdır. Fiyat Apple API ile bağımsız teyit edilmedi; imzalı build ve gerçek satın alma kabulü henüz yok.
+Ürün adı **BHU**, yayıncı **Fevzi Çakmak**, kamuya açık destek adresi **fvzckmk35@gmail.com** olarak onaylandı. Türkiye Çoklu Hesap güncel hedef fiyatı **149,99 TL**. Kullanıcı fiyat seçiminde **Next → Confirm** yaptığını bildirdi; son ürün **Save**, satış bölgeleri ve gerçek StoreKit fiyatı ayrıca doğrulanmalıdır. Fiyat Apple API ile bağımsız teyit edilmedi; imzalı IPA üretimi doğrulandı, gerçek cihaz ve satın alma kabulü henüz yok.
+
+[Mac CI 43933501366 / job 133531868110](https://github.com/fevzicakmak/BHU/actions/runs/43933501366/job/133531868110), kaynak `0bc49976fa23b3100d3e8c63eef73f3154e1b1b0` için **10/10 test, 0 hata/0 atlama** ile başarılıdır. Gerçek dağıtım kimliği/profil eşleşmesi, imzalı Archive, 49 arşiv kontrolü, IPA export, derin/sıkı codesign doğrulaması, gömülü profil/Team/Bundle yetkileri ve imzalayan sertifika eşleşmesi geçti. [BHU-AppStore-IPA](https://github.com/fevzicakmak/BHU/actions/runs/43933501366/artifacts/14260217350) içindeki **1.0 / build 2.1** IPA ve özet bağımsız olarak da incelendi; özel anahtar/Secrets veya test içeriği bulunmadı (artifact son erişim: 23 Kasım 2026, 18:57 UTC); `upload_to_testflight=false` olduğundan Apple sunucu doğrulaması veya yükleme yapılmadı. TestFlight/gerçek cihaz/gerçek satın alma kabulü ayrıca tamamlanmalıdır.
 
 ## Kapsam ve kayıt formu
 

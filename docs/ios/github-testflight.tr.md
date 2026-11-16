@@ -1,10 +1,12 @@
 # BHU — Mac olmadan imzalı IPA ve TestFlight
 
-Mac sahibi olmanız gerekmez; derleme GitHub'ın macOS runner'ında yapılır. Aşağıdaki hazırlıklar tarayıcıdaki GitHub Codespaces Linux terminalinden yapılabilir. Bunun için **Codespaces erişimi**, depoda Actions/Secrets yönetme yetkisi, kullanılabilir GitHub macOS Actions runner'ı ve **T4F4D367KQ takımında Apple Certificates, Identifiers & Profiles yetkisi** gerekir. TestFlight yüklemesi ayrıca App Store Connect API anahtarı oluşturma/yükleme yetkisi ister. Yalnız telefonda normal GitHub dosya sayfasını açmak terminal yerine geçmez; Codespaces açıp terminaline erişmelisiniz.
+Mac sahibi olmanız gerekmez; derleme GitHub'ın macOS runner'ında yapılır. Mevcut özel CSR/sertifika/P12/profil hazırlığı tamamlandı; aşağıdaki Codespaces yolu gerektiğinde alternatif hazırlık içindir, hazır dosyaları yeniden üretmeniz gerekmez. Aşağıdaki hazırlıklar tarayıcıdaki GitHub Codespaces Linux terminalinden yapılabilir. Bunun için **Codespaces erişimi**, depoda Actions/Secrets yönetme yetkisi, kullanılabilir GitHub macOS Actions runner'ı ve **T4F4D367KQ takımında Apple Certificates, Identifiers & Profiles yetkisi** gerekir. TestFlight yüklemesi ayrıca App Store Connect API anahtarı oluşturma/yükleme yetkisi ister. Yalnız telefonda normal GitHub dosya sayfasını açmak terminal yerine geçmez; Codespaces açıp terminaline erişmelisiniz.
 
-Bu rehber ve workflow hazırlığı Apple hesabınızda sertifika, profil, uygulama veya satın alma ürünü oluşturmaz. Hiçbiri otomatik oluşturulmaz veya iptal edilmez; portal adımlarını hesap sahibi yapar. Şu anda imzalı IPA veya yükleme başarısı kanıtlanmış değildir.
+Bu rehber ve workflow hazırlığı Apple hesabınızda sertifika, profil, uygulama veya satın alma ürünü oluşturmaz. Hiçbiri otomatik oluşturulmaz veya iptal edilmez; portal adımlarını hesap sahibi yapar. İmzalı IPA üretimi doğrulandı; Apple sunucu doğrulaması/yükleme başarısı henüz yok.
 
 Hazırlık kanıtı: `7e5943e2744fc0bb6505236429f45e224fedd28c` kaynağında [Mac CI 43874034746 / job 133322286941](https://github.com/fevzicakmak/BHU/actions/runs/43874034746/job/133322286941) **9/9 sentetik politika/uyumluluk testini, 0 hata ve 0 atlama ile** geçti. Modern AES-256/SHA-256 P12, üretimdeki aynı dönüşüm yardımcısından geçirilerek Mac keychain'e başarıyla alındı; Debug/Release Team/Automatic/Bundle ID ayarları imzalama kapalıyken tekrar doğrulandı. Gerçek Apple sertifikası, profili veya API anahtarı kullanılmadı; bu testler gerçek imzalı archive/export/upload veya Apple hesabına erişim kanıtı değildir.
+
+**Güncel imzalı IPA kanıtı:** [Mac CI 43933501366 / job 133531868110](https://github.com/fevzicakmak/BHU/actions/runs/43933501366/job/133531868110), kaynak `0bc49976fa23b3100d3e8c63eef73f3154e1b1b0` için **10/10 test, 0 hata/0 atlama** ile başarılıdır. Gerçek dağıtım kimliği/profil eşleşmesi, imzalı Archive, 49 arşiv kontrolü, IPA export, derin/sıkı codesign doğrulaması, gömülü profil/Team/Bundle yetkileri ve imzalayan sertifika eşleşmesi geçti. [BHU-AppStore-IPA](https://github.com/fevzicakmak/BHU/actions/runs/43933501366/artifacts/14260217350) içindeki **1.0 / build 2.1** IPA ve özet bağımsız olarak da incelendi; özel anahtar/Secrets veya test içeriği bulunmadı (artifact son erişim: 23 Kasım 2026, 18:57 UTC); `upload_to_testflight=false` olduğundan Apple sunucu doğrulaması veya yükleme yapılmadı. TestFlight/gerçek cihaz/gerçek satın alma kabulü ayrıca tamamlanmalıdır.
 
 ## 1. Apple kayıtlarını tamamlayın
 
@@ -14,9 +16,11 @@ Bir ana hesap ve alt hesapları ücretsizdir; ikinci ana hesap için tek seferli
 
 Kullanıcı BHU, uygulama içi satın alım ve diğer uygulamasından **AB ülkelerini çıkardığını** bildirdi; diğer uygun ülkeler korunur. AB'de dağıtım yapmama gerekçesiyle birleşik ikinci DSA seçeneği için yönerge verildi, fakat kullanıcı son onayı tamamladığını bildirmedi; DSA tamamlanmış sayılmaz. Bölge değişiklikleri bağımsız doğrulanmadı.
 
-Önceki ekran görüntüsünde **Paid Apps Agreement: Active**, **banka: Active**, **W-8BEN: Active** görüldü; yeniden sözleşme veya ürün oluşturmayın. [App Store Connect rehberindeki](app-store-connect-setup.tr.md) son ürün **Save** ve DSA onayı ayrı açık maddelerdir. Sıradaki teknik adım aşağıdaki Codespaces hazırlığıdır; gerçek sertifika/profil/API Secrets, imzalı IPA ve gerçek satın alma kabulü henüz yok.
+Önceki ekran görüntüsünde **Paid Apps Agreement: Active**, **banka: Active**, **W-8BEN: Active** görüldü; yeniden sözleşme veya ürün oluşturmayın. [App Store Connect rehberindeki](app-store-connect-setup.tr.md) son ürün **Save** ve DSA onayı ayrı açık maddelerdir. Sertifika/P12/profil hazırlığı tamamlandı; üç imzalama Secrets kaydının yapıldığı bildirildi. İmzalı IPA üretimi doğrulandı; API anahtarı/TestFlight yüklemesi ve gerçek satın alma kabulü henüz yok.
 
 ## 2. Codespaces'te özel anahtar ve CSR hazırlayın
+
+Mevcut özel anahtar/CSR ve imzalama dosyaları hazır olduğundan bu adımları tekrar uygulamayın; aşağıdaki komutlar alternatif veya ileride gerekebilecek hazırlık içindir.
 
 GitHub'da BHU deposunu açın: **Code → Codespaces → Create codespace on main**. Codespaces terminalinde depo kökünde olun. Aşağıdaki blok anahtar varsa üzerine yazmayı reddeder; bir kez çalıştırın. `openssl`, `python3` ve `gh` komutları kullanılabilir olmalıdır.
 

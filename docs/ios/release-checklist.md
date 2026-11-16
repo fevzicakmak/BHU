@@ -87,15 +87,18 @@ Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı ş
 - [ ] Daha sıkı d0 ekran/ölçüm sırasıyla iPhone kontrolü kabul edildi. İki deneme de OS boot 300 saniye sınırında BHU kurulmadan başarısız oldu; [ikinci job 133296529337](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/job/133296529337) komutu 322,62 saniyede zaman aşımına uğradı ([ilk hata](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/artifacts/14226106017), [ikinci hata](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/artifacts/14225244147)). Native XCTest/UI/geometri testleri başlamadı; son CI matrisinin tamamı başarılı değildir.
 - [ ] Gerçek iPhone ve iPad'e kurulup [TestFlight planı](testflight-test-plan.md) uygulandı.
 - [x] [Mac CI 43874034746 / job 133322286941](https://github.com/fevzicakmak/BHU/actions/runs/43874034746/job/133322286941), kaynak `7e5943e2744fc0bb6505236429f45e224fedd28c` için **9/9 sentetik imzalama politikası/P12 uyumluluk testini, 0 hata/0 atlama ile** geçti; modern P12 aynı üretim dönüşümünden sonra Mac keychain'e alındı. Debug/Release Team/Automatic/Bundle ID ayarları imzalama kapalıyken tekrar doğru çözüldü. Gerçek Apple sertifikası/profili/API anahtarı kullanılmadı; gerçek imzalı pipeline bu maddeyle tamamlanmaz.
-- [ ] Mac olmadan [GitHub imzalama rehberindeki](github-testflight.tr.md) sertifika/profil ve repository Secrets adımları tamamlandı; ilk manuel IPA üretimi başarılı.
-- [ ] Dağıtım imzası/provisioning doğru; imzalı `Archive`/IPA doğrulaması başarılı.
+- [x] Gerçek Apple Distribution sertifikasının Team/geçerlilik ve aynı CSR ile eşleşmesi, şifreli P12 ve App Store profilinin resmî imza zinciri/Team/Bundle ID/sertifika eşleşmesi doğrulandı; özel bilgiler yayımlanmadı.
+- [x] Kullanıcı P12/parola/profil için üç repository Secrets kaydını tamamladığını bildirdi; bağımsız Secrets listesi doğrulaması yapılmadı.
+- [x] [Mac CI 43933501366 / job 133531868110](https://github.com/fevzicakmak/BHU/actions/runs/43933501366/job/133531868110), kaynak `0bc49976fa23b3100d3e8c63eef73f3154e1b1b0` için 10/10 test, 0 hata/0 atlama ve gerçek kimlik/profil eşleşmesi başarılı.
+- [x] Gerçek imzalı Archive ve 49 arşiv kontrolü başarılı; IPA export ve `codesign --verify --deep --strict` geçti. Gömülü profil, Team/Bundle yetkileri ve imzalayan sertifika eşleşmesi doğrulandı; [BHU-AppStore-IPA](https://github.com/fevzicakmak/BHU/actions/runs/43933501366/artifacts/14260217350) içindeki **1.0 / build 2.1** IPA ve özet bağımsız olarak da incelendi; özel anahtar/Secrets veya test içeriği bulunmadı (artifact son erişim: 23 Kasım 2026, 18:57 UTC).
+- [ ] Apple sunucu doğrulaması ve TestFlight yüklemesi tamamlandı; başarılı IPA işi `upload_to_testflight=false` kullandığından bu aşamaları çalıştırmadı.
 - [ ] Manuel GitHub workflow'unda açıkça seçilen TestFlight yüklemesi veya Organizer ile App Store Connect'e build yüklendi; yalnız IPA üretimi yükleme sayılmaz.
 - [ ] App Store Connect işlemeyi tamamladı; privacy/SDK/ikon/yetenek hatası yok.
 - [ ] TestFlight iç test gerçekleştirildi. Dış test seçilirse gerekli Beta App Review süreci tamamlandı.
 - [ ] Gerçek StoreKit sandbox/TestFlight satın alma ve geri yükleme akışı doğrulandı; yerel StoreKit testiyle karıştırılmadı.
 - [ ] Crash ve veri kaybı bulguları çözüldü; son test edilen build ile gönderilecek build aynı.
 
-Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; Team ID çözümlemesi ayrı Mac CI kontrolüyle doğrulansa da gerçek imzalı archive/export/upload henüz yapılmadı; son imzalı gönderim arşivi yeniden doğrulanmalıdır.
+Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; Team ID çözümlemesi ayrı Mac CI kontrolüyle doğrulansa da gerçek imzalı Archive/export/IPA ayrı 43933501366 çalıştırmasında doğrulandı, Apple doğrulaması/upload çalıştırılmadı; son imzalı gönderim arşivi yeniden doğrulanmalıdır.
 
 ## 6. Son gönderim
 
