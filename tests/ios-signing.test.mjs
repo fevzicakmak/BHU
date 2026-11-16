@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { createHash, generateKeyPairSync, randomBytes, sign, verify, X509Certificate } from 'node:crypto';
 import { readFileSync, mkdtempSync, rmSync, chmodSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { TEAM_ID, BUNDLE_ID, buildNumber, credentials, decodeBase64, requiredSecrets, inspectCertificate, validateProfile, patchAppSigning, normalizeP12 } from '../scripts/ios-signing.mjs';
+import { TEAM_ID, BUNDLE_ID, buildNumber, credentials, decodeBase64, requiredSecrets, inspectCertificate, validateProfile, patchAppSigning, normalizeP12, readSigningCertificate } from '../scripts/ios-signing.mjs';
 const require = createRequire(import.meta.url);
 const parser = require('xcode/lib/parser/pbxproj');
 const certificateBytes = Buffer.from('Synthetic certificate bytes, never an Apple identity');
@@ -150,6 +150,20 @@ test('P12 compatibility conversion preserves the certificate/private-key binding
     assert.throws(() => normalizeP12(input, failed, 'synthetic-wrong-password'), /Decode P12/);
     assert.equal(existsSync(failed), false);
     assert.deepEqual(readdirSync(directory).filter(name => name.startsWith('p12-compat-')), [], 'Failed conversions also remove plaintext PEMs');
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('macOS extracts the active Xcode signing certificate into a path containing spaces and rejects missing code', { skip: process.platform !== 'darwin' }, () => {
+  const directory = mkdtempSync(join(tmpdir(), 'bhu signing certificate ')); chmodSync(directory, 0o700);
+  try {
+    const selected = spawnSync('xcode-select', ['-p'], { encoding: 'utf8', timeout: 10000 });
+    assert.equal(selected.status, 0, 'An active Xcode installation is selected');
+    const xcode = dirname(dirname(selected.stdout.trim()));
+    assert.match(xcode, /\.app$/, 'The selected developer directory belongs to Xcode.app');
+    const certificate = new X509Certificate(readSigningCertificate(xcode, directory));
+    assert.match(certificate.issuer, /Apple/, 'Xcode has an Apple-issued signing certificate');
+    assert.ok(certificate.raw.length > 0, 'The production helper reads a nonempty DER leaf certificate');
+    assert.throws(() => readSigningCertificate(join(directory, 'missing-code'), directory), /Read exported signing certificate failed/);
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 

@@ -118,6 +118,13 @@ function parsePlist(xml) { return require('plist').parse(xml); }
 function decodeProfile(path) { return parsePlist(command('Decode provisioning profile', 'security', ['cms', '-D', '-i', path]).stdout); }
 function signedEntitlements(app) { return parsePlist(command('Read app entitlements', 'codesign', ['-d', '--entitlements', ':-', app]).stdout); }
 
+export function readSigningCertificate(app, directory) {
+  const prefix = join(directory, 'exported-cert-');
+  // codesign takes an optional argument here; a separate token becomes another input path.
+  command('Read exported signing certificate', 'codesign', ['-d', `--extract-certificates=${prefix}`, app]);
+  return readFileSync(`${prefix}0`);
+}
+
 /** Accept modern encrypted P12 inputs, then bridge Apple's Keychain import format. */
 export function normalizeP12(input, output, password) {
   const directory = mkdtempSync(join(dirname(output), 'p12-compat-')); chmodSync(directory, 0o700);
@@ -201,9 +208,7 @@ export async function distribute() {
     const entitlements = signedEntitlements(app);
     checked(entitlements['com.apple.developer.team-identifier'] === TEAM_ID && entitlements['application-identifier']?.endsWith(`.${BUNDLE_ID}`)
       && entitlements['get-task-allow'] !== true, 'Exported IPA entitlements are not App Store distribution entitlements for BHU.');
-    const certPrefix = join(directory, 'exported-cert-');
-    command('Read exported signing certificate', 'codesign', ['-d', '--extract-certificates', certPrefix, app]);
-    checked(sha256(readFileSync(`${certPrefix}0`)) === certificate.sha256, 'Exported IPA was signed with an unexpected certificate.');
+    checked(sha256(readSigningCertificate(app, directory)) === certificate.sha256, 'Exported IPA was signed with an unexpected certificate.');
     const ipa = join(finalDirectory, 'BHU.ipa'); copyFileSync(join(exported, ipas[0]), ipa); chmodSync(ipa, 0o600);
     if (secrets.upload) {
       const keys = join(directory, 'private_keys'); mkdirSync(keys, { mode: 0o700 });
