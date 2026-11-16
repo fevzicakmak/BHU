@@ -21,6 +21,13 @@ let package = Package(
                 .product(name: "Cordova", package: "capacitor-swift-pm")
             ],
             resources: [.process("Resources")]
+        ),
+        .testTarget(
+            name: "KasaStorageTests",
+            dependencies: [
+                "CapApp-SPM",
+                .product(name: "Capacitor", package: "capacitor-swift-pm")
+            ]
         )
     ]
 )

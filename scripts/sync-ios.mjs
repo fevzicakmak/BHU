@@ -14,6 +14,20 @@ if (!source.includes('resources: [.process("Resources")]')) {
   const ending = /            \]\n        \)/g;
   if ([...source.matchAll(ending)].length !== 1) throw new Error('Unexpected Capacitor SPM template; review privacy-resource integration.');
   source = source.replace(ending, '            ],\n            resources: [.process("Resources")]\n        )');
-  await writeFile(path, source);
 }
-console.log('Native plugins and privacy resources are ready for Xcode.');
+if (!source.includes('name: "KasaStorageTests"')) {
+  const ending = /        \)\n    \]\n\)/g;
+  if ([...source.matchAll(ending)].length !== 1) throw new Error('Unexpected Capacitor SPM target ending; review native test integration.');
+  source = source.replace(ending, `        ),
+        .testTarget(
+            name: "KasaStorageTests",
+            dependencies: [
+                "CapApp-SPM",
+                .product(name: "Capacitor", package: "capacitor-swift-pm")
+            ]
+        )
+    ]
+)`);
+}
+await writeFile(path, source);
+console.log('Native plugins, privacy resources and native storage tests are ready for Xcode.');

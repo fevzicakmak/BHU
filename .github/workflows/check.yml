@@ -41,7 +41,11 @@ jobs:
     # Keep the host architecture explicit; the ARM image stalled in simulator
     # graphics readiness before BHU was installed. The same SDK is used here.
     runs-on: macos-15-intel
-    timeout-minutes: 25
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        family: [iPhone, iPad]
     steps:
       - uses: actions/checkout@v4
       - uses: maxim-lobanov/setup-xcode@v1
@@ -60,11 +64,20 @@ jobs:
           -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
           -configuration Debug -derivedDataPath ios-build
           CODE_SIGNING_ALLOWED=NO build
-      - name: Launch native simulator and read the protected-store fixture
-        run: python3 scripts/smoke-ios.py ios-build/Build/Products/Debug-iphonesimulator/App.app com.fevzicakmak.bhu
+      - name: Verify native startup and persistence
+        env:
+          BHU_DEVICE_FAMILY: ${{ matrix.family }}
+        run: |
+          if [ "$BHU_DEVICE_FAMILY" = "iPhone" ]; then
+            python3 scripts/smoke-ios.py ios-build/Build/Products/Debug-iphonesimulator/App.app com.fevzicakmak.bhu --device-family "$BHU_DEVICE_FAMILY" --storage-tests --timeout 1200
+          else
+            python3 scripts/smoke-ios.py ios-build/Build/Products/Debug-iphonesimulator/App.app com.fevzicakmak.bhu --device-family "$BHU_DEVICE_FAMILY"
+          fi
       - name: Package simulator bundle preserving executable permissions
+        if: matrix.family == 'iPhone'
         run: ditto -c -k --sequesterRsrc --keepParent ios-build/Build/Products/Debug-iphonesimulator/App.app BHU-simulator.zip
       - uses: actions/upload-artifact@v4
+        if: matrix.family == 'iPhone'
         with:
           name: BHU-unsigned-simulator-app
           path: BHU-simulator.zip
@@ -72,7 +85,45 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: BHU-native-startup-check
+          name: BHU-native-startup-check-${{ matrix.family }}
           path: test-artifacts/native-ios-*
+          if-no-files-found: ignore
+          retention-days: 7
+
+  ios-release:
+    runs-on: macos-15-intel
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run ios:sync
+      - name: Archive the Release app for physical iOS devices without signing
+        run: >-
+          xcodebuild -project ios/App/App.xcodeproj -scheme App
+          -sdk iphoneos -destination 'generic/platform=iOS'
+          -configuration Release -derivedDataPath ios-release/DerivedData
+          -archivePath ios-release/BHU.xcarchive
+          CODE_SIGNING_ALLOWED=NO archive
+      - name: Inspect the actual Release archive
+        run: python3 scripts/check-ios-archive.py ios-release/BHU.xcarchive --output test-artifacts/ios-release/report.json
+      - name: Package the unsigned archive preserving executable permissions
+        run: ditto -c -k --sequesterRsrc --keepParent ios-release/BHU.xcarchive BHU-unsigned-release-archive.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BHU-unsigned-release-archive
+          path: BHU-unsigned-release-archive.zip
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: BHU-release-inspection
+          path: test-artifacts/ios-release/
           if-no-files-found: ignore
           retention-days: 7

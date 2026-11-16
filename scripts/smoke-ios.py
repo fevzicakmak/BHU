@@ -33,6 +33,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('app', type=Path)
     parser.add_argument('bundle_id')
+    parser.add_argument('--device-family', choices=['iPhone', 'iPad'], default='iPhone')
+    parser.add_argument('--storage-tests', action='store_true', help='Run the real native storage XCTest suite on this owned simulator')
     parser.add_argument('--timeout', type=int, default=600, help='Command/startup budget; failure diagnostics add bounded time')
     args = parser.parse_args()
     if sys.platform != 'darwin':
@@ -49,9 +51,9 @@ def main():
     console_master = None
     console_log = None
     staging = None
-    metadata = {'bundleId': args.bundle_id, 'hostArchitecture': os.uname().machine, 'timings': []}
+    metadata = {'bundleId': args.bundle_id, 'hostArchitecture': os.uname().machine, 'deviceFamily': args.device_family, 'timings': []}
 
-    def command(parts, limit=45, check=True, stage=None):
+    def command(parts, limit=45, check=True, stage=None, cwd=None, log_path=None):
         remaining = deadline - time.monotonic()
         if remaining <= 0:
             raise TimeoutError(f'Native startup time budget exhausted before {stage or parts[0]}.')
@@ -60,12 +62,21 @@ def main():
             print(f'BEGIN {stage}', flush=True)
         record = {'stage': stage or ' '.join(parts[:3]), 'command': parts}
         try:
-            result = subprocess.run(parts, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                    timeout=min(limit, remaining), check=False)
+            if log_path is None:
+                result = subprocess.run(parts, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                        cwd=cwd, timeout=min(limit, remaining), check=False)
+                output = result.stdout
+                errors = result.stderr
+            else:
+                with log_path.open('w', encoding='utf-8') as output_file:
+                    result = subprocess.run(parts, text=True, stdout=output_file, stderr=subprocess.STDOUT,
+                                            cwd=cwd, timeout=min(limit, remaining), check=False)
+                output = log_path.read_text(encoding='utf-8', errors='replace')
+                errors = ''
             record['exitCode'] = result.returncode
             if check and result.returncode:
-                raise RuntimeError(f'{stage or parts[0]} failed ({result.returncode}):\n{result.stdout[-3000:]}\n{result.stderr[-3000:]}')
-            return result.stdout.strip()
+                raise RuntimeError(f'{stage or parts[0]} failed ({result.returncode}):\n{output[-3000:]}\n{errors[-3000:]}')
+            return output.strip()
         except subprocess.TimeoutExpired as error:
             record['timedOut'] = True
             raise TimeoutError(f'{stage or " ".join(parts[:3])} timed out after {min(limit, remaining):.1f}s.') from error
@@ -144,9 +155,9 @@ def main():
         devices = json.loads(run('list', 'devices', 'available', '-j'))['devices']
         candidates = [(runtime, item) for runtime, entries in devices.items() if '.iOS-' in runtime
                       and tuple(int(n) for n in re.findall(r'\d+', runtime.split('iOS-')[-1]))[:2] == version
-                      for item in entries if item.get('isAvailable', True) and item.get('name', '').startswith('iPhone')]
+                      for item in entries if item.get('isAvailable', True) and item.get('name', '').startswith(args.device_family)]
         if not candidates:
-            raise RuntimeError(f'No available iPhone runtime matches active Xcode SDK {sdk}. Install its matching iOS runtime; do not mix a newer runtime with an older Xcode.')
+            raise RuntimeError(f'No available {args.device_family} runtime matches active Xcode SDK {sdk}. Install its matching iOS runtime; do not mix a newer runtime with an older Xcode.')
         runtime, template = candidates[0]
         metadata.update({'runtime': runtime, 'deviceType': template['name'], 'disposableSimulator': True})
         device_type = template.get('deviceTypeIdentifier')
@@ -154,7 +165,7 @@ def main():
             types = json.loads(run('list', 'devicetypes', '-j'))['devicetypes']
             device_type = next((item['identifier'] for item in types if item['name'] == template['name']), None)
         if not device_type:
-            raise RuntimeError('Cannot determine selected iPhone device type.')
+            raise RuntimeError(f'Cannot determine selected {args.device_family} device type.')
 
         # Sign only a simulator-test copy: ad-hoc signing is certificate-free and is
         # NOT App Store/distribution signing. ARM simulators can reject unsigned code.
@@ -268,11 +279,61 @@ def main():
             stop_console()
             print(f'PASS real native bridge and unchanged persistent snapshot on cold launch {attempt} ({time.monotonic()-launched_at:.2f}s).', flush=True)
 
-        metadata.update({'launches': records, 'doesNotVerify': ['StoreKit purchases or restoration', 'native writes/file protection',
-                        'real-device document/photo/printing flows', 'App Store distribution signing or upload']})
+        metadata['launches'] = records
+        if args.storage_tests:
+            metadata['nativeStorageTests'] = {'status': 'running', 'host': 'SwiftPM XCTest runner sandbox'}
+            package = ROOT / 'ios' / 'App' / 'CapApp-SPM'
+            scheme_log = ARTIFACTS / 'native-ios-storage-schemes.log'
+            scheme_output = command(['xcodebuild', '-list', '-json'], limit=120, cwd=package,
+                                    stage='Discover native storage package test scheme', log_path=scheme_log)
+            # Some Xcode versions prefix a package-resolution note before JSON.
+            start = scheme_output.find('{')
+            if start < 0:
+                raise RuntimeError('Xcode returned no native package scheme JSON.')
+            scheme_data, _ = json.JSONDecoder().raw_decode(scheme_output[start:])
+            schemes = []
+            for value in scheme_data.values():
+                if isinstance(value, dict):
+                    schemes.extend(value.get('schemes', []))
+            scheme = next((name for name in ['CapApp-SPM', 'CapApp-SPM-Package'] if name in schemes), None)
+            if scheme is None:
+                raise RuntimeError(f'Native storage package scheme unavailable: {schemes}')
+            result_bundle = ARTIFACTS / 'native-ios-storage.xcresult'
+            if result_bundle.exists():
+                shutil.rmtree(result_bundle)
+            test_log = ARTIFACTS / 'native-ios-storage-tests.log'
+            command(['xcodebuild', '-scheme', scheme, '-destination', f'id={device}',
+                     '-derivedDataPath', str(ROOT / 'ios-build' / 'storage-tests-derived'),
+                     '-resultBundlePath', str(result_bundle), '-parallel-testing-enabled', 'NO',
+                     '-maximum-concurrent-test-simulator-destinations', '1', 'CODE_SIGNING_ALLOWED=NO', 'test'],
+                    limit=600, cwd=package, stage='Run real native storage XCTest suite', log_path=test_log)
+            summary_text = command(['xcrun', 'xcresulttool', 'get', 'test-results', 'summary', '--path', str(result_bundle)],
+                                   limit=30, stage='Read native XCTest result summary')
+            summary = json.loads(summary_text)
+            (ARTIFACTS / 'native-ios-storage-summary.json').write_text(json.dumps(summary, indent=2) + '\n', encoding='utf-8')
+            passed = int(summary.get('passedTests', 0))
+            failed = int(summary.get('failedTests', 0))
+            skipped = int(summary.get('skippedTests', 0))
+            total = int(summary.get('totalTestCount', 0))
+            if failed or passed < 6 or total < 7 or skipped > 1:
+                raise RuntimeError(f'Native XCTest coverage was not completed: passed={passed}, failed={failed}, skipped={skipped}.')
+            if state_file.read_text(encoding='utf-8') != raw:
+                raise RuntimeError('Native storage tests unexpectedly changed the BHU app sandbox fixture.')
+            metadata['nativeStorageTests'] = {'status': 'passed', 'passed': passed, 'failed': failed, 'skipped': skipped, 'total': total,
+                'host': 'SwiftPM XCTest runner sandbox', 'log': test_log.name, 'xcresult': result_bundle.name,
+                'appSnapshotUnchanged': True, 'hardwareProtectionVerified': False}
+            print(f'PASS native storage XCTest: {passed} passed, {skipped} skipped; BHU app snapshot untouched.', flush=True)
+        else:
+            metadata['nativeStorageTests'] = {'status': 'not-requested'}
+        metadata['doesNotVerify'] = ['StoreKit purchases or restoration', 'hardware-backed file protection and lock-state enforcement',
+                                    'real-device document/photo/printing flows', 'App Store distribution signing or upload']
+        if metadata['nativeStorageTests']['status'] != 'passed':
+            metadata['doesNotVerify'].append('native writes, compare-and-swap and write-failure preservation')
         (ARTIFACTS / 'native-ios-startup.json').write_text(json.dumps(metadata, indent=2) + '\n', encoding='utf-8')
         print('Native startup smoke passed twice. Artifacts contain only synthetic data.', flush=True)
     except Exception as error:
+        if metadata.get('nativeStorageTests', {}).get('status') == 'running':
+            metadata['nativeStorageTests']['status'] = 'failed'
         diagnostics(error)
         raise
     finally:

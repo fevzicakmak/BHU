@@ -15,3 +15,5 @@ xcuserdata/
 ios-build/
 
 BHU-simulator.zip
+ios-release/
+BHU-unsigned-release-archive.zip
