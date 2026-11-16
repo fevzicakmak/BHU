@@ -15,6 +15,8 @@ npm run ios:open
 
 `ios:open` ve iOS arşivi için macOS + Xcode gerekir. CI hem simülatör uygulaması hem fiziksel iOS hedefli imzasız Release arşivi derler. Bunlar App Store'a yüklenebilen imzalı bir IPA değildir.
 
+Uygulama ikonunun kaynağı `assets/branding/BHU-AppIcon-1024.png` dosyasıdır: 1024×1024 PNG, alfa kanalı ve şeffaflık içermez. `python3 scripts/generate-ios-artwork.py` (Pillow gerekir) kaynağı doğrulayıp mevcut Xcode AppIcon yuvasına byte-for-byte kopyalar; `--check` yalnız eşleşmeyi denetler. Betik yalnız uygulama ikonunu yönetir.
+
 - Görünen uygulama adı **BHU**. Paket kimliği `com.fevzicakmak.bhu` ve ürün kimliği `com.fevzicakmak.bhu.multipleaccounts`, App Store Connect'te doğrulanacak aday kimliklerdir.
 - **Bir ana hesap ve alt hesapları ücretsiz.** İkinci ana hesap, tek seferlik kalıcı **Çoklu Hesap** satın alımını gerektirir. Kullanıcının seçtiği Türkiye fiyatı **149,99 TL**; arayüz Apple'ın yerelleştirilmiş fiyatını gösterir. Son kayıt ve satış bölgeleri App Store Connect'te tamamlanmalıdır.
 - Sınır; oluşturma, hiyerarşi değişimi, silmeyle alt hesapların ana seviyeye alınması ve yeni çoklu hesap yedeği yüklemede denetlenir. Mevcut verilerin okunması, düzenlenmesi ve dışa aktarımı kısıtlanmaz. Satın alma doğrulanmadığında veri silinmez.

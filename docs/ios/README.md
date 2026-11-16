@@ -2,6 +2,8 @@
 
 Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve mağaza hazırlık notlarını içerir. Mevcut web arayüzündeki Kasa Pro adı iç dosya/depolama adlarında kalabilir. Dosyaların varlığı, uygulamanın imzalandığı, gerçek iPhone'da test edildiği veya App Store'a gönderildiği anlamına gelmez.
 
+İkonun kaynak dosyası [`assets/branding/BHU-AppIcon-1024.png`](../../assets/branding/BHU-AppIcon-1024.png) olmalıdır: 1024×1024 PNG, alfa kanalı/şeffaflık içermez. Pillow ile `python3 scripts/generate-ios-artwork.py` doğrulayıp Xcode AppIcon yuvasına aynı baytları kopyalar; `python3 scripts/generate-ios-artwork.py --check` yazmadan eşleşmeyi denetler. Bu betik yalnız uygulama ikonunu yönetir.
+
 | Dosya | Amaç |
 | --- | --- |
 | [app-store-metadata.tr.md](app-store-metadata.tr.md) | Türkçe mağaza metinleri, satın alma açıklaması ve inceleme notları |

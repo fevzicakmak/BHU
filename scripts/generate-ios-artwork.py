@@ -1,34 +1,63 @@
-"""Generate the opaque BHU icon and launch assets from the existing green brand.
-These are reviewable candidate artwork, not App Store screenshots.
+"""Validate and copy the canonical BHU app icon without transforming its bytes.
+
+Requires Pillow for read-only PNG validation. Launch artwork is maintained
+separately; this command only manages the existing AppIcon image slot.
 """
+import argparse
+import hashlib
+from io import BytesIO
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+import os
+import tempfile
+
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+CANONICAL = ROOT / 'assets/branding/BHU-AppIcon-1024.png'
+APP_ICON = ROOT / 'ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png'
 
-def mark(size):
-    image = Image.new('RGB', (size, size))
-    draw = ImageDraw.Draw(image)
-    for y in range(size):
-        t=y/max(1,size-1)
-        color=tuple(round(a+(b-a)*t) for a,b in zip((6,59,44),(8,127,91)))
-        draw.line((0,y,size,y),fill=color)
-    margin=round(size*.19)
-    draw.rounded_rectangle((margin,margin,size-margin,size-margin), radius=round(size*.105),outline=(181,239,209),width=max(1,round(size*.012)))
-    font=ImageFont.truetype(FONT,round(size*.20))
-    draw.text((size/2,size*.40),'BHU',font=font,fill=(255,255,255),anchor='mm')
-    for row,width in enumerate((.36,.25,.32)):
-        y=round(size*(.57+row*.075));x=round(size*.32)
-        draw.rounded_rectangle((x,y,x+round(size*width),y+round(size*.019)),radius=max(1,round(size*.009)),fill=(160,226,191))
-    return image
 
-icons = ROOT/'ios/App/App/Assets.xcassets/AppIcon.appiconset'
-icons.mkdir(parents=True,exist_ok=True)
-mark(1024).save(icons/'AppIcon-512@2x.png',optimize=True)
-splash=Image.new('RGB',(2732,2732),(245,248,246))
-symbol=mark(500);splash.paste(symbol,((2732-500)//2,(2732-500)//2))
-folder=ROOT/'ios/App/App/Assets.xcassets/Splash.imageset'
-for name in ('splash-2732x2732.png','splash-2732x2732-1.png','splash-2732x2732-2.png'):
-    splash.save(folder/name,optimize=True)
-print('Generated opaque 1024px BHU icon and three launch images.')
+def validate_icon(payload):
+    with Image.open(BytesIO(payload)) as image:
+        if image.format != 'PNG' or image.size != (1024, 1024):
+            raise ValueError('Canonical icon must be a 1024x1024 PNG.')
+        if getattr(image, 'is_animated', False):
+            raise ValueError('Canonical icon must be a single, static PNG.')
+        if 'A' in image.getbands() or 'transparency' in image.info:
+            raise ValueError('App Store icon must have no alpha channel or transparency metadata; provide an opaque source PNG.')
+        image.verify()
+    # Decode as well as verifying PNG integrity before changing the asset slot.
+    with Image.open(BytesIO(payload)) as image:
+        image.load()
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--check', action='store_true', help='Validate that the bundled icon matches the canonical source; write nothing')
+    args = parser.parse_args()
+    try:
+        payload = CANONICAL.read_bytes()
+        validate_icon(payload)
+        if args.check:
+            if APP_ICON.read_bytes() != payload:
+                raise ValueError('AppIcon differs from the canonical source. Run python3 scripts/generate-ios-artwork.py.')
+        else:
+            APP_ICON.parent.mkdir(parents=True, exist_ok=True)
+            temporary = None
+            try:
+                with tempfile.NamedTemporaryFile(dir=APP_ICON.parent, prefix='.AppIcon-', suffix='.tmp', delete=False) as output:
+                    temporary = Path(output.name)
+                    output.write(payload)
+                os.replace(temporary, APP_ICON)
+            finally:
+                if temporary is not None:
+                    temporary.unlink(missing_ok=True)
+    except (OSError, ValueError, SyntaxError) as error:
+        parser.exit(1, f'Icon validation failed: {error}\n')
+    action = 'Verified' if args.check else 'Copied'
+    print(f'{action} canonical BHU icon byte-for-byte: {hashlib.sha256(payload).hexdigest()}')
+    return 0
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

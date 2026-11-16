@@ -1,14 +1,17 @@
-name: iOS signing settings
+name: iOS signing settings and assets
 
 on:
   push:
-    branches: [main, codex/ios-signing]
+    branches: [main, codex/ios-signing, codex/bhu-icon]
     paths:
       - ios/App/App.xcodeproj/project.pbxproj
       - .github/workflows/signing-settings.yml
       - .github/workflows/testflight.yml
       - scripts/ios-signing.mjs
       - tests/ios-signing.test.mjs
+      - assets/branding/**
+      - ios/App/App/Assets.xcassets/AppIcon.appiconset/**
+      - scripts/generate-ios-artwork.py
   pull_request:
     paths:
       - ios/App/App.xcodeproj/project.pbxproj
@@ -16,6 +19,9 @@ on:
       - .github/workflows/testflight.yml
       - scripts/ios-signing.mjs
       - tests/ios-signing.test.mjs
+      - assets/branding/**
+      - ios/App/App/Assets.xcassets/AppIcon.appiconset/**
+      - scripts/generate-ios-artwork.py
 
 permissions:
   contents: read
@@ -43,6 +49,38 @@ jobs:
           openssl version
       - run: npm ci
       - run: npm run ios:sync
+      - name: Verify the opaque 1024px icon source and installed asset
+        run: |
+          cmp assets/branding/BHU-AppIcon-1024.png ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png
+          sips -g format -g pixelWidth -g pixelHeight -g hasAlpha assets/branding/BHU-AppIcon-1024.png > "$RUNNER_TEMP/BHU-icon-properties.txt"
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const properties = readFileSync(`${process.env.RUNNER_TEMP}/BHU-icon-properties.txt`, 'utf8');
+          assert.match(properties, /format:\s+png\b/i);
+          assert.match(properties, /pixelWidth:\s+1024\b/);
+          assert.match(properties, /pixelHeight:\s+1024\b/);
+          assert.match(properties, /hasAlpha:\s+no\b/i);
+          console.log('PASS: opaque 1024x1024 PNG source matches the installed AppIcon.');
+          JS
+      - name: Compile the icon and asset catalog for iPhone and iPad
+        run: |
+          mkdir -p "$RUNNER_TEMP/BHU-assets"
+          xcrun actool ios/App/App/Assets.xcassets \
+            --compile "$RUNNER_TEMP/BHU-assets" --platform iphoneos \
+            --minimum-deployment-target 15.0 --target-device iphone --target-device ipad \
+            --app-icon AppIcon --output-partial-info-plist "$RUNNER_TEMP/BHU-assets-info.plist" \
+            --output-format human-readable-text --warnings --notices --errors
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import { existsSync } from 'node:fs';
+          import { execFileSync } from 'node:child_process';
+          const directory = process.env.RUNNER_TEMP;
+          assert.ok(existsSync(`${directory}/BHU-assets/Assets.car`));
+          const info = JSON.parse(execFileSync('plutil', ['-convert', 'json', '-o', '-', `${directory}/BHU-assets-info.plist`], { encoding: 'utf8' }));
+          assert.equal(info.CFBundleIcons?.CFBundlePrimaryIcon?.CFBundleIconName ?? info.CFBundleIconName, 'AppIcon');
+          console.log('PASS: Xcode compiled the asset catalog and selected AppIcon for the application.');
+          JS
       - name: Check distribution helper when present
         run: |
           if [ -f scripts/ios-signing.mjs ]; then
