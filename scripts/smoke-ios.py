@@ -213,7 +213,7 @@ def main():
         # Local/self-hosted machines get fresh devices instead of copying data.
         shutdown_candidates = [(runtime, item) for runtime, item in candidates if item.get('state') == 'Shutdown']
         hosted_ci = os.environ.get('GITHUB_ACTIONS') == 'true' and os.environ.get('RUNNER_ENVIRONMENT') == 'github-hosted'
-        clone_template = bool(shutdown_candidates) and hosted_ci
+        clone_template = args.device_family == 'iPhone' and bool(shutdown_candidates) and hosted_ci
         runtime, template = (shutdown_candidates if clone_template else candidates)[0]
         metadata.update({'runtime': runtime, 'deviceType': template['name'], 'disposableSimulator': True})
         device_type = template.get('deviceTypeIdentifier')
@@ -240,8 +240,10 @@ def main():
             metadata.update({'creationMethod': 'clone', 'sourceUDID': source_device})
             created_device = run('clone', source_device, device_name, stage='Clone shutdown CI stock simulator')
         else:
+            creation_reason = 'iPad uses a fresh simulator' if args.device_family == 'iPad' else (
+                'No matching shutdown CI template' if not shutdown_candidates else 'Only GitHub-hosted stock simulators may be cloned')
             metadata.update({'creationMethod': 'create', 'sourceUDID': None,
-                             'creationReason': 'No matching shutdown CI template' if not shutdown_candidates else 'Only GitHub-hosted stock simulators may be cloned'})
+                             'creationReason': creation_reason})
             created_device = run('create', device_name, device_type, runtime, stage='Create disposable simulator')
         if not re.fullmatch(r'[A-Fa-f0-9-]{36}', created_device):
             raise RuntimeError(f'Unexpected disposable simulator identifier: {created_device}')

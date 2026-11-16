@@ -71,6 +71,7 @@ jobs:
           -configuration Debug -derivedDataPath ios-build
           CODE_SIGNING_ALLOWED=NO build
       - name: Compile native storage XCTest bundle before booting
+        if: matrix.family == 'iPhone'
         working-directory: ios/App/CapApp-SPM
         run: >-
           xcodebuild -scheme CapApp-SPM
@@ -81,10 +82,12 @@ jobs:
       - name: Verify native startup and persistence
         env:
           BHU_DEVICE_FAMILY: ${{ matrix.family }}
-        run: >-
-          python3 scripts/smoke-ios.py ios-build/Build/Products/Debug-iphonesimulator/App.app
-          com.fevzicakmak.bhu --device-family "$BHU_DEVICE_FAMILY"
-          --storage-tests --timeout 1200
+        run: |
+          if [ "$BHU_DEVICE_FAMILY" = "iPhone" ]; then
+            python3 scripts/smoke-ios.py ios-build/Build/Products/Debug-iphonesimulator/App.app com.fevzicakmak.bhu --device-family "$BHU_DEVICE_FAMILY" --storage-tests --timeout 1200
+          else
+            python3 scripts/smoke-ios.py ios-build/Build/Products/Debug-iphonesimulator/App.app com.fevzicakmak.bhu --device-family "$BHU_DEVICE_FAMILY" --timeout 900
+          fi
       - name: Package simulator bundle preserving executable permissions
         if: matrix.family == 'iPhone'
         run: ditto -c -k --sequesterRsrc --keepParent ios-build/Build/Products/Debug-iphonesimulator/App.app BHU-simulator.zip
