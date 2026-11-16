@@ -95,7 +95,13 @@ final class KasaStorageTests: XCTestCase {
                                file: StaticString = #filePath, line: UInt = #line) {
         switch reply {
         case .success(let result):
-            if let raw = raw { XCTAssertEqual(result["raw"] as? String, raw, file: file, line: line) }
+            if let raw = raw {
+                guard let received = result["raw"] as? String else {
+                    XCTFail("Expected a raw String in the native response.", file: file, line: line)
+                    return
+                }
+                XCTAssertTrue(received.utf8.elementsEqual(raw.utf8), "Native response must preserve exact UTF-8 bytes.", file: file, line: line)
+            }
             else { XCTAssertTrue(result["raw"] is NSNull, "An empty store must return raw:null.", file: file, line: line) }
         case .failure(let code):
             XCTFail("Expected success, received \(code).", file: file, line: line)
@@ -138,6 +144,24 @@ final class KasaStorageTests: XCTestCase {
         assertFailure(write(plugin, raw: "{\"note\":\"eski sekme\"}", expected: initialRaw), code: "STORAGE_CONFLICT")
         XCTAssertEqual(try savedBytes(), bytesBefore)
         assertSuccess(invoke(KasaStoragePlugin(), method: "read"), raw: latest)
+    }
+
+    func testCanonicallyEquivalentUnicodeStillRequiresExactUTF8Snapshot() throws {
+        let plugin = KasaStoragePlugin()
+        let nfc = "{\"note\":\"\u{0130}\"}\n"
+        let nfd = "{\"note\":\"I\u{0307}\"}\n"
+        // Swift String equality treats these as canonically equivalent, while
+        // JavaScript's saved raw snapshots and this CAS contract do not.
+        XCTAssertEqual(nfc, nfd)
+        XCTAssertFalse(nfc.utf8.elementsEqual(nfd.utf8))
+        assertSuccess(write(plugin, raw: nfc, expected: nil), raw: nfc)
+        XCTAssertEqual(try savedBytes(), Data(nfc.utf8))
+        assertSuccess(write(plugin, raw: nfd, expected: nfc), raw: nfd)
+        let bytesBefore = try savedBytes()
+        XCTAssertEqual(bytesBefore, Data(nfd.utf8))
+        assertFailure(write(plugin, raw: "{\"note\":\"stale writer\"}", expected: nfc), code: "STORAGE_CONFLICT")
+        XCTAssertEqual(try savedBytes(), bytesBefore)
+        assertSuccess(invoke(KasaStoragePlugin(), method: "read"), raw: nfd)
     }
 
     func testConcurrentWritesWithSameExpectedRawHaveOneWinner() throws {

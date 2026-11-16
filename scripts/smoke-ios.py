@@ -306,10 +306,13 @@ def main():
             if result_bundle.exists():
                 shutil.rmtree(result_bundle)
             test_log = ARTIFACTS / 'native-ios-storage-tests.log'
+            # ARM simulators require signed XCTest runners. '-' is local ad-hoc
+            # signing and uses no Apple certificate, team or provisioning profile.
             command(['xcodebuild', '-scheme', scheme, '-destination', f'id={device}',
                      '-derivedDataPath', str(ROOT / 'ios-build' / 'storage-tests-derived'),
                      '-resultBundlePath', str(result_bundle), '-parallel-testing-enabled', 'NO',
-                     '-maximum-concurrent-test-simulator-destinations', '1', 'CODE_SIGNING_ALLOWED=NO', 'test'],
+                     '-maximum-concurrent-test-simulator-destinations', '1',
+                     'CODE_SIGNING_ALLOWED=YES', 'CODE_SIGN_IDENTITY=-', 'CODE_SIGNING_REQUIRED=NO', 'test'],
                     limit=600, cwd=package, stage='Run real native storage XCTest suite', log_path=test_log)
             summary_text = command(['xcrun', 'xcresulttool', 'get', 'test-results', 'summary', '--path', str(result_bundle)],
                                    limit=30, stage='Read native XCTest result summary')
@@ -319,7 +322,7 @@ def main():
             failed = int(summary.get('failedTests', 0))
             skipped = int(summary.get('skippedTests', 0))
             total = int(summary.get('totalTestCount', 0))
-            if failed or passed < 6 or total < 7 or skipped > 1:
+            if failed or passed < 7 or total < 8 or skipped > 1:
                 raise RuntimeError(f'Native XCTest coverage was not completed: passed={passed}, failed={failed}, skipped={skipped}.')
             if state_file.read_text(encoding='utf-8') != raw:
                 raise RuntimeError('Native storage tests unexpectedly changed the BHU app sandbox fixture.')

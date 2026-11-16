@@ -56,7 +56,15 @@ public final class KasaStoragePlugin: CAPPlugin, CAPBridgedPlugin {
         queue.async { [self] in
             do {
                 let url = try stateURL()
-                guard try readRaw(url) == expected else {
+                let current = try readRaw(url)
+                let matchesExpected: Bool
+                // Raw CAS must distinguish canonically equivalent Unicode bytes.
+                switch (current, expected) {
+                case (nil, nil): matchesExpected = true
+                case let (current?, expected?): matchesExpected = current.utf8.elementsEqual(expected.utf8)
+                default: matchesExpected = false
+                }
+                guard matchesExpected else {
                     DispatchQueue.main.async { call.reject("Kayıt değişti. Güncel verileri yükleyip yeniden deneyin.", "STORAGE_CONFLICT") }; return
                 }
                 try bytes.write(to: url, options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication])
