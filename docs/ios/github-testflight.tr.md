@@ -10,7 +10,11 @@ Hazırlık kanıtı: `7e5943e2744fc0bb6505236429f45e224fedd28c` kaynağında [Ma
 
 Team ID **T4F4D367KQ** koddadır. Kullanıcı **com.fevzicakmak.bhu** Bundle ID kaydını ve **BHU** App Store Connect uygulamasını tamamladığını bildirdi. Mevcut **Non-Consumable** ürün **com.fevzicakmak.bhu.multipleaccounts** ve ürün Apple ID'si **6835484249** ekran görüntüsünde görüldü; durum **Prepare for Submission**. Türkçe ad/açıklama **Display Name and Description → Add** üzerinden kaydedildiği bildirildi. Bu kayıtları yeniden oluşturmayın.
 
-Bir ana hesap ve alt hesapları ücretsizdir; ikinci ana hesap için tek seferlik kalıcı hak gerekir. Yeni Türkiye hedefi **149,99 TL**; kullanıcı fiyat seçiminde **Next → Confirm** yaptı, ancak ürün ana sayfasındaki son **Save** ve **Availability** bölgeleri henüz doğrulanmadı. Bu fiyat bağımsız Apple API sorgusuyla teyit edilmedi; gerçek arayüz Apple'ın `displayPrice` değerini kullanır. [App Store Connect rehberinden](app-store-connect-setup.tr.md) kalan fiyat/bölge ve ücretli sözleşme/vergi/banka adımlarını tamamlayın; imzalı IPA/gerçek satın alma kabulü henüz yok.
+Bir ana hesap ve alt hesapları ücretsizdir; ikinci ana hesap için tek seferlik kalıcı hak gerekir. Türkiye hedefi **149,99 TL**; kullanıcı fiyat seçiminde **Next → Confirm** yaptı, ancak ürün ana sayfasındaki son **Save** henüz doğrulanmadı. Fiyat bağımsız Apple API sorgusuyla teyit edilmedi; gerçek arayüz Apple'ın `displayPrice` değerini kullanır.
+
+Kullanıcı BHU, uygulama içi satın alım ve diğer uygulamasından **AB ülkelerini çıkardığını** bildirdi; diğer uygun ülkeler korunur. AB'de dağıtım yapmama gerekçesiyle birleşik ikinci DSA seçeneği için yönerge verildi, fakat kullanıcı son onayı tamamladığını bildirmedi; DSA tamamlanmış sayılmaz. Bölge değişiklikleri bağımsız doğrulanmadı.
+
+Önceki ekran görüntüsünde **Paid Apps Agreement: Active**, **banka: Active**, **W-8BEN: Active** görüldü; yeniden sözleşme veya ürün oluşturmayın. [App Store Connect rehberindeki](app-store-connect-setup.tr.md) son ürün **Save** ve DSA onayı ayrı açık maddelerdir. Sıradaki teknik adım aşağıdaki Codespaces hazırlığıdır; gerçek sertifika/profil/API Secrets, imzalı IPA ve gerçek satın alma kabulü henüz yok.
 
 ## 2. Codespaces'te özel anahtar ve CSR hazırlayın
 

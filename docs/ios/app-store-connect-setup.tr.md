@@ -42,21 +42,23 @@ Kullanıcı App Store Connect'te **BHU** uygulamasını açtığını bildirdi. 
 3. Türkçe ürün adı/açıklaması **Display Name and Description → Add** üzerinden girilir: `Çoklu Hesap` / `Ek ana hesaplar için kalıcı erişim.` Kullanıcı bu alanları doldurup kaydettiğini bildirdi; yeniden girilmesi gerekmiyor.
 4. Kural değişmedi: **bir ana hesap ve onun alt hesapları ücretsiz; ikinci ana hesap için tek seferlik kalıcı satın alma**. Abonelik veya alt hesap başına ücret yoktur.
 5. Güncel Türkiye hedefi **149,99 TL**. Kullanıcı tutarı seçip **Next → Confirm** yaptığını bildirdi. Bu işlem ürün ana sayfasındaki son **Save** adımının tamamlandığını veya Apple API ile bağımsız fiyat doğrulamasını göstermez.
-6. **Availability** bölümündeki satış ülkeleri/bölgeleri için kullanıcının seçimi henüz alınmadı. Bu seçim tamamlandığında ürün ana sayfasındaki son **Save** ile kaydedip fiyat/bölge özetini kontrol edin. Diğer ülkeler veya para birimleri için tutar uydurulmaz; uygulama Apple'ın gerçek `displayPrice` bilgisini gösterir.
+6. Kullanıcı BHU ve uygulama içi satın alımın **Availability** bölümünden **AB ülkelerini çıkardığını** bildirdi; diğer uygun ülkeler korunur. Bu seçim bağımsız Apple API sorgusuyla doğrulanmadı. Ürün ana sayfasındaki son **Save** adımı ayrıca doğrulanmalıdır; diğer para birimleri için tutar uydurulmaz ve uygulama Apple'ın gerçek `displayPrice` bilgisini gösterir.
 7. Satın alma inceleme ekran görüntüsü, gerçek native satın alma ekranı çalıştıktan sonra eklenmelidir; henüz tamamlanmış sayılmaz.
 8. İlk satın alma ürünü, Apple'ın istediği şekilde uygulama sürümüyle birlikte incelemeye eklenir. Yerel `.storekit` dosyası gerçek ürün onayının yerine geçmez.
 
-## 5. Sözleşmeleri tamamlayın
+## 5. Sözleşme durumu ve DSA onayı
 
-App Store Connect'teki **Business / Agreements, Tax, and Banking** bölümünde ücretli uygulama sözleşmesini, vergi ve banka bilgilerini tamamlayın. Gerekli sözleşmeler etkin değilse ürün/fiyat görünürlüğü veya satış işlemi tamamlanmayabilir. Bu bilgiler geliştirici hesabınızda girilir; depoya veya sohbete yazılmaz.
+Önceki App Store Connect ekran görüntüsünde **Paid Apps Agreement: Active**, **banka: Active** ve **W-8BEN: Active** görüldü. Bu kayıtları yeniden oluşturmayın; banka/vergi belgelerindeki kişisel bilgiler bu rehbere alınmaz.
+
+Kullanıcı diğer uygulamasından da AB ülkelerini çıkardığını bildirdi. AB'de dağıtım yapmama gerekçesiyle DSA ekranındaki **“I’m not a trader under the DSA or I don’t plan to distribute in the EU”** seçeneği için yönerge verildi; kullanıcı son seçimi/onayı tamamladığını henüz bildirmedi. **DSA onayı tamamlanmış sayılmaz.** Bu, genel bir hukuki non-trader statüsü ilanı değildir; ileride herhangi bir uygulamayı AB'ye açmadan önce beyan yeniden değerlendirilir.
 
 ## 6. Mac olmadan imzalı IPA ve TestFlight hazırlayın
 
 Kullanıcının Mac'i yoktur. [GitHub ile Mac olmadan TestFlight rehberi](github-testflight.tr.md), tarayıcıdaki Codespaces terminalinde sertifika isteği hazırlama, Apple portalından sertifika/profil alma ve GitHub macOS runner ile imzalama yolunu açıklar. Codespaces erişimi, repo Secrets yönetme yetkisi ve Apple Certificates erişimi gerekir; TestFlight yüklemesi için ayrıca App Store Connect API anahtarı yetkisi gerekir.
 
-[Mac CI 43874034746 / job 133322286941](https://github.com/fevzicakmak/BHU/actions/runs/43874034746/job/133322286941), kaynak `7e5943e2744fc0bb6505236429f45e224fedd28c` için 9/9 sentetik imzalama politikası/P12 uyumluluk testini ve imzalama kapalı Team ID ayar çözümlemesini geçti. Gerçek Apple kimlik bilgisiyle imzalı archive/export/upload yapılmadı; sertifika/profil, son fiyat kaydı, satış bölgeleri ve yayın adımları ayrıca tamamlanır.
+[Mac CI 43874034746 / job 133322286941](https://github.com/fevzicakmak/BHU/actions/runs/43874034746/job/133322286941), kaynak `7e5943e2744fc0bb6505236429f45e224fedd28c` için 9/9 sentetik imzalama politikası/P12 uyumluluk testini ve imzalama kapalı Team ID ayar çözümlemesini geçti. Gerçek Apple kimlik bilgisiyle imzalı archive/export/upload yapılmadı; sertifika/profil, son fiyat **Save** adımı, DSA son onayı ve yayın adımları ayrıca tamamlanır.
 
-1. Tamamlandığı bildirilen Bundle ID/BHU/ürün kayıtlarını yeniden oluşturmayın; önce mevcut üründe son fiyat **Save** adımını, satış bölgelerini ve ücretli uygulama sözleşmelerini tamamlayın.
+1. Bundle ID/BHU/ürün kayıtlarını ve **Active** görülen sözleşme/banka/W-8BEN kayıtlarını yeniden oluşturmayın. Son ürün **Save** ve DSA onayı ayrı açık maddelerdir; sıradaki teknik adım [Codespaces terminalini açıp özel imzalama hazırlığına geçmektir](github-testflight.tr.md#2-codespaceste-özel-anahtar-ve-csr-hazırlayın).
 2. İmzalama dosyalarını yalnız GitHub Actions Secrets'a ekleyin; parola/sertifika özel anahtarını sohbete veya depoya koymayın.
 3. **iOS Signing and TestFlight** workflow'unu önce `upload_to_testflight=false` ile çalıştırın. Bu seçim yalnız imzalı IPA üretir; Apple'a yükleme yapmaz. API anahtarı bu aşamada gerekmez.
 4. Yükleme zamanı geldiğinde gerekli API anahtarı Secrets'ını ekleyip aynı workflow'u `upload_to_testflight=true` ile manuel çalıştırın. Başarılı yükleme, TestFlight işlemenin bittiği veya testin geçtiği anlamına gelmez.
@@ -66,4 +68,4 @@ Kullanıcının Mac'i yoktur. [GitHub ile Mac olmadan TestFlight rehberi](github
 
 ## Teknik hazırlığa geri iletilecekler
 
-Team ID, Bundle ID, BHU uygulama kaydı ve ürün kimliği yeniden istenmez. Sıradaki bilgiler **Availability** satış bölgeleri, son ürün **Save** adımının tamamlanması ve sözleşme/vergi/banka durumudur; kullanıcı 149,99 TL için **Next → Confirm** yaptığını zaten bildirdi. İmzalama/yükleme için gereken gizli bilgiler güvenli Xcode veya CI secret yönetiminde kalmalıdır.
+Team ID, Bundle ID, BHU/ürün kaydı, AB bölgelerinin çıkarılması ve **Active** görülen sözleşme/banka/W-8BEN bilgileri yeniden istenmez. Kullanıcı 149,99 TL için **Next → Confirm** yaptığını bildirdi; son ürün **Save** ve DSA onayı hâlâ doğrulanmadı. Sıradaki teknik adım Codespaces terminaline erişim ve özel imzalama dosyalarıdır. İmzalama/yükleme için gereken gizli bilgiler güvenli Xcode veya CI secret yönetiminde kalmalıdır.

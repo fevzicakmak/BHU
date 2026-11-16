@@ -1,6 +1,6 @@
 # App Store Türkçe metadata taslağı
 
-**Durum:** Kullanıcı Bundle ID `com.fevzicakmak.bhu` ve BHU uygulama kaydını tamamladığını bildirdi. Non-Consumable ürün `com.fevzicakmak.bhu.multipleaccounts`, ürün Apple ID'si `6835484249` ve **Prepare for Submission** durumu ekran görüntüsünde görüldü. Türkçe ürün adı/açıklamasının kaydedildiği bildirildi. 149,99 TL fiyat seçimi **Next → Confirm** aşamasında tamamlandı; son ürün **Save**, satış bölgeleri, imzalı derleme, gerçek cihaz/StoreKit kabulü ve mağaza gönderimi henüz tamamlanmadı. Apple API ile bağımsız fiyat doğrulaması yapılmadı.
+**Durum:** Kullanıcı Bundle ID `com.fevzicakmak.bhu` ve BHU uygulama kaydını tamamladığını bildirdi. Non-Consumable ürün `com.fevzicakmak.bhu.multipleaccounts`, ürün Apple ID'si `6835484249` ve **Prepare for Submission** durumu ekran görüntüsünde görüldü. Türkçe ürün adı/açıklamasının kaydedildiği bildirildi. 149,99 TL fiyat seçimi **Next → Confirm** aşamasında tamamlandı; kullanıcı BHU ve satın alma ürününden AB ülkelerini çıkardığını bildirdi. Son ürün **Save** ve DSA son onayı doğrulanmadı; imzalı derleme, gerçek cihaz/StoreKit kabulü ve mağaza gönderimi henüz tamamlanmadı. Apple API ile bağımsız fiyat/bölge doğrulaması yapılmadı.
 
 ## Önerilen alanlar
 

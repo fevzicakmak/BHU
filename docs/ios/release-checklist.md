@@ -14,7 +14,9 @@ Bu liste, kod hazırlığından mağaza gönderimine kadar yapılacak somut işl
 - [ ] Bu takımda Apple Certificates/Identifiers/Profiles erişimi ve App Store Connect yayınlama yetkisi doğrulandı.
 - [x] Kullanıcı `com.fevzicakmak.bhu` Bundle ID kaydını tamamladığını bildirdi. Apple API ile bağımsız hesap kontrolü yapılmadı.
 - [ ] BHU uygulama kaydındaki gerçek SKU son gönderim bilgileriyle karşılaştırıldı; `BHU-IOS-001` rehberdeki öneridir.
-- [ ] Paid Apps Agreement, vergi ve ödeme/banka bilgileri tamamlandı.
+- [x] Önceki ekran görüntüsünde Paid Apps Agreement, banka ve W-8BEN için **Active** durumu görüldü; başka vergi formları veya son gönderim kabulü çıkarımı yapılmaz.
+- [x] Kullanıcı BHU, satın alma ürünü ve diğer uygulamasından AB ülkelerini çıkardığını bildirdi; diğer uygun ülkeler korunur. Bağımsız Apple API bölge doğrulaması yapılmadı.
+- [ ] AB'de dağıtım yapmama gerekçesiyle hesap genelindeki DSA bildiriminin son onayı tamamlandı.
 - [x] Kamuya açık destek adresi **fvzckmk35@gmail.com** olarak onaylandı; `privacy.html` ve `support.html` içerikleri Fevzi Çakmak kimliğiyle tamamlandı.
 - [x] https://fevzicakmak.github.io/BHU/privacy.html ve https://fevzicakmak.github.io/BHU/support.html 15 Kasım 2026'da canlı HTTP 200, kimlik/iletişim, bağlantı ve mobil taşma kontrolünden geçti.
 
@@ -43,7 +45,7 @@ Kod veya depo içine Apple parolası, özel anahtar, dağıtım sertifikası, pr
 - [x] Kullanıcı **Display Name and Description → Add** üzerinden Türkçe ürün adı/açıklamasını doldurup kaydettiğini bildirdi.
 - [ ] Satın alma inceleme ekran görüntüsü son gerçek native build'den hazırlanıp yüklendi.
 - [x] Kullanıcı güncel Türkiye hedefi **149,99 TL** tutarını seçip **Next → Confirm** yaptığını bildirdi; bu yalnız seçim/onay adımı kanıtıdır.
-- [ ] Ürün ana sayfasındaki son **Save**, kaydedilmiş fiyat ve **Availability** satış bölgeleri doğrulandı. Bölge seçimi henüz alınmadı; Apple API ile bağımsız fiyat kontrolü yapılmadı.
+- [ ] Ürün ana sayfasındaki son **Save**, kaydedilmiş fiyat ve **Availability** satış bölgeleri son kez doğrulandı. AB ülkelerinin çıkarıldığı kullanıcı tarafından bildirildi; Apple API ile bağımsız fiyat/bölge kontrolü yapılmadı.
 - [ ] Paywall son gerçek üründen `Product.displayPrice` gösteriyor; hedef tutar arayüze sabit yazılmıyor.
 - [ ] İlk ana hesap ve bütün alt hesapları ücretsiz oluşturulabiliyor.
 - [ ] İkinci ana hesap, alt hesabı ana seviyeye çıkarma, çocukları ana seviyeye çıkaran silme ve ek ana hesap içeren yedek yükleme aynı yetki kontrolünü kullanıyor.

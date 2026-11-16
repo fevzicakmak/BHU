@@ -70,7 +70,7 @@ Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; Team ID ayar çö
 ## Tamamlanması gereken mağaza adımları
 
 1. Dağıtım sertifikası/profili ve güvenli repository Secrets hazırlığı; kullanıcı tarafından tamamlandığı bildirilen Bundle ID/BHU uygulama kaydı yeniden oluşturulmaz.
-2. Mevcut Çoklu Hesap ürününde hedef 149,99 TL fiyat seçiminin son **Save** ile kaydı, kullanıcının belirleyeceği satış bölgeleri ve ürünün uygulama sürümüyle incelemeye eklenmesi.
+2. Mevcut Çoklu Hesap ürününde hedef 149,99 TL fiyat seçiminin son **Save** ile kaydı ve ürünün uygulama sürümüyle incelemeye eklenmesi. Kullanıcı BHU ve satın alma ürününden AB ülkelerini çıkardığını bildirdi; diğer uygun ülkeler korunur.
 3. Dağıtım imzası, gerçek cihaz/TestFlight kabulü ve son derlemeye ait App Privacy / export-compliance yanıtları.
 4. iPhone/iPad gerçek ekran görüntüleri, son sürüm ve mağaza gönderimi.
 
@@ -78,8 +78,8 @@ Mağaza metni ve kontrol listeleri bu adımları yapılmış saymaz. Gizlilik ve
 
 ## Hesap sahibinden sıradaki bilgiler
 
-1. Mevcut ürünün **Availability** satış bölgeleri ve ürün ana sayfasındaki son **Save** adımının tamamlandığı bilgisi; 149,99 TL seçimi için **Next → Confirm** yapıldığı zaten bildirildi.
-2. Ücretli uygulama sözleşmeleri/vergi/banka adımlarının durumu.
+1. Ürün ana sayfasındaki son **Save** adımının tamamlandığı bilgisi; 149,99 TL seçimi için **Next → Confirm** yapıldığı ve BHU/satın alma ürününden AB ülkelerinin çıkarıldığı zaten bildirildi.
+2. Diğer uygulamada da AB ülkelerinin çıkarıldığı bildirildi; hesap genelindeki DSA son onayı henüz doğrulanmadı. Paid Apps Agreement, banka ve W-8BEN için **Active** durumu önceki ekran görüntüsünde görüldü.
 3. Dağıtım sertifikası/profili ve GitHub Secrets hazırlığı; Team ID, Bundle ID, BHU uygulaması veya ürün kimliği yeniden istenmez.
 
 Team ID `T4F4D367KQ` kayıtlıdır; Bundle ID ve BHU uygulama kaydı kullanıcı bildirimine, Product ID ve ürün Apple ID'si görülen ekran görüntüsüne dayanır. Bu ilerleme Apple API üzerinden bağımsız hesap/fiyat doğrulaması veya StoreKit kabulü değildir. Apple parolası, dağıtım özel anahtarı ve API özel anahtarı belgeye/sohbete yazılmaz; gereken gizli bilgiler yalnız güvenli GitHub Secrets akışıyla sağlanır.
