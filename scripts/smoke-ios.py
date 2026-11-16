@@ -9,6 +9,7 @@ import argparse
 from collections import Counter
 import errno
 import json
+import math
 import os
 from pathlib import Path
 import pty
@@ -29,6 +30,65 @@ BAD_STARTUP = re.compile(
     r'WebView (?:failed to load|failed provisional navigation|process terminated)|JS Eval error|'
     r'\b(?:ReferenceError|TypeError|SyntaxError):|Error loading plugin KasaStorage', re.IGNORECASE)
 NATIVE_READ = re.compile(r'To Native\s*->\s+KasaStorage\s+read\b', re.IGNORECASE)
+
+
+def safe_area_layout(output, device_type):
+    """Check actual DOM controls against UIKit's safe window rectangle.
+
+    The opt-in DEBUG diagnostic contains geometry only. Requiring two stable
+    readings after CSS application catches the observed cold-relaunch inset
+    loss without depending on screenshot colors, fonts or header dimensions.
+    """
+    reports = []
+    for line in output.splitlines():
+        if 'BHU_LAYOUT ' in line:
+            try:
+                report, _ = json.JSONDecoder().raw_decode(line.split('BHU_LAYOUT ', 1)[1])
+                if report.get('ready') is True:
+                    reports.append(report)
+            except (ValueError, TypeError, AttributeError):
+                continue
+    if len(reports) < 2:
+        raise RuntimeError('Waiting for two ready native/DOM safe-area measurements.')
+
+    def number(value):
+        if isinstance(value, bool) or not isinstance(value, (float, int)) or not math.isfinite(value):
+            raise RuntimeError('Safe-area diagnostic contains an invalid geometry value.')
+        return value
+
+    last_controls = None
+    for report in reports[-2:]:
+        try:
+            width, height = (number(report['viewport'][key]) for key in ('width', 'height'))
+            safe = {key: number(report['safe'][key]) for key in ('top', 'right', 'bottom', 'left')}
+            insets = {key: number(report['nativeWindowInsets'][key]) for key in ('top', 'bottom')}
+            controls = report['controls']
+            expected = {'brand', *(f'header-{n}' for n in range(4)), *(f'nav-{n}' for n in range(4))}
+            if not isinstance(controls, list) or len(controls) != len(expected) or {c['id'] for c in controls} != expected:
+                raise RuntimeError('Safe-area diagnostic must include the brand, all four header buttons and four navigation buttons.')
+            if not (width > 0 and height > 0 and -2 <= safe['left'] < safe['right'] <= width + 2
+                    and -2 <= safe['top'] < safe['bottom'] <= height + 2):
+                raise RuntimeError('Native safe rectangle is not ready within the WebView viewport.')
+            # The selected notched CI iPhones must not accept an early zero-inset
+            # window as valid. Other models may legitimately have no home inset.
+            if insets['top'] <= 0 or (device_type.startswith('iPhone 17') and insets['bottom'] <= 0):
+                raise RuntimeError('Native system safe-area insets are not ready.')
+            current = {}
+            for control in controls:
+                rect = {key: number(control[key]) for key in ('top', 'right', 'bottom', 'left')}
+                if not (rect['right'] > rect['left'] and rect['bottom'] > rect['top']):
+                    raise RuntimeError(f"Control {control['id']} has no visible bounds.")
+                if (rect['top'] < safe['top'] - 2 or rect['left'] < safe['left'] - 2
+                        or rect['right'] > safe['right'] + 2 or rect['bottom'] > safe['bottom'] + 2):
+                    raise RuntimeError(f"Control {control['id']} overlaps a system safe area: {rect}; safe={safe}.")
+                current[control['id']] = rect
+            if last_controls is not None and any(abs(current[c][edge] - last_controls[c][edge]) > 1
+                                                  for c in current for edge in current[c]):
+                raise RuntimeError('Waiting for stable native safe-area control positions.')
+            last_controls = current
+        except (KeyError, TypeError) as error:
+            raise RuntimeError('Incomplete native safe-area geometry diagnostic.') from error
+    return reports[-1]
 
 
 def bitmap_paint_metrics(path):
@@ -101,7 +161,7 @@ def main():
                 'nativeStorageTests': {'status': 'not-run' if args.storage_tests else 'not-requested'},
                 'doesNotVerify': ['StoreKit purchases or restoration', 'hardware-backed file protection and lock-state enforcement',
                                  'real-device document/photo/printing flows', 'App Store distribution signing or upload',
-                                 'individual controls, account text, accessibility or layout correctness']}
+                                 'account text, accessibility, modal/rotation layouts or other individual control behavior']}
 
     def command(parts, limit=45, check=True, stage=None, cwd=None, log_path=None):
         remaining = deadline - time.monotonic()
@@ -365,6 +425,7 @@ def main():
             metadata['nativeStorageTests'] = {'status': 'not-requested'}
 
         environment = os.environ.copy(); environment['SIMCTL_CHILD_NSUnbufferedIO'] = 'YES'
+        environment['SIMCTL_CHILD_BHU_LAYOUT_DIAGNOSTICS'] = '1'
         records = metadata['launches']
 
         for attempt in (1, 2):
@@ -373,7 +434,7 @@ def main():
             log_path = ARTIFACTS / f'native-ios-startup-{attempt}.log'
             screenshot = ARTIFACTS / ('native-ios-startup.png' if attempt == 1 else 'native-ios-relaunch.png')
             record = {'launch': attempt, 'nativeRead': False, 'fixtureReturnedToJS': False,
-                      'contentPaintDetected': False, 'snapshotUnchanged': False,
+                      'contentPaintDetected': False, 'safeAreaLayoutVerified': False, 'snapshotUnchanged': False,
                       'screenshot': screenshot.name, 'log': log_path.name}
             records.append(record)
             console_log = log_path.open('wb')
@@ -426,6 +487,9 @@ def main():
                         print(f'Content paint sample: {json.dumps(metrics, sort_keys=True)}', flush=True)
                         if metrics['painted']:
                             record['contentPaintDetected'] = True
+                            pump_console(0)
+                            layout = safe_area_layout(log_path.read_text(encoding='utf-8', errors='replace'), metadata['deviceType'])
+                            record.update({'safeAreaLayoutVerified': True, 'safeAreaLayout': layout})
                             break
                         last_paint_error = f'Uniform or insufficient central content: {metrics}'
                     except (RuntimeError, TimeoutError) as error:
@@ -435,7 +499,7 @@ def main():
                     while time.monotonic() < retry_at:
                         pump_console()
                 else:
-                    raise RuntimeError(f'Content paint did not appear within its 90s budget: {last_paint_error}')
+                    raise RuntimeError(f'Content paint and safe-area layout did not pass within their 90s budget: {last_paint_error}')
             pump_console(0)
             output = log_path.read_text(encoding='utf-8', errors='replace')
             if BAD_STARTUP.search(output) or console.poll() is not None:
@@ -445,7 +509,7 @@ def main():
             record['snapshotUnchanged'] = True
             run('terminate', device, args.bundle_id, check=False, limit=15)
             stop_console()
-            print(f'PASS real native bridge and unchanged persistent snapshot on cold launch {attempt} ({time.monotonic()-launched_at:.2f}s).', flush=True)
+            print(f'PASS real native bridge, safe-area controls and unchanged persistent snapshot on cold launch {attempt} ({time.monotonic()-launched_at:.2f}s).', flush=True)
 
         metadata['launches'] = records
         if metadata['nativeStorageTests']['status'] != 'passed':

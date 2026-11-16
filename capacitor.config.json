@@ -2,6 +2,11 @@
   "appId": "com.fevzicakmak.bhu",
   "appName": "BHU",
   "webDir": "dist",
+  "plugins": {
+    "SystemBars": {
+      "style": "DARK"
+    }
+  },
   "ios": {
     "contentInset": "never",
     "backgroundColor": "#f5f8f6",
