@@ -60,7 +60,8 @@ export async function getStatus({ version, build, env = process.env, fetchImpl =
   async function get(path, parameters, stage, optional = false) {
     const url = new URL(path, ORIGIN);
     if (parameters) url.search = new URLSearchParams(parameters).toString();
-    const token = createToken(env, nowSeconds, [`GET ${url.pathname}${url.search}`]);
+    // Scope the resource path; keep encoded filters only on the actual request URL.
+    const token = createToken(env, nowSeconds, [`GET ${url.pathname}`]);
     let response;
     try {
       response = await fetchImpl(url.href, { method: 'GET', redirect: 'error', signal: AbortSignal.timeout(20000), headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
