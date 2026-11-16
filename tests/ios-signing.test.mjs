@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { TEAM_ID, BUNDLE_ID, buildNumber, credentials, decodeBase64, requiredSecrets, inspectCertificate, validateProfile, patchAppSigning, normalizeP12, readSigningCertificate } from '../scripts/ios-signing.mjs';
+import { TEAM_ID, BUNDLE_ID, buildNumber, credentials, decodeBase64, requiredSecrets, inspectCertificate, validateProfile, patchAppSigning, normalizeP12, readSigningCertificate, parseAltoolResponse } from '../scripts/ios-signing.mjs';
 const require = createRequire(import.meta.url);
 const parser = require('xcode/lib/parser/pbxproj');
 const certificateBytes = Buffer.from('Synthetic certificate bytes, never an Apple identity');
@@ -24,6 +24,85 @@ const inputs = () => ({
   APPLE_DISTRIBUTION_P12_PASSWORD: 'synthetic-password-never-real',
   APPLE_PROVISIONING_PROFILE_BASE64: Buffer.from('synthetic-profile').toString('base64'),
   BHU_UPLOAD_TO_TESTFLIGHT: 'false', GITHUB_RUN_NUMBER: '42', GITHUB_RUN_ATTEMPT: '2'
+});
+
+// Synthetic protocol fixtures: these are not captured Apple output or a live upload.
+const altoolSuccess = (operation, extra = {}) => JSON.stringify({
+  'tool-version': '8.0', 'tool-path': '/synthetic/Xcode.app/altool',
+  'success-message': operation === 'validate'
+    ? "No errors validating archive at '/synthetic/BHU.ipa'."
+    : "No errors uploading archive at '/synthetic/BHU.ipa'.",
+  ...extra
+});
+
+test('altool requires an explicit operation-specific structured success response', () => {
+  for (const operation of ['validate', 'upload']) {
+    const result = parseAltoolResponse(altoolSuccess(operation, { 'product-errors': [] }), '', operation);
+    assert.equal(result.operation, operation);
+    assert.equal(result.accepted, true);
+    assert.deepEqual(result.diagnostics, []);
+  }
+  assert.throws(() => parseAltoolResponse(altoolSuccess('validate'), '', 'upload'));
+  assert.throws(() => parseAltoolResponse(altoolSuccess('upload'), '', 'validate'));
+});
+
+test('altool accepts structured success on stderr but ordinary chatter proves no success', () => {
+  assert.equal(parseAltoolResponse('', altoolSuccess('validate'), 'validate').accepted, true);
+  assert.equal(parseAltoolResponse(altoolSuccess('upload'), 'Using synthetic Xcode installation.\n', 'upload').accepted, true);
+  for (const [stdout, stderr] of [
+    ['', ''], [' ', '\n'], ['Usage: altool --upload-app --file <file>', ''],
+    ['No errors uploading archive at synthetic.ipa', ''],
+    ['{}', ''], ['[]', ''], ['null', ''], ['{"product-errors":[]}', ''],
+    ['{"success-message":"Upload request received"}', ''],
+    ['{"success-message":"No errors uploading archive"', '']
+  ]) assert.throws(() => parseAltoolResponse(stdout, stderr, 'upload'));
+});
+
+test('altool embedded product errors override a success message even after process exit zero', () => {
+  const error = { code: -1011, message: 'Synthetic authentication error' };
+  for (const extra of [
+    { 'product-errors': [error] },
+    { 'tool-results': { 'product-errors': [error] } },
+    { results: [{ details: { 'product-errors': [error] } }] },
+    { errors: [error] },
+    { status: 401 },
+    { results: { statusCode: 500 } },
+    { success: false }
+  ]) assert.throws(() => parseAltoolResponse(altoolSuccess('upload', extra), '', 'upload'));
+  assert.throws(() => parseAltoolResponse(altoolSuccess('upload'), JSON.stringify({ 'product-errors': [error] }), 'upload'));
+  assert.throws(() => parseAltoolResponse(JSON.stringify({ 'product-errors': [error] }), '', 'upload'));
+});
+
+test('altool stderr error diagnostics cannot be hidden by structured success', () => {
+  for (const stderr of [
+    'ERROR: Synthetic upload rejection',
+    'ERROR ITMS-90161: Synthetic profile failure',
+    '2026-11-16 12:00:00 ERROR: Authentication failed',
+    '2026-11-16 12:00:00 {"product-errors":[{"code":-1011,"message":"Synthetic failure"}]}'
+  ]) assert.throws(() => parseAltoolResponse(altoolSuccess('upload'), stderr, 'upload'));
+});
+
+test('altool parser publishes only safe upload identifiers and sanitized diagnostics', () => {
+  const uploadId = '12345678-1234-1234-1234-123456789abc';
+  const good = parseAltoolResponse(altoolSuccess('upload', { 'upload-id': uploadId }), '', 'upload');
+  assert.equal(good.uploadId, uploadId);
+  const sentinel = 'SYNTHETIC_PRIVATE_VALUE_DO_NOT_PRINT';
+  for (const stdout of [
+    JSON.stringify({ 'product-errors': [{ code: -1011, message: sentinel, userInfo: { secret: sentinel } }] }),
+    JSON.stringify({ 'success-message': sentinel }),
+    `${sentinel} {broken JSON`
+  ]) {
+    let failure;
+    try { parseAltoolResponse(stdout, '', 'upload'); } catch (error) { failure = error; }
+    assert.ok(failure instanceof Error, 'Ambiguous or failed output is rejected');
+    assert.equal(typeof failure.category, 'string');
+    assert.ok(Array.isArray(failure.diagnostics));
+    assert.ok(failure.diagnostics.every(code => typeof code === 'string'));
+    assert.ok(!`${failure.message}${JSON.stringify(failure)}`.includes(sentinel), 'Private tool text never reaches the public error');
+  }
+  const unsafe = parseAltoolResponse(altoolSuccess('upload', { 'upload-id': `../../${sentinel}` }), '', 'upload');
+  assert.equal(unsafe.uploadId, undefined, 'Unsafe identifiers are omitted');
+  assert.ok(!JSON.stringify(unsafe).includes(sentinel));
 });
 
 test('build numbers follow Apple numeric limits and deterministic run/attempt fallback', () => {

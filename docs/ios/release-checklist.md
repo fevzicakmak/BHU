@@ -91,15 +91,15 @@ Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı ş
 - [x] Kullanıcı P12/parola/profil için üç repository Secrets kaydını tamamladığını bildirdi; bağımsız Secrets listesi doğrulaması yapılmadı.
 - [x] [Mac CI 43945652513 / job 133574498195](https://github.com/fevzicakmak/BHU/actions/runs/43945652513/job/133574498195), kaynak `3be76547d3b5e8c9323cf1e9c44210aaef338cd3` için 10/10 test, 0 hata/0 atlama ve gerçek kimlik/profil eşleşmesi başarılı.
 - [x] Gerçek imzalı Archive ve 49 arşiv kontrolü başarılı; IPA export ve `codesign --verify --deep --strict` geçti. Gömülü profil, Team/Bundle yetkileri ve imzalayan sertifika eşleşmesi doğrulandı; [BHU-AppStore-IPA](https://github.com/fevzicakmak/BHU/actions/runs/43945652513/artifacts/14265645219) içindeki **1.0 / build 3.1** IPA ve özet bağımsız olarak da incelendi; özel anahtar/Secrets veya test içeriği bulunmadı (artifact son erişim: 23 Kasım 2026, 20:05 UTC).
-- [x] Aynı başarılı iş `upload_to_testflight=true` ile Apple `altool` doğrulama ve yüklemesini geçti (16 Kasım 2026, 20:05:12 UTC); App Store Connect API Secrets gerçek işte kullanıldı.
-- [x] Gerçek **1.0 / build 3.1** imzalı IPA için Apple `altool` yükleme komutu başarıyla tamamlandı; bu App Review veya TestFlight test başarısı değildir.
-- [ ] Salt okunur [durum sorgusu](https://github.com/fevzicakmak/BHU/actions/runs/43949331627/job/133587320669) Apple API'den işleme sonucu aldı. Yardımcının 14 testi geçti fakat canlı uygulama sorgusu HTTP 401 ile reddedildi; hesap sahibinin BHU → TestFlight ekranı üzerinden aynı build'in durumu ayrıca kontrol edilmelidir.
-- [ ] App Store Connect işlemeyi tamamladı ve TestFlight için hazır; şu anda bu sonuç doğrulanmadı (**beklemede**). Privacy/SDK/ikon/yetenek ve beta hazırlığı ayrıca kontrol edilir.
+- [ ] Apple sunucu doğrulaması gerçek yanıtı çözümlenerek kabul edildi. `upload_to_testflight=true` işinde komut çıkış kodu 0 görüldü, ancak yanıt/teslim alındısı doğrulanmadı; CI yeşil olması bu maddeyi tamamlamaz.
+- [ ] Gerçek **1.0 / build 3.1** imzalı IPA için Apple yükleme kabulü/teslim alındısı doğrulandı. Kullanıcının BHU → TestFlight ekranında **No Builds** görünüyor; çıkış kodu 0 tek başına yükleme kanıtı değildir.
+- [ ] Salt okunur [durum sorgusu](https://github.com/fevzicakmak/BHU/actions/runs/43949331627/job/133587320669) Apple API'den işleme sonucu aldı. Yardımcının 14 testi geçti fakat canlı uygulama sorgusu HTTP 401 ile reddedildi; bu, işleme sonucu değildir. Kullanıcının BHU → TestFlight ekranında **No Builds** görüldü; build'in ulaştığı doğrulanmadı.
+- [ ] App Store Connect işlemeyi tamamladı ve TestFlight için hazır; şu anda yükleme kabulü ve bu sonuç bilinmiyor; **No Builds** görünüyor. Privacy/SDK/ikon/yetenek ve beta hazırlığı ayrıca kontrol edilir.
 - [ ] TestFlight iç test gerçekleştirildi. Dış test seçilirse gerekli Beta App Review süreci tamamlandı.
 - [ ] Gerçek StoreKit sandbox/TestFlight satın alma ve geri yükleme akışı doğrulandı; yerel StoreKit testiyle karıştırılmadı.
 - [ ] Crash ve veri kaybı bulguları çözüldü; son test edilen build ile gönderilecek build aynı.
 
-Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; Team ID çözümlemesi ayrı Mac CI kontrolüyle doğrulansa da gerçek imzalı Archive/export/IPA ayrı 43945652513 çalıştırmasında doğrulandı, Apple doğrulaması/upload kabul edildi; App Store Connect işlemesi ve TestFlight hazırlığı henüz doğrulanmadı; son imzalı gönderim arşivi yeniden doğrulanmalıdır.
+Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; Team ID çözümlemesi ayrı Mac CI kontrolüyle doğrulansa da gerçek imzalı Archive/export/IPA ayrı 43945652513 çalıştırmasında doğrulandı, Apple doğrulaması/upload kabulü çözümlenmiş gerçek yanıtla doğrulanmadı; App Store Connect işlemesi ve TestFlight hazırlığı bilinmiyor; son imzalı gönderim arşivi yeniden doğrulanmalıdır.
 
 ## 6. Son gönderim
 

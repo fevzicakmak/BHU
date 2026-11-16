@@ -1,0 +1,47 @@
+name: iOS Apple validation diagnostics
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ios-apple-validation
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: macos-15-intel
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Download the existing signed 1.0 build 3.1 package
+        uses: actions/download-artifact@v4
+        with:
+          name: BHU-AppStore-IPA
+          run-id: 43945652513
+          github-token: ${{ github.token }}
+          path: signed-input
+      - name: Validate with Apple and retain only sanitized results
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: node scripts/ios-apple-validation.mjs
+      - name: Keep the sanitized validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BHU-Apple-validation
+          path: test-artifacts/apple-validation/report.json
+          if-no-files-found: ignore
+          retention-days: 7

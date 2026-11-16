@@ -18,6 +18,67 @@ const checked = (condition, message) => { if (!condition) throw new SigningError
 const unquote = value => typeof value === 'string' && value.startsWith('"') && value.endsWith('"') ? value.slice(1, -1) : value;
 const sha256 = value => createHash('sha256').update(value).digest('hex').toUpperCase();
 
+/** Interpret structured altool evidence without returning raw messages or paths. */
+export function parseAltoolResponse(stdout, stderr, operation) {
+  const diagnostics = new Set();
+  const streams = [stdout, stderr].map(value => typeof value === 'string' ? value.trim() : '');
+  const fail = category => {
+    const codes = [...diagnostics].sort().slice(0, 30);
+    const error = new SigningError(`Apple ${operation === 'upload' ? 'upload' : 'validation'} response rejected (${category})${codes.length ? `: ${codes.join(', ')}` : '.'}`);
+    error.category = category; error.diagnostics = codes;
+    throw error;
+  };
+  if (!['validate', 'upload'].includes(operation)) fail('invalid-operation');
+  if (streams.some(value => value.length > 8 * 1024 * 1024)) fail('response-too-large');
+  for (const value of streams) for (const match of value.matchAll(/\bITMS-[0-9]{4,8}\b/g)) diagnostics.add(match[0]);
+  const documents = [];
+  for (const value of streams) {
+    if (!value) continue;
+    try {
+      const parsed = JSON.parse(value);
+      if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') fail('invalid-json');
+      documents.push(parsed);
+    } catch (error) {
+      if (error instanceof SigningError) throw error;
+      if (/^[{[]/.test(value)) fail('invalid-json');
+      // Timestamp-prefixed diagnostics must not hide a second embedded error
+      // object alongside an otherwise successful JSON document.
+      if (/"(?:product-errors|errors|error)"\s*:/i.test(value)) fail('reported-error');
+    }
+  }
+  let reportedError = false;
+  const inspect = value => {
+    if (Array.isArray(value)) { value.forEach(inspect); return; }
+    if (!value || typeof value !== 'object') return;
+    for (const [key, item] of Object.entries(value)) {
+      const normalized = key.toLowerCase().replace(/[^a-z]/g, '');
+      if (normalized === 'code' || normalized === 'errorcode') {
+        if (Number.isSafeInteger(item) && Math.abs(item) <= 99999999) diagnostics.add(String(item));
+        else if (typeof item === 'string' && /^(?:-?[0-9]{1,8}|ITMS-[0-9]{4,8})$/.test(item)) diagnostics.add(item);
+      }
+      if (['producterrors', 'errors', 'error', 'errorcode'].includes(normalized)
+        && item !== null && item !== false && item !== 0 && item !== '' && !(Array.isArray(item) && item.length === 0)) reportedError = true;
+      if (normalized === 'status' && typeof item === 'string' && /^(?:error|failed|failure|invalid|rejected)$/i.test(item)) reportedError = true;
+      if (['status', 'statuscode'].includes(normalized) && Number.isInteger(item) && item >= 400 && item <= 599) {
+        diagnostics.add(`HTTP-${item}`); reportedError = true;
+      }
+      if (['success', 'accepted'].includes(normalized) && item === false) reportedError = true;
+      inspect(item);
+    }
+  };
+  documents.forEach(inspect);
+  if (reportedError || streams.some(value => /(?:\*\*\*\s*Error\b|\bERROR(?:\s*:|\s+ITMS-))/i.test(value))) fail('reported-error');
+  if (!documents.length) fail('missing-json');
+  const verb = operation === 'validate' ? 'validating' : 'uploading';
+  const success = new RegExp(`^No errors ${verb} (?:archive at )?'[^'\\r\\n]+'\\.?$`, 'i');
+  const accepted = documents.filter(value => typeof value['success-message'] === 'string' && success.test(value['success-message'].trim()));
+  if (accepted.length !== 1) fail('missing-explicit-success');
+  const result = { operation, accepted: true, diagnostics: [...diagnostics].sort().slice(0, 30) };
+  const uploadId = accepted[0]['upload-id'] ?? accepted[0].details?.['delivery-uuid'];
+  if (operation === 'upload' && typeof uploadId === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uploadId)) result.uploadId = uploadId;
+  return result;
+}
+
 export function buildNumber(value, env = process.env) {
   const input = value?.trim() || `${env.GITHUB_RUN_NUMBER || ''}.${env.GITHUB_RUN_ATTEMPT || ''}`;
   checked(/^[0-9]{1,4}(?:\.[0-9]{1,2}){0,2}$/.test(input) && Number(input.split('.')[0]) > 0,
@@ -210,15 +271,19 @@ export async function distribute() {
       && entitlements['get-task-allow'] !== true, 'Exported IPA entitlements are not App Store distribution entitlements for BHU.');
     checked(sha256(readSigningCertificate(app, directory)) === certificate.sha256, 'Exported IPA was signed with an unexpected certificate.');
     const ipa = join(finalDirectory, 'BHU.ipa'); copyFileSync(join(exported, ipas[0]), ipa); chmodSync(ipa, 0o600);
+    let appleValidation = null, appleUpload = null;
     if (secrets.upload) {
       const keys = join(directory, 'private_keys'); mkdirSync(keys, { mode: 0o700 });
       privateWrite(join(keys, `AuthKey_${secrets.keyId}.p8`), secrets.privateKey);
       const authentication = ['--apiKey', secrets.keyId, '--apiIssuer', secrets.issuerId];
-      command('Apple IPA validation', 'xcrun', ['altool', '--validate-app', '--file', ipa, '--type', 'ios', ...authentication], { cwd: directory });
-      command('Upload to TestFlight processing', 'xcrun', ['altool', '--upload-app', '--file', ipa, '--type', 'ios', ...authentication], { cwd: directory });
+      const validation = command('Apple IPA validation', 'xcrun', ['altool', '--validate-app', '--file', ipa, '--type', 'ios', '--output-format', 'json', ...authentication], { cwd: directory });
+      appleValidation = parseAltoolResponse(validation.stdout, validation.stderr, 'validate');
+      const upload = command('Upload to TestFlight processing', 'xcrun', ['altool', '--upload-app', '--file', ipa, '--type', 'ios', '--output-format', 'json', ...authentication], { cwd: directory });
+      appleUpload = parseAltoolResponse(upload.stdout, upload.stderr, 'upload');
     }
     privateWrite(join(finalDirectory, 'distribution-summary.json'), JSON.stringify({ bundleId: BUNDLE_ID, teamId: TEAM_ID, build: secrets.build,
-      signedIPA: true, appleValidationCompleted: secrets.upload, uploadedForTestFlightProcessing: secrets.upload,
+      signedIPA: true, appleValidationCompleted: appleValidation?.accepted === true, uploadedForTestFlightProcessing: appleUpload?.accepted === true,
+      ...(appleValidation ? { appleValidation } : {}), ...(appleUpload ? { appleUpload } : {}),
       doesNotVerify: ['StoreKit purchase/restore on real devices', 'App Store review or release approval', 'TestFlight processing completion'] }, null, 2) + '\n');
     complete = true;
     console.log(secrets.upload ? 'Signed IPA verified and accepted by the upload command for Apple processing. TestFlight processing still needs to finish.' : 'Signed App Store IPA verified. No upload was requested.');
