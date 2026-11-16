@@ -1,0 +1,52 @@
+name: iOS TestFlight status
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_version:
+        description: Marketing version already uploaded to App Store Connect
+        type: string
+        default: '1.0'
+        required: true
+      build_number:
+        description: Exact uploaded CFBundleVersion to inspect
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-testflight-status
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check the read-only status helper
+        run: |
+          node --check scripts/ios-testflight-status.mjs
+          node --test tests/ios-testflight-status.test.mjs
+      - name: Read the exact BHU build processing state
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          BHU_STATUS_VERSION: ${{ inputs.app_version }}
+          BHU_STATUS_BUILD: ${{ inputs.build_number }}
+        run: node scripts/ios-testflight-status.mjs --version "$BHU_STATUS_VERSION" --build "$BHU_STATUS_BUILD" --output test-artifacts/testflight-status/report.json
+      - name: Keep the sanitized processing report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BHU-TestFlight-status
+          path: test-artifacts/testflight-status/report.json
+          if-no-files-found: ignore
+          retention-days: 7
