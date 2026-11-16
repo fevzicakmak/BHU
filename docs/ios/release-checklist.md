@@ -22,13 +22,13 @@ Kod veya depo içine Apple parolası, özel anahtar, dağıtım sertifikası, pr
 - [x] Paketleme betiği uygulama/gizlilik/destek dosyalarını ve yerel Capacitor köprüsünü `dist/` içine alıyor; CI native senkronizasyon ve derleme başarılı. Gerçek çevrimdışı açılış aşağıdaki ayrı kontroldür.
 - [ ] Uçak modunda ilk açılış ve daha önce kaydedilmiş işlemler çalışıyor.
 - [x] Kaynak Capacitor yapılandırmasında uzak `server.url` veya canlı yeniden yükleme adresi yok.
-- [ ] Son Release arşivinde geliştirme/hata ayıklama ayarları ve paket içeriği ayrıca doğrulandı.
+- [x] [CI 43853676076](https://github.com/fevzicakmak/BHU/actions/runs/43853676076) gerçek imzasız iPhoneOS Release arşivinde 49 mekanik kontrolü geçti: kimlik/sürüm, debug bayrağı, arm64, ikon, native config ve birebir web dosyaları. Bu sonuç dağıtım imzası veya cihaz testi değildir.
 - [ ] Native JSON depolaması başarıyı gerçekten dosyaya yazıldıktan sonra bildiriyor; hata halinde formu ve önceki dosyayı koruyor.
 - [ ] Web/Safari kayıtları JSON yedeğiyle native uygulamaya aktarılabiliyor. İki uygulama alanının kendiliğinden ortak veri kullandığı varsayılmıyor.
 - [ ] App Store sürüm/build numarası tekil ve doğru; görünen ad, ikon ve launch ekranı nihai.
 - [ ] iPhone ve iPad düzenleri, güvenli alanlar, modal ve paylaşım popover'ları doğrulandı. Cihaz ailesi sonradan daraltılırsa mağaza alanları buna göre güncellendi.
 - [ ] Minimum deployment target iOS 15 ile **yükleme için gerekli derleme SDK'sı/Xcode sürümü** birbirinden ayrıldı. Apple'ın gönderim günündeki SDK/Xcode gereksinimleri karşılanıyor.
-- [ ] Release paketinde test-fixture, geliştirme yedeği, test ekran görüntüsü veya örnek finansal belge yok.
+- [x] Aynı Release incelemesinde `.storekit`, `.xctest`, `Tests` ve `test-artifacts` içeriği bulunmadı; 11 web dosyası yeni `dist/` ile birebir eşleşti. Son gönderilecek arşiv yeniden incelenmelidir.
 
 ## 3. Çoklu Hesap uygulama içi satın alımı
 
@@ -56,7 +56,8 @@ Geliştirme `.storekit` dosyasında başarılı satın alma görmek, gerçek ür
 - [x] [Gizlilik politikası](privacy-policy.tr.md) gerçek kimlik, onaylı iletişim ve 15 Kasım 2026 tarihiyle tamamlandı.
 - [x] Politikanın kamuya açık HTTPS URL'si 15 Kasım 2026'da son canlı sayfada HTTP 200 ve onaylı kimlik/iletişim içeriğiyle doğrulandı.
 - [ ] App Privacy yanıtları son veri akışıyla tutarlı. “Data Not Collected” koşulsuz varsayılmadı.
-- [ ] Privacy Manifest ve Required Reason API beyanları arşivden doğrulandı.
+- [x] Release arşivinde 3 privacy manifest okunabildi; uygulamanın CapApp kaynak manifesti kaynakla eşleşti ve gerçek içerikler raporlandı.
+- [ ] Privacy Manifest / Required Reason API beyanlarının son kullanıma hukuki uygunluğu ve App Privacy yanıtları ayrıca değerlendirildi; mekanik rapor bunu onaylamaz.
 - [ ] Kullanılmayan hassas izinler/yetenekler yok; dosya seçicisindeki isteğe bağlı kamera yolunun Türkçe kullanım açıklaması ve izin ret davranışı gerçek cihazda test edildi.
 - [ ] Export-compliance yanıtları gerçek kriptografi kullanımına göre değerlendirildi.
 - [ ] [Mağaza metni](app-store-metadata.tr.md) son derlemenin gerçek özelliklerini ve çoklu hesap ücretini doğru anlatıyor.
@@ -68,9 +69,13 @@ Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı ş
 
 ## 5. Xcode ve TestFlight
 
-- [x] [CI 43772430952](https://github.com/fevzicakmak/BHU/actions/runs/43772430952) üzerinde macOS/Xcode native bağımlılık çözümü ve imzasız Simulator derlemesi başarılı.
-- [x] Aynı çalıştırmada 33 Node testi, 45 Chromium senaryosu ve ayrı Playwright WebKit kontrolü başarılı.
-- [x] Aynı çalıştırmada native simülatöre kurulum ve gerçek `KasaStorage.read` ile iki soğuk açılış başarılı. Sentetik kayıt JavaScript'e döndü, kayıt dosyası değişmedi ve iki ekran görüntüsü görsel kontrolden geçti. Bu kontrol native yazma/dosya koruması veya gerçek cihaz kabulü yerine geçmez.
+- [x] [CI 43853676076](https://github.com/fevzicakmak/BHU/actions/runs/43853676076) üzerinde 33 Node testi, 45 Chromium senaryosu ve ayrı WebKit kontrolü başarılı.
+- [x] Aynı çalıştırmada fiziksel iOS hedefli imzasız Release arşivi (SDK 26.2, arm64) ve 49 mekanik arşiv kontrolü başarılı; [arşiv](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14219761788) ve [rapor](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14219262140) mevcut.
+- [x] Aynı sürümde SDK 26.5 / iPad Pro M5 simülatöründe iki soğuk açılış, gerçek `KasaStorage.read` ve görünür içerik kabulü başarılı. [Ekran görüntüleri ve kanıtlar](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14220931775) elle incelendi; doğru BHU hesabı görünüyor. Bu simülatör kabulü gerçek cihaz testi değildir.
+- [x] Önceki [iPhone çalıştırması 43772430952](https://github.com/fevzicakmak/BHU/actions/runs/43772430952) iki soğuk açılış ve gerçek native okumayı doğruladı; tarihsel sonuç güncel native yazma kabulü değildir.
+- [x] Güncel iPhone hedefli 8 senaryolu SwiftPM XCTest paketi derlendi; derleme, test yürütmesi anlamına gelmez.
+- [ ] Güncel iPhone native açılış/görünür içerik kabulü ve `--storage-tests` yürütmesi tamamlandı. Son denemede Simulator GUI açma isteği 20 saniyelik sınırda kaldı (25,57 saniye); native yazma testleri başlamadı. Yeni yardımcı GUI açmayı 60 saniyelik isteğe bağlı adım yapar, zorunlu boot/framebuffer/kayıt servisi/native/görünür içerik kontrollerini korur; tekrar test bekliyor.
+- [ ] 8 native senaryonun çalışma sonuçları kabul edildi: ilk yazma/okuma ve yeni plugin ile kalıcılık, eski kayıt çatışması, birebir UTF-8/Unicode NFC-NFD karşılaştırması, eşzamanlı tek kazanan, geçersiz JSON/eksik karşılaştırma değeri, UTF-8 boyut sınırı, yazma hatasında dosyayı koruma ve sunuluyorsa koruma niteliği. Runner ayrı sandbox kullanır; donanım dosya korumasını veya gerçek StoreKit'i doğrulamaz.
 - [ ] Gerçek iPhone ve iPad'e kurulup [TestFlight planı](testflight-test-plan.md) uygulandı.
 - [ ] Dağıtım imzası/provisioning doğru; `Archive` ve `Validate App` başarılı.
 - [ ] Organizer / onaylı yükleme aracıyla App Store Connect'e build yüklendi.

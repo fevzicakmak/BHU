@@ -5,6 +5,7 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 | Dosya | Amaç |
 | --- | --- |
 | [app-store-metadata.tr.md](app-store-metadata.tr.md) | Türkçe mağaza metinleri, satın alma açıklaması ve inceleme notları |
+| [metadata.tr.json](metadata.tr.json) ve [kopyalanabilir alanlar](metadata/README.md) | Onaylı metinlerin 12 alanlı JSON kaynağı ve 10 düz metin kopyası; mağazaya henüz gönderilmedi |
 | [app-store-connect-setup.tr.md](app-store-connect-setup.tr.md) | Hesap sahibi için Team ID, uygulama/IAP kaydı, imzalama ve TestFlight adımları |
 | [privacy-policy.tr.md](privacy-policy.tr.md) | Fevzi Çakmak ve onaylı destek adresini içeren gizlilik politikası |
 | [privacy-data-map.md](privacy-data-map.md) | Veri akışları, App Privacy ve Privacy Manifest kontrolü |
@@ -33,21 +34,29 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 
 ## Son incelenen doğrulama kanıtı
 
-15 Kasım 2026 tarihindeki [CI çalıştırması 43772430952](https://github.com/fevzicakmak/BHU/actions/runs/43772430952), uygulama kodu `0481ca083ecd3c3e061519d7c9874547cfb15074` için:
+16 Kasım 2026 tarihindeki [CI çalıştırması 43853676076](https://github.com/fevzicakmak/BHU/actions/runs/43853676076), kod `6005053` için aşağıdaki sonuçları verdi. Çalıştırmanın tamamı başarılı değildir; derleme, native okuma ve test yürütmesi ayrı değerlendirilir.
 
-| Kontrol | Kanıtlanan sonuç |
+| Kontrol | Güncel sonuç |
 | --- | --- |
 | Node veri/öneri/native-adapter testleri | 33 test başarılı |
 | Chromium uygulama/taşıma/autocomplete/native-adapter senaryoları | 45 senaryo başarılı; native-adapter senaryoları taklit köprü kullanır |
 | Playwright WebKit kontrolü | Başarılı; gerçek iOS WKWebView veya cihaz kabulü yerine geçmez |
-| macOS bağımlılık çözümü ve imzasız iOS Simulator derlemesi | Başarılı |
-| Native simülatöre kurulum / soğuk açılış / gerçek köprü okuması | **Başarılı:** Intel macOS, Xcode 26.3, iOS 26.2 / iPhone 17 Pro simülatöründe iki soğuk açılış; gerçek `KasaStorage.read`, sentetik kaydın JavaScript'e dönüşü ve dosyanın değişmemesi doğrulandı |
-| Simülatör ekran görüntüleri | İki açılışta BHU arayüzü ve aynı sentetik hesap görünür; yükleme katmanı kapanmış. Manuel görsel kontrol yapıldı |
-| Bu çalıştırmanın simülatör uygulama ZIP'i | [İmzasız simülatör paketi](https://github.com/fevzicakmak/BHU/actions/runs/43772430952/artifacts/14185660090) ve [başlangıç kanıtları](https://github.com/fevzicakmak/BHU/actions/runs/43772430952/artifacts/14184916904) yüklendi; CI çıktıları 7 gün saklanır |
+| Fiziksel iOS hedefli Release arşivi | İmzasız `iphoneos` arşivi başarıyla derlendi; SDK 26.2, arm64 |
+| Gerçek Release arşivi incelemesi | 49 mekanik kontrol başarılı; 11 web dosyası yeni `dist/` ile birebir eşleşti, 3 privacy manifest okundu, test/StoreKit payload'ı bulunmadı |
+| Release çıktıları | [İmzasız arşiv](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14219761788) ve [mekanik inceleme raporu](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14219262140); CI çıktıları 7 gün saklanır |
+| iPad native kabulü | SDK 26.5 / iPad Pro M5 simülatöründe iki soğuk açılış, gerçek `KasaStorage.read`, değişmeyen sentetik kayıt ve görünür içerik kontrolü başarılı. [Kanıt paketi](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14220931775) ekran görüntüleri elle incelendi; doğru BHU hesabı görünür |
+| iPhone native test paketi | 8 XCTest senaryosu başarıyla derlendi. Simulator GUI açılışı 20 saniyelik sınırda kaldı (ölçülen 25,57 saniye); gerçek test yürütmesi başlamadı. Native yazma başarısı henüz kanıtlanmadı |
+| Yeni yardımcı değişiklik | GUI açma isteği isteğe bağlı ve 60 saniye sınırlı; zorunlu OS boot, framebuffer, uygulama kayıt servisi, native okuma ve görünür içerik kapıları korunuyor. Değişiklik tekrar test bekliyor |
 
-Bu sonuçlar imzalı IPA, gerçek Apple satın alma, native yazma/dosya koruması veya TestFlight kabulü değildir. Gerçek iPhone/iPad, yedek yükleme/paylaşma ve sandbox satın alma/geri yükleme kabulü ayrıca tamamlanmalıdır. Önceki ARM makinesindeki simülatör servis zaman aşımları, aynı doğrulama koşullarıyla Intel test makinesine geçilerek aşıldı.
+Native yazma, beklenen önceki kaydı Unicode eşdeğerliğiyle değil **UTF-8 baytlarını birebir karşılaştırarak** denetler. 8 XCTest senaryosu ilk yazma/okuma ve yeni plugin ile kalıcılık, eski kayıt çatışması, Unicode NFC/NFD farkı, eşzamanlı yazmalarda tek kazanan, geçersiz JSON/eksik karşılaştırma değeri, UTF-8 boyut sınırı, gerçek yazma hatasında önceki dosyanın korunması ve sunuluyorsa dosya koruma niteliğini kapsar. Paket derlendi; bu senaryoların çalışma sonuçları bekleniyor. Test runner ayrı sandbox kullanır; BHU'nun gerçek cihaz saklama alanı, donanım kilit koruması veya gerçek StoreKit işlemi doğrulanmaz.
 
-[Gizlilik](https://fevzicakmak.github.io/BHU/privacy.html) ve [destek](https://fevzicakmak.github.io/BHU/support.html) sayfaları 15 Kasım 2026'da canlı ortamda HTTP 200 ile açıldı; BHU / Fevzi Çakmak / onaylı e-posta, bağlantılar ve 375 px mobil taşma kontrolü doğrulandı.
+Bu arşiv fiziksel iOS için **derlenmiştir**; fiziksel cihaza kurulduğu veya App Store imzası taşıdığı anlamına gelmez. Mekanik inceleme imza/provisioning, App Store yüklemesi, privacy beyanının hukuki yeterliliği, gerçek dosya koruması veya gerçek StoreKit işlemini doğrulamaz. Önceki [iPhone kanıtı 43772430952](https://github.com/fevzicakmak/BHU/actions/runs/43772430952), önceki kodda iki soğuk açılış ve gerçek native okumayı doğrulamıştır; güncel native yazma kabulü değildir.
+
+[Gizlilik](https://fevzicakmak.github.io/BHU/privacy.html) ve [destek](https://fevzicakmak.github.io/BHU/support.html) sayfaları 15 Kasım 2026'da canlı HTTP 200, onaylı kimlik/e-posta ve mobil taşma kontrolünden geçti.
+
+## Kopyalanabilir mağaza alanları
+
+[metadata.tr.json](metadata.tr.json), onaylı Türkçe metinlerin düz alan kaynağıdır. [metadata/tr-TR/](metadata/tr-TR/) altında uygulama adı, alt başlık, tanıtım, açıklama, anahtar kelime, inceleme notları, ürün adı/açıklaması ve destek/gizlilik URL'leri için 10 `.txt` kopyası bulunur. Bunlar bir yükleme veya mağaza onayı değildir; gerçek ürün, son build ve gerçek cihaz/StoreKit kabulünden sonra [kurulum rehberiyle](app-store-connect-setup.tr.md) kullanılmalıdır.
 
 ## Tamamlanması gereken mağaza adımları
 

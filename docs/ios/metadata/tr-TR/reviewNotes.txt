@@ -1,0 +1,9 @@
+Uygulama giriş hesabı gerektirmez. “Hesap”, kullanıcının cihazında tuttuğu kasa/finansal hesap anlamındadır.
+
+Ücretsiz senaryo: İlk ana hesabı oluşturun; bu ana hesabın altına birden fazla alt hesap ekleyin. Gelir/gider oluşturun, filtreleyin ve JSON yedeği dışa aktarın.
+
+Ücretli senaryo: İkinci ana hesabı oluşturmayı deneyin. Çoklu Hesap ekranı açılır. Satın alma Apple StoreKit üzerinden gerçekleştirilir. Ürün tipi Non-Consumable'dır; abonelik veya harici ödeme yönlendirmesi yoktur. “Satın alımları geri yükle” seçeneği bulunur.
+
+Hesap ağacında bir alt hesabı ana seviyeye taşımak veya yedekten ek ana hesaplar yüklemek de aynı yetki kontrolüne tabidir. Mevcut kayıtları görüntülemek, düzenlemek ve dışa aktarmak satın alma ekranına bağlanmaz.
+
+Uygulama banka bağlantısı veya gerçek para transferi yapmaz. “İşlemleri taşı”, mevcut kayıtların hesap bağlantısını değiştirir.

@@ -1,0 +1,14 @@
+{
+  "name": "BHU",
+  "subtitle": "Ana ve alt hesaplarla kasa",
+  "promotionalText": "Gelir ve giderlerinizi ana ve alt hesaplarla takip edin. İlk ana hesap ve alt hesapları ücretsiz. Ek ana hesapları tek seferlik satın alımla açın.",
+  "description": "BHU, gelir ve giderlerinizi hesaplar halinde düzenlemenize yardımcı olur.\n\nBir ana hesap oluşturun, ihtiyaç duyduğunuz alt hesapları ekleyin ve işlemlerinizi tarih, tutar, cari ve açıklama bilgileriyle kaydedin. Hesap ağacında sürükleyerek veya dokunarak düzen kurun. Gelir, gider ve bakiye toplamlarını birlikte görün.\n\n• Ana ve alt hesaplarla kasa takibi\n• Gelir/gider kaydı, düzenleme ve filtreleme\n• Geçmiş kayıtlarınızdan cari ve açıklama önerileri\n• İşlemlere belge ve fotoğraf ekleme\n• JSON yedeğini dışa aktarma ve doğrulayarak geri yükleme\n• iOS'ta cihazda yerel kayıt ve paketlenmiş uygulama dosyalarıyla çevrimdışı çalışma\n\nÜcretsiz kullanım bir ana hesabı ve bu ana hesabın alt hesaplarını kapsar. İkinci ana hesabı oluşturmak için tek seferlik Çoklu Hesap satın alımı gerekir. Alt hesaplar için ayrıca ücret alınmaz. Bu bir abonelik değildir. Satın alımlar uygulamadaki “Satın alımları geri yükle” seçeneğiyle yeniden doğrulanabilir.\n\nVerilerinizi düzenli olarak yedekleyin. Cihazlar arasında uygulamaya ait otomatik eşitleme yoktur. Yedek dosyası finansal kayıtlarınızı ve ekli belgelerinizi içerir; paylaşacağınız konumu ve alıcıyı siz seçersiniz.",
+  "keywords": "kasa,gelir,gider,bakiye,cari,harcama,hesap,işlem,bütçe,kayıt",
+  "reviewNotes": "Uygulama giriş hesabı gerektirmez. “Hesap”, kullanıcının cihazında tuttuğu kasa/finansal hesap anlamındadır.\n\nÜcretsiz senaryo: İlk ana hesabı oluşturun; bu ana hesabın altına birden fazla alt hesap ekleyin. Gelir/gider oluşturun, filtreleyin ve JSON yedeği dışa aktarın.\n\nÜcretli senaryo: İkinci ana hesabı oluşturmayı deneyin. Çoklu Hesap ekranı açılır. Satın alma Apple StoreKit üzerinden gerçekleştirilir. Ürün tipi Non-Consumable'dır; abonelik veya harici ödeme yönlendirmesi yoktur. “Satın alımları geri yükle” seçeneği bulunur.\n\nHesap ağacında bir alt hesabı ana seviyeye taşımak veya yedekten ek ana hesaplar yüklemek de aynı yetki kontrolüne tabidir. Mevcut kayıtları görüntülemek, düzenlemek ve dışa aktarmak satın alma ekranına bağlanmaz.\n\nUygulama banka bağlantısı veya gerçek para transferi yapmaz. “İşlemleri taşı”, mevcut kayıtların hesap bağlantısını değiştirir.",
+  "supportURL": "https://fevzicakmak.github.io/BHU/support.html",
+  "privacyPolicyURL": "https://fevzicakmak.github.io/BHU/privacy.html",
+  "publisher": "Fevzi Çakmak",
+  "supportEmail": "fvzckmk35@gmail.com",
+  "productDisplayName": "Çoklu Hesap",
+  "productDescription": "Ek ana hesaplar için kalıcı erişim."
+}

@@ -13,7 +13,7 @@ npm run ios:sync
 npm run ios:open
 ```
 
-`ios:open` ve imzalı arşiv için macOS + Xcode gerekir. GitHub Actions macOS üzerinde imzasız simülatör uygulamasını derler. Bu çıktı App Store'a yüklenebilen imzalı bir IPA değildir.
+`ios:open` ve iOS arşivi için macOS + Xcode gerekir. CI hem simülatör uygulaması hem fiziksel iOS hedefli imzasız Release arşivi derler. Bunlar App Store'a yüklenebilen imzalı bir IPA değildir.
 
 - Görünen uygulama adı **BHU**. Paket kimliği `com.fevzicakmak.bhu` ve ürün kimliği `com.fevzicakmak.bhu.multipleaccounts`, App Store Connect'te doğrulanacak aday kimliklerdir.
 - **Bir ana hesap ve alt hesapları ücretsiz.** İkinci ana hesap, tek seferlik kalıcı **Çoklu Hesap** satın alımını gerektirir. Hedef Türkiye fiyatı **399 TL**; gerçek fiyat App Store Connect'te ayarlanır ve arayüz Apple'ın yerelleştirilmiş fiyatını gösterir.
@@ -25,7 +25,13 @@ npm run ios:open
 - Yedekler/ekler iOS paylaşım menüsüyle dışa aktarılır, yedekler sistem dosya seçicisiyle alınır, hesap raporları iOS yazdırma menüsüne gönderilir. Kamera izni yalnızca kullanıcı fotoğraf çekmeyi seçtiğinde istenir.
 - Web demo sürümünün tarayıcı depolaması ve mevcut kullanım davranışı korunur; StoreKit satın alma sistemi iOS içindir.
 
-Mağaza metinleri, gizlilik/destek taslakları ve gerçek cihaz kontrol listesi: [iOS yayın hazırlığı](docs/ios/README.md). Yayıncı **Fevzi Çakmak**, herkese açık destek adresi **fvzckmk35@gmail.com** olarak onaylandı; Apple Developer üyeliğinin aktif olduğu hesap sahibi tarafından bildirildi. [Gizlilik](https://fevzicakmak.github.io/BHU/privacy.html) ve [destek](https://fevzicakmak.github.io/BHU/support.html) sayfaları hazırlanmıştır. Team erişimi, gerçek App Store ürünü, dağıtım imzası ve gerçek cihaz/TestFlight kabulü tamamlanmadan uygulama mağazaya gönderilmemelidir. StoreKit test dosyasındaki ürün ve 399 TL örnek fiyat gerçek satış ürünü oluşturmaz.
+Mağaza metinleri, yayımlanmış gizlilik/destek sayfaları ve gerçek cihaz kontrol listesi: [iOS yayın hazırlığı](docs/ios/README.md). Yayıncı **Fevzi Çakmak**, herkese açık destek adresi **fvzckmk35@gmail.com** olarak onaylandı; Apple Developer üyeliğinin aktif olduğu hesap sahibi tarafından bildirildi. [Gizlilik](https://fevzicakmak.github.io/BHU/privacy.html) ve [destek](https://fevzicakmak.github.io/BHU/support.html) sayfaları hazırlanmıştır. Team erişimi, gerçek App Store ürünü, dağıtım imzası ve gerçek cihaz/TestFlight kabulü tamamlanmadan uygulama mağazaya gönderilmemelidir. StoreKit test dosyasındaki ürün ve 399 TL örnek fiyat gerçek satış ürünü oluşturmaz.
+
+## Son iOS doğrulama durumu
+
+[CI 43853676076](https://github.com/fevzicakmak/BHU/actions/runs/43853676076), kod `6005053` için 33 Node testi, 45 Chromium senaryosu ve WebKit kontrolünü geçti. SDK 26.2 / arm64 **imzasız Release arşivi** 49 mekanik kontrolü geçti; [arşiv](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14219761788) ve [rapor](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14219262140) mevcut. SDK 26.5 / iPad Pro M5 simülatöründe iki soğuk açılış, gerçek native okuma ve görünür içerik kabulü de başarılı; [ekran görüntüleri ve kanıtlar](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14220931775) elle incelendi.
+
+iPhone için 8 testli native XCTest paketi derlendi, ancak Simulator GUI açma zaman aşımı nedeniyle çalıştırılmadı. GUI açmayı isteğe bağlı yapan yeni yardımcı değişiklik ve UTF-8 baytlarını birebir karşılaştıran native yazma testleri çalışma sonucu bekliyor. Önceki iPhone iki soğuk açılış/okuma kanıtı ayrı tutulur; dağıtım imzası, gerçek cihaz dosya koruması, gerçek StoreKit ve TestFlight kabulü tamamlanmamıştır. Ayrıntılar ve kopyalanabilir mağaza metinleri [iOS yayın dosyalarında](docs/ios/README.md), düz alanlar [metadata JSON kaynağında](docs/ios/metadata.tr.json) bulunur.
 
 ## Çalıştırma
 
@@ -126,6 +132,33 @@ GitHub Actions sözdizimi, veri/öneri testleri, masaüstü/mobil kullanım, hes
 
 Native JavaScript testleri taklit Capacitor köprüsü kullanır; gerçek iOS dosya koruması veya gerçek Apple ödeme işlemi yaptıklarını göstermez. İmzalı cihaz/TestFlight kontrolleri ayrıca tamamlanmalıdır.
 
-macOS CI ayrıca uygulamayı ayrı bir iPhone simülatöründe iki kez soğuk açar ve sentetik kayıt dosyasının gerçek native köprüden okunmasını kontrol eder (`scripts/smoke-ios.py`). Bu test; gerçek satın alma, native yazma/dosya koruması veya gerçek cihaz kabulü yerine geçmez. Simülatör paketi çalıştırılabilir dosya izinlerini koruyan ZIP olarak saklanır.
+### Native kontrol komutları (macOS + Xcode)
 
-Simülatör açılış kontrolü etkin Xcode SDK sürümüyle eşleşen bir çalışma ortamı seçer. Test yalnızca geçici bir uygulama kopyasını yerel ad-hoc imzalar; Apple dağıtım sertifikası veya App Store imzası kullanmaz. Asıl derleme paketi değiştirilmez.
+Önce web dosyalarını yeniden paketleyin. Simülatör derlemesi ve isteğe bağlı gerçek native depolama paketi:
+
+```sh
+npm run ios:sync
+xcodebuild -project ios/App/App.xcodeproj -scheme App \
+  -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+  -configuration Debug -derivedDataPath ios-build CODE_SIGNING_ALLOWED=NO build
+python3 scripts/smoke-ios.py ios-build/Build/Products/Debug-iphonesimulator/App.app \
+  com.fevzicakmak.bhu --device-family iPhone --storage-tests --timeout 1200
+python3 scripts/smoke-ios.py ios-build/Build/Products/Debug-iphonesimulator/App.app \
+  com.fevzicakmak.bhu --device-family iPad --timeout 900
+```
+
+`--storage-tests`, native SwiftPM XCTest paketini ayrı test runner sandbox'ında çalıştırır; BHU'nun sentetik kayıt dosyası değiştirilmemelidir. Native dosya yazma/karşılaştırma denetimi gerçek iOS API'lerini kullanır, ancak runner sandbox'ı BHU'nun gerçek cihazdaki saklama alanı veya donanım kilit koruması değildir. Bu paketin mevcut olması başarıyla çalıştığı anlamına gelmez; `.xcresult` ve sonuç JSON'u kabul edilmelidir. Gerçek StoreKit işlemi yapmaz.
+
+Simülatör kontrolü etkin Xcode SDK'sına uygun geçici iPhone/iPad çalışma ortamını seçer. Uygulamanın yalnızca geçici test kopyası yerel ad-hoc imzalanır; Apple dağıtım sertifikası kullanılmaz. Native okuma, sentetik kaydın JavaScript'e dönüşü, görünür içerik ve iki soğuk açılış kontrol edilir. İmzasız Release arşivi ve mekanik incelemesi ayrı çalışır:
+
+```sh
+npm run ios:sync
+xcodebuild -project ios/App/App.xcodeproj -scheme App \
+  -sdk iphoneos -destination 'generic/platform=iOS' \
+  -configuration Release -archivePath ios-release/BHU.xcarchive \
+  CODE_SIGNING_ALLOWED=NO archive
+python3 scripts/check-ios-archive.py ios-release/BHU.xcarchive \
+  --output test-artifacts/ios-release/report.json
+```
+
+Arşiv kontrolü kimlik/sürüm/debug bayrağı, cihaz ailesi, arm64, ikon, yerel web dosyaları, test içeriği ve privacy manifest dosyalarını inceler. Rapor imza/provisioning, mağaza yüklemesi, gizlilik beyanının hukuki yeterliliği, gerçek cihaz dosya koruması veya gerçek satın alma onayı vermez.

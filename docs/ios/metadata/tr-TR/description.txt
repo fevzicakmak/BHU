@@ -1,0 +1,14 @@
+BHU, gelir ve giderlerinizi hesaplar halinde düzenlemenize yardımcı olur.
+
+Bir ana hesap oluşturun, ihtiyaç duyduğunuz alt hesapları ekleyin ve işlemlerinizi tarih, tutar, cari ve açıklama bilgileriyle kaydedin. Hesap ağacında sürükleyerek veya dokunarak düzen kurun. Gelir, gider ve bakiye toplamlarını birlikte görün.
+
+• Ana ve alt hesaplarla kasa takibi
+• Gelir/gider kaydı, düzenleme ve filtreleme
+• Geçmiş kayıtlarınızdan cari ve açıklama önerileri
+• İşlemlere belge ve fotoğraf ekleme
+• JSON yedeğini dışa aktarma ve doğrulayarak geri yükleme
+• iOS'ta cihazda yerel kayıt ve paketlenmiş uygulama dosyalarıyla çevrimdışı çalışma
+
+Ücretsiz kullanım bir ana hesabı ve bu ana hesabın alt hesaplarını kapsar. İkinci ana hesabı oluşturmak için tek seferlik Çoklu Hesap satın alımı gerekir. Alt hesaplar için ayrıca ücret alınmaz. Bu bir abonelik değildir. Satın alımlar uygulamadaki “Satın alımları geri yükle” seçeneğiyle yeniden doğrulanabilir.
+
+Verilerinizi düzenli olarak yedekleyin. Cihazlar arasında uygulamaya ait otomatik eşitleme yoktur. Yedek dosyası finansal kayıtlarınızı ve ekli belgelerinizi içerir; paylaşacağınız konumu ve alıcıyı siz seçersiniz.

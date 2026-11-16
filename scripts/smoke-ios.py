@@ -233,12 +233,21 @@ def main():
         print(f'Active SDK {sdk}; booting matching {template["name"]} ({runtime}).', flush=True)
         run('boot', device, stage='Boot disposable simulator')
         simulator_app = Path(metadata['activeXcode']) / 'Applications' / 'Simulator.app'
-        if not simulator_app.is_dir():
-            raise RuntimeError(f'Active Xcode Simulator.app not found: {simulator_app}')
         # A booted launchd is not sufficient evidence that headless graphics and
-        # MobileInstallation are ready. Attach the active Xcode's Simulator UI.
-        command(['open', '-a', str(simulator_app), '--args', '-CurrentDeviceUDID', device], limit=20,
-                stage='Attach Simulator UI to owned device')
+        # MobileInstallation are ready. GUI attachment can help initialize them,
+        # but only the mandatory service/native/paint gates prove readiness.
+        ui_log = ARTIFACTS / 'native-ios-simulator-ui.log'
+        metadata['simulatorUI'] = {'status': 'not-attached', 'log': ui_log.name}
+        try:
+            if not simulator_app.is_dir():
+                ui_log.write_text(f'Active Xcode Simulator.app not found: {simulator_app}\n', encoding='utf-8')
+                raise RuntimeError(f'Active Xcode Simulator.app not found: {simulator_app}')
+            command(['open', '-a', str(simulator_app), '--args', '-CurrentDeviceUDID', device], limit=60,
+                    stage='Optionally attach Simulator UI to owned device', log_path=ui_log)
+            metadata['simulatorUI']['status'] = 'launch-requested'
+        except (RuntimeError, TimeoutError) as error:
+            metadata['simulatorUI'].update({'status': 'setup-failed', 'error': str(error)})
+            print(f'Optional Simulator UI attachment failed; continuing to mandatory readiness gates: {error}', flush=True)
         command(['xcrun', 'simctl', 'bootstatus', device, '-b'], limit=300,
                 stage='Wait for OS boot status', log_path=ARTIFACTS / 'native-ios-bootstatus.log')
         ready_screenshot = ARTIFACTS / 'native-ios-ready.png'

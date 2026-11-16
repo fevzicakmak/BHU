@@ -1,0 +1,1 @@
+kasa,gelir,gider,bakiye,cari,harcama,hesap,işlem,bütçe,kayıt
