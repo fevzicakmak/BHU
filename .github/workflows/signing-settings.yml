@@ -37,6 +37,10 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - name: Locate Apple distribution and certificate tools
+        run: |
+          xcrun --find altool
+          openssl version
       - run: npm ci
       - run: npm run ios:sync
       - name: Check distribution helper when present
