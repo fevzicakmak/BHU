@@ -9,6 +9,7 @@ Bu adımlar uygulama sahibinin Apple hesabında yapılır; bu belgenin hazırlan
 | Uygulama adı | **BHU** — adın mağazada kullanılabilirliği kontrol edilecek |
 | Yayıncı / hizmet sağlayıcı | **Fevzi Çakmak** — Apple'daki satıcı kaydıyla karşılaştırın |
 | Birincil dil | Türkçe |
+| Apple Team ID | `T4F4D367KQ` — kullanıcıdan alındı; App Debug/Release yapılandırmasına yazıldı |
 | Bundle ID | `com.fevzicakmak.bhu` — koddaki aday değer; kendi takımınıza kaydedilmelidir |
 | SKU | `BHU-IOS-001` — önerilen, hesabınızda tekil olacak dahili takip kodu |
 | Uygulama indirme ücreti | Ücretsiz; Çoklu Hesap ayrıca uygulama içi satın alımdır |
@@ -19,11 +20,9 @@ Bu adımlar uygulama sahibinin Apple hesabında yapılır; bu belgenin hazırlan
 | Destek URL'si | https://fevzicakmak.github.io/BHU/support.html |
 | Gizlilik URL'si | https://fevzicakmak.github.io/BHU/privacy.html |
 
-## 1. Team ID'yi bulun
+## 1. Kayıtlı takımın erişimini kontrol edin
 
-1. [Apple Developer hesabınızı](https://developer.apple.com/account/) açın.
-2. **Membership details / Üyelik ayrıntıları** bölümündeki **Team ID** değerini kopyalayın; genellikle 10 karakterlidir.
-3. Birden fazla takım varsa uygulamanın yayımlanacağı takımı seçin. Team ID ve o takımda uygulama yayımlama yetkinizin bulunduğu doğrulaması teknik hazırlık için yeterlidir.
+Team ID **`T4F4D367KQ`** alındı ve Xcode App Debug/Release yapılandırmasına yazıldı; yeniden iletmeniz gerekmez. [Apple Developer hesabında](https://developer.apple.com/account/) bu takımın seçili olduğunu, Certificates, Identifiers & Profiles erişiminizi ve App Store Connect'te yayınlama yetkinizi kontrol edin. Yapılandırmaya bir Team ID yazılması bu yetkileri, sertifikayı veya Bundle ID sahipliğini doğrulamaz.
 
 Apple parolanızı, iki aşamalı doğrulama kodunu veya özel anahtar dosyanızı paylaşmayın. Team ID bir yapılandırma kimliğidir; dağıtım sertifikasının özel anahtarı değildir.
 
@@ -56,15 +55,20 @@ Apple parolanızı, iki aşamalı doğrulama kodunu veya özel anahtar dosyanız
 
 App Store Connect'teki **Business / Agreements, Tax, and Banking** bölümünde ücretli uygulama sözleşmesini, vergi ve banka bilgilerini tamamlayın. Gerekli sözleşmeler etkin değilse ürün/fiyat görünürlüğü veya satış işlemi tamamlanmayabilir. Bu bilgiler geliştirici hesabınızda girilir; depoya veya sohbete yazılmaz.
 
-## 6. Xcode ile imzalayın ve TestFlight'a yükleyin
+## 6. Mac olmadan imzalı IPA ve TestFlight hazırlayın
 
-1. Mac'te proje için `npm ci` ve `npm run ios:sync` çalıştırın; ardından `npm run ios:open` ile Xcode'u açın.
-2. **App target → Signing & Capabilities** içinde doğru Team'i seçin; Bundle Identifier önceki kaydınızla aynı olmalıdır. Otomatik imzalama kullanılıyorsa yetkili Apple hesabına kendi Mac'inizde giriş yapın.
-3. Önce native açılış/kalıcı kayıt kontrolünü ve gerçek iPhone/iPad testlerini tamamlayın. Simülatörde yalnızca derlenebilmesi bu kabulün yerine geçmez.
-4. Sürüm ve build numarasını ayarlayın; simülatör yerine **Any iOS Device (arm64)** dağıtım hedefini seçin; **Product → Archive**, ardından Organizer'da **Validate App** ve **Distribute App → App Store Connect** adımlarını uygulayın.
-5. Build işlendikten sonra **TestFlight** iç testini açın. Gerçek sandbox satın alma, iptal, geri yükleme, dosya paylaşımı ve güncellemede veri korunmasını [test planıyla](testflight-test-plan.md) doğrulayın.
-6. App Privacy, yaş derecelendirmesi, export compliance, gerçek iPhone/iPad ekran görüntüleri ve inceleme notlarını tamamlayın. Son onaydan sonra mağaza incelemesine gönderin.
+Kullanıcının Mac'i yoktur. [GitHub ile Mac olmadan TestFlight rehberi](github-testflight.tr.md), tarayıcıdaki Codespaces terminalinde sertifika isteği hazırlama, Apple portalından sertifika/profil alma ve GitHub macOS runner ile imzalama yolunu açıklar. Codespaces erişimi, repo Secrets yönetme yetkisi ve Apple Certificates erişimi gerekir; TestFlight yüklemesi için ayrıca App Store Connect API anahtarı yetkisi gerekir.
+
+[Mac CI 43874034746 / job 133322286941](https://github.com/fevzicakmak/BHU/actions/runs/43874034746/job/133322286941), kaynak `7e5943e2744fc0bb6505236429f45e224fedd28c` için 9/9 sentetik imzalama politikası/P12 uyumluluk testini ve imzalama kapalı Team ID ayar çözümlemesini geçti. Gerçek Apple kimlik bilgisiyle imzalı archive/export/upload yapılmadı; hesap, sertifika/profil ve mağaza kayıtları aşağıdaki adımlarda ayrıca tamamlanır.
+
+1. Önce bu rehberin 2–5. adımlarındaki Bundle ID, BHU uygulaması, Non-Consumable ürün ve sözleşmeleri Apple hesabınızda tamamlayın.
+2. İmzalama dosyalarını yalnız GitHub Actions Secrets'a ekleyin; parola/sertifika özel anahtarını sohbete veya depoya koymayın.
+3. **iOS Signing and TestFlight** workflow'unu önce `upload_to_testflight=false` ile çalıştırın. Bu seçim yalnız imzalı IPA üretir; Apple'a yükleme yapmaz. API anahtarı bu aşamada gerekmez.
+4. Yükleme zamanı geldiğinde gerekli API anahtarı Secrets'ını ekleyip aynı workflow'u `upload_to_testflight=true` ile manuel çalıştırın. Başarılı yükleme, TestFlight işlemenin bittiği veya testin geçtiği anlamına gelmez.
+5. TestFlight'ta gerçek iPhone/iPad kabulünü, satın alma/geri yüklemeyi ve veri korunmasını [test planıyla](testflight-test-plan.md) tamamlayın. App Privacy, yaş derecelendirmesi, export compliance ve mağaza ekranlarını son build ile eşleştirin.
+
+İleride bir Mac kullanılacaksa alternatif yol Xcode'da doğru Team/Bundle ID ile **Product → Archive → Validate App → Distribute App → App Store Connect** işlemidir. İki yolda da son imzalı gönderim arşivi ayrıca doğrulanır.
 
 ## Teknik hazırlığa geri iletilecekler
 
-**Team ID**, kayıtlı **Bundle ID**, BHU App Store Connect kaydının oluşturulduğu bilgisi, **Non-Consumable Product ID** ve Türkiye'de seçilmiş gerçek fiyat yeterlidir. İmzalama/yükleme için gereken gizli bilgiler güvenli Xcode veya CI secret yönetiminde kalmalıdır.
+Team ID zaten kayıtlıdır. Takım erişiminin doğrulandığı, kayıtlı **Bundle ID**, BHU App Store Connect kaydının oluşturulduğu, **Non-Consumable Product ID** ve Türkiye'de seçilmiş gerçek fiyat bilgileri yeterlidir. İmzalama/yükleme için gereken gizli bilgiler güvenli Xcode veya CI secret yönetiminde kalmalıdır.

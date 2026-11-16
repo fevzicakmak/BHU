@@ -8,7 +8,9 @@ Bu liste, kod hazırlığından mağaza gönderimine kadar yapılacak somut işl
 - [x] Hak sahibi/yayıncı kimliği kullanıcı tarafından **Fevzi Çakmak** olarak doğrulandı.
 - [ ] BHU adının mağaza kullanılabilirliği ve App Store Connect satıcı kaydı doğrulandı.
 - [x] Apple Developer Program üyeliğinin etkin olduğu kullanıcı tarafından doğrulandı.
-- [ ] Doğru Apple Developer Team ID ve erişimi yapılandırıldı.
+- [x] Team ID **`T4F4D367KQ`** kullanıcıdan alındı ve App Debug/Release `DEVELOPMENT_TEAM` ayarlarına yazıldı.
+- [x] [Mac CI 43871719871 / job 133314330319](https://github.com/fevzicakmak/BHU/actions/runs/43871719871/job/133314330319), CLI Team override olmadan Debug/Release için kayıtlı Team ID, Automatic ve doğru Bundle ID ayarlarını çözdü (`CODE_SIGNING_ALLOWED=NO`); gerçek imzalama yapılmadı.
+- [ ] Bu takımda Apple Certificates/Identifiers/Profiles erişimi ve App Store Connect yayınlama yetkisi doğrulandı.
 - [ ] Kesin Bundle ID seçildi ve geliştirici hesabında kaydedildi. Geliştirme yapılandırmasındaki geçici ID üretim kimliği olarak yanlışlıkla kullanılmadı.
 - [ ] App Store Connect uygulama kaydı ve SKU oluşturuldu.
 - [ ] Paid Apps Agreement, vergi ve ödeme/banka bilgileri tamamlandı.
@@ -78,14 +80,16 @@ Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı ş
 - [x] Aynı a0 iPhone işinde ayrı XCTest runner alanında 8 test yürütüldü: **7 başarılı, 1 dosya koruma metadata testi atlandı, 0 hata**. Unicode byte CAS, eşzamanlı tek kazanan ve salt okunur üst dizinde hata koruması geçti. BHU arayüzünden kaydetme/yeniden açma, donanım koruması ve gerçek StoreKit bu kapsamda değildir.
 - [ ] Daha sıkı d0 ekran/ölçüm sırasıyla iPhone kontrolü kabul edildi. İki deneme de OS boot 300 saniye sınırında BHU kurulmadan başarısız oldu; [ikinci job 133296529337](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/job/133296529337) komutu 322,62 saniyede zaman aşımına uğradı ([ilk hata](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/artifacts/14226106017), [ikinci hata](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/artifacts/14225244147)). Native XCTest/UI/geometri testleri başlamadı; son CI matrisinin tamamı başarılı değildir.
 - [ ] Gerçek iPhone ve iPad'e kurulup [TestFlight planı](testflight-test-plan.md) uygulandı.
-- [ ] Dağıtım imzası/provisioning doğru; `Archive` ve `Validate App` başarılı.
-- [ ] Organizer / onaylı yükleme aracıyla App Store Connect'e build yüklendi.
+- [x] [Mac CI 43874034746 / job 133322286941](https://github.com/fevzicakmak/BHU/actions/runs/43874034746/job/133322286941), kaynak `7e5943e2744fc0bb6505236429f45e224fedd28c` için **9/9 sentetik imzalama politikası/P12 uyumluluk testini, 0 hata/0 atlama ile** geçti; modern P12 aynı üretim dönüşümünden sonra Mac keychain'e alındı. Debug/Release Team/Automatic/Bundle ID ayarları imzalama kapalıyken tekrar doğru çözüldü. Gerçek Apple sertifikası/profili/API anahtarı kullanılmadı; gerçek imzalı pipeline bu maddeyle tamamlanmaz.
+- [ ] Mac olmadan [GitHub imzalama rehberindeki](github-testflight.tr.md) sertifika/profil ve repository Secrets adımları tamamlandı; ilk manuel IPA üretimi başarılı.
+- [ ] Dağıtım imzası/provisioning doğru; imzalı `Archive`/IPA doğrulaması başarılı.
+- [ ] Manuel GitHub workflow'unda açıkça seçilen TestFlight yüklemesi veya Organizer ile App Store Connect'e build yüklendi; yalnız IPA üretimi yükleme sayılmaz.
 - [ ] App Store Connect işlemeyi tamamladı; privacy/SDK/ikon/yetenek hatası yok.
 - [ ] TestFlight iç test gerçekleştirildi. Dış test seçilirse gerekli Beta App Review süreci tamamlandı.
 - [ ] Gerçek StoreKit sandbox/TestFlight satın alma ve geri yükleme akışı doğrulandı; yerel StoreKit testiyle karıştırılmadı.
 - [ ] Crash ve veri kaybı bulguları çözüldü; son test edilen build ile gönderilecek build aynı.
 
-Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; sonraki değişiklikler yalnız belgeler ve `index.html` CSS önbellek parametresinin v7 olmasıdır; son imzalı gönderim arşivi yeniden doğrulanmalıdır.
+Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; Team ID çözümlemesi ayrı Mac CI kontrolüyle doğrulansa da gerçek imzalı archive/export/upload henüz yapılmadı; son imzalı gönderim arşivi yeniden doğrulanmalıdır.
 
 ## 6. Son gönderim
 

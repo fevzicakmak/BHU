@@ -1,0 +1,118 @@
+# BHU — Mac olmadan imzalı IPA ve TestFlight
+
+Mac sahibi olmanız gerekmez; derleme GitHub'ın macOS runner'ında yapılır. Aşağıdaki hazırlıklar tarayıcıdaki GitHub Codespaces Linux terminalinden yapılabilir. Bunun için **Codespaces erişimi**, depoda Actions/Secrets yönetme yetkisi, kullanılabilir GitHub macOS Actions runner'ı ve **T4F4D367KQ takımında Apple Certificates, Identifiers & Profiles yetkisi** gerekir. TestFlight yüklemesi ayrıca App Store Connect API anahtarı oluşturma/yükleme yetkisi ister. Yalnız telefonda normal GitHub dosya sayfasını açmak terminal yerine geçmez; Codespaces açıp terminaline erişmelisiniz.
+
+Bu rehber ve workflow hazırlığı Apple hesabınızda sertifika, profil, uygulama veya satın alma ürünü oluşturmaz. Hiçbiri otomatik oluşturulmaz veya iptal edilmez; portal adımlarını hesap sahibi yapar. Şu anda imzalı IPA veya yükleme başarısı kanıtlanmış değildir.
+
+Hazırlık kanıtı: `7e5943e2744fc0bb6505236429f45e224fedd28c` kaynağında [Mac CI 43874034746 / job 133322286941](https://github.com/fevzicakmak/BHU/actions/runs/43874034746/job/133322286941) **9/9 sentetik politika/uyumluluk testini, 0 hata ve 0 atlama ile** geçti. Modern AES-256/SHA-256 P12, üretimdeki aynı dönüşüm yardımcısından geçirilerek Mac keychain'e başarıyla alındı; Debug/Release Team/Automatic/Bundle ID ayarları imzalama kapalıyken tekrar doğrulandı. Gerçek Apple sertifikası, profili veya API anahtarı kullanılmadı; bu testler gerçek imzalı archive/export/upload veya Apple hesabına erişim kanıtı değildir.
+
+## 1. Apple kayıtlarını tamamlayın
+
+[App Store Connect rehberinin](app-store-connect-setup.tr.md) 1–5. adımlarını uygulayın. Team ID **T4F4D367KQ** koddadır; Bundle ID **com.fevzicakmak.bhu** bu takımda kayıtlı ve App Store Connect'teki **BHU** uygulamasına bağlı olmalıdır. Çoklu Hesap ürünü **com.fevzicakmak.bhu.multipleaccounts**, **Non-Consumable** olmalıdır. Bir ana hesap ve alt hesapları ücretsizdir; ikinci ana hesap için tek seferlik kalıcı hak gerekir. Türkiye hedefi **399 TL** yalnız Apple'ın sunduğu fiyat noktasıyla doğrulanır; farklı tutar kendiliğinden seçilmez. Ücretli uygulama sözleşmesi/vergi/banka adımları Apple hesabında tamamlanır.
+
+## 2. Codespaces'te özel anahtar ve CSR hazırlayın
+
+GitHub'da BHU deposunu açın: **Code → Codespaces → Create codespace on main**. Codespaces terminalinde depo kökünde olun. Aşağıdaki blok anahtar varsa üzerine yazmayı reddeder; bir kez çalıştırın. `openssl`, `python3` ve `gh` komutları kullanılabilir olmalıdır.
+
+```sh
+umask 077
+mkdir -p .ios-signing
+git check-ignore -q .ios-signing/probe || { echo 'Özel klasör Git tarafından yok sayılmıyor; devam etmeyin.' >&2; exit 1; }
+test ! -e .ios-signing/distribution.key.pem || { echo 'Özel anahtar zaten var; üzerine yazmayın.' >&2; exit 1; }
+openssl req -new -newkey rsa:2048 -sha256 -utf8 \
+  -keyout .ios-signing/distribution.key.pem \
+  -out .ios-signing/distribution.csr \
+  -subj '/CN=Fevzi Çakmak/emailAddress=fvzckmk35@gmail.com/C=TR'
+```
+
+OpenSSL özel anahtarı şifrelemek için **PEM passphrase** sorar; giriş görünmez. Güçlü parolayı güvenli saklayın. Komuta veya sohbete yazmayın. `.ios-signing/` Git tarafından yok sayılır; özel anahtarı commit etmeyin. Portalda yükleyeceğiniz tek dosya **distribution.csr** dosyasıdır; `distribution.key.pem` yüklenmez. Codespaces dosya gezgininden CSR'yi indirip Apple portalında seçebilirsiniz.
+
+## 3. Sertifika ve App Store profili alın, P12 oluşturun
+
+1. [Apple Developer → Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/certificates/list) bölümünde **T4F4D367KQ** takımını seçin. **Certificates → + → Apple Distribution** ile az önceki CSR'yi yükleyin. Mevcut başka sertifikaları iptal etmeyin.
+2. Apple'ın verdiği `.cer` dosyasını indirin. Codespaces dosya gezgininde `.ios-signing/` klasörüne yükleyip **distribution.cer** adını verin.
+3. **Profiles → + → Distribution → App Store Connect** (arayüzde **App Store** olarak da görünebilir) seçin. App ID `com.fevzicakmak.bhu`, sertifika az önce oluşturduğunuz Apple Distribution sertifikası olsun. Profili oluşturup indirin; `.ios-signing/BHU_AppStore.mobileprovision` adıyla Codespaces'e yükleyin. Development/Ad Hoc profili bu yükleme için uygun değildir.
+4. Aynı özel anahtar ve Apple sertifikasını P12'ye dönüştürün:
+
+```sh
+openssl x509 -inform DER -in .ios-signing/distribution.cer \
+  -out .ios-signing/distribution.cert.pem
+openssl pkcs12 -export -inkey .ios-signing/distribution.key.pem \
+  -in .ios-signing/distribution.cert.pem \
+  -out .ios-signing/distribution.p12 -name 'BHU Apple Distribution' \
+  -keypbe AES-256-CBC -certpbe AES-256-CBC -macalg sha256
+```
+
+Önce özel anahtarın PEM parolası, ardından yeni P12 **Export Password** sorulur. P12 parolasını boş bırakmayın; GitHub'a eklenecek parola bu **Export Password** değeridir. PEM parolasıyla aynı olmak zorunda değildir. Parolalar OpenSSL'in gizli girişinde kalır; komut geçmişine yazılmaz.
+
+Workflow, modern giriş P12 dosyasını değiştirmeden Mac keychain uyumlu şifreli bir pakete dönüştürür; **aynı özel anahtar, sertifika ve P12 parolası korunur**. Dönüşüm yalnız `0700` izinli geçici klasörde, `0600` izinli geçici PEM üzerinden yapılır; PEM log/artifact'a alınmaz ve başarı/hata durumunda `finally` ile hemen silinir. Giriş P12 hazırlama komutunu değiştirmeyin.
+
+## 4. API anahtarı yalnız TestFlight yüklemesi için
+
+**Yalnız IPA üretmek istiyorsanız bu adımı atlayın.** `upload_to_testflight=false` için API anahtarı gerekmez.
+
+Yükleme yapacaksanız [App Store Connect](https://appstoreconnect.apple.com/) içinde **Users and Access → Integrations → App Store Connect API → Team Keys** bölümünü açın. Menüye erişiminiz ve anahtar oluşturma yetkiniz olmalıdır; gerekirse Account Holder/API yöneticisi hesabında yapılır. Build yükleme yetkisi olan bir Team API anahtarı oluşturun. **Key ID** ve **Issuer ID** bilgilerini kaydedin; tek sefer indirilen `.p8` dosyasını `.ios-signing/AuthKey.p8` adıyla Codespaces'e yükleyin. Issuer ID vermeyen farklı anahtar türünü bu workflow için kullanmayın. API anahtarı Apple parolası veya uygulama içi satın alma ürün kaydı yerine geçmez.
+
+## 5. Dosyaları GitHub Actions Secrets'a ekleyin
+
+Dosyalar ve parolalar **sohbete, kaynak dosyalara veya workflow YAML içine yazılmaz**. Yalnız repository **Settings → Secrets and variables → Actions** alanına eklenir. Aşağıdaki yöntem dosyaları terminale yazdırmadan `gh secret set` standart girdisine gönderir. P12/profil base64, `.p8` ise ham dosya içeriği olur.
+
+Codespaces'in otomatik token'ı repo Secrets yazma yetkisi taşımayabilir. Kendi yetkili GitHub hesabınızla CLI oturumu açın; tarayıcı doğrulamasını GitHub'ın gösterdiği sayfada tamamlayın. Bu komut Codespaces token'ını yalnız bu çağrıda devre dışı bırakır:
+
+```sh
+env -u GH_TOKEN -u GITHUB_TOKEN gh auth login --web --scopes repo
+```
+
+Aşağıdaki bloğu aynı Codespaces terminalinde çalıştırın. Parolayı sorulduğunda gizli girişe yazın; kodun içine koymayın. TestFlight API bilgilerini eklemek istemiyorsanız son soruda Enter'a basın.
+
+```sh
+python3 - <<'PYSET'
+import base64
+import getpass
+from pathlib import Path
+import subprocess
+
+folder = Path('.ios-signing')
+
+def ask(prompt):
+    print(prompt, end='', flush=True)
+    with open('/dev/tty', encoding='utf-8') as terminal:
+        return terminal.readline().strip()
+
+def set_secret(name, value):
+    subprocess.run(['env', '-u', 'GH_TOKEN', '-u', 'GITHUB_TOKEN',
+                    'gh', 'secret', 'set', name, '--repo', 'fevzicakmak/BHU'],
+                   input=value, check=True)
+
+for name, filename in (
+    ('APPLE_DISTRIBUTION_P12_BASE64', 'distribution.p12'),
+    ('APPLE_PROVISIONING_PROFILE_BASE64', 'BHU_AppStore.mobileprovision'),
+):
+    set_secret(name, base64.b64encode((folder / filename).read_bytes()))
+password = getpass.getpass('P12 Export Password (görünmez): ')
+if not password:
+    raise SystemExit('Boş P12 parolası eklenmedi.')
+set_secret('APPLE_DISTRIBUTION_P12_PASSWORD', password.encode('utf-8'))
+if ask('TestFlight API anahtarını da ekleyelim mi? [e/H] ').lower() == 'e':
+    key_id = ask('App Store Connect Key ID: ')
+    issuer_id = ask('App Store Connect Issuer ID: ')
+    if not key_id or not issuer_id:
+        raise SystemExit('Key ID ve Issuer ID gerekli.')
+    set_secret('APP_STORE_CONNECT_KEY_ID', key_id.encode('utf-8'))
+    set_secret('APP_STORE_CONNECT_ISSUER_ID', issuer_id.encode('utf-8'))
+    set_secret('APP_STORE_CONNECT_PRIVATE_KEY', (folder / 'AuthKey.p8').read_bytes())
+print('Secret değerleri yazdırılmadan GitHub’a gönderildi.')
+PYSET
+```
+
+Repo Secrets sayfasında yalnız anahtar adlarının listelendiğini kontrol edin. `403`/yetki hatası olursa doğru depo ve Secrets yönetme yetkili GitHub oturumunu kontrol edin; gizli değerleri hata mesajına eklemeyin. İş bittiğinde Codespaces'teki özel dosyaları temizlemeden önce gerekli anahtarların şifreli, güvenli kişisel yedeğini koruyun.
+
+## 6. Önce IPA, sonra isteğe bağlı TestFlight
+
+Workflow `main` dalında bulunmalıdır. GitHub deposunda **Actions → iOS Signing and TestFlight → Run workflow** açın; dağıtım için `main` dalını seçin. Başka daldan dağıtım işi çalıştırılmaz. Kaynak [testflight.yml](../../.github/workflows/testflight.yml), yardımcı [ios-signing.mjs](../../scripts/ios-signing.mjs) dosyasıdır; workflow `preflight` kontrolünden sonra `distribute` adımını çalıştırır.
+
+- **İlk deneme:** `upload_to_testflight=false`. P12/parola/profil gerekir; API anahtarı gerekmez. Başarı halinde **BHU-AppStore-IPA** artifact'ından `BHU.ipa` ve gizli bilgi içermeyen `distribution-summary.json` alınır; çıktılar 7 gün saklanır. Runner'daki IPA yolu `ios-distribution/BHU.ipa` olur. Bu, App Store Connect'e yükleme değildir; App Store IPA'sı bir iPhone'a doğrudan dosya olarak kurulum yolu da değildir.
+- **Yükleme:** Apple uygulama kaydı ve API Secrets hazır olduğunda `upload_to_testflight=true` seçip manuel çalıştırın. Bu seçim Apple'a gerçek build yüklemesini başlatır; uygulamayı App Store'da yayımlamaz.
+- `build_number` isteğe bağlıdır; boşsa `GITHUB_RUN_NUMBER.GITHUB_RUN_ATTEMPT` kullanılır. Dolu girerseniz App Store Connect'te aynı sürüm için daha önce kullanılmamış bir build numarası olmalıdır.
+
+Apple kimlik dosyaları eksikse workflow yükleme yapamaz. Workflow portalda sertifika/profil oluşturmaz, mevcut sertifikayı iptal etmez. Yükleme başarılı olsa da App Store Connect'in build'i işlemesi, gerekli compliance yanıtları ve TestFlight erişimi ayrıca tamamlanır. Gerçek iPhone/iPad'de [kabul planını](testflight-test-plan.md) uygulayın; gerçek satın alma/geri yükleme ve BHU arayüzünden kayıt/yeniden açma sonuçlarını kontrol edin. Son imzalı arşiv yeniden doğrulanır; önceki imzasız CI kanıtı bu yükleme için onay değildir.

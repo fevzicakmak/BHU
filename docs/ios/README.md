@@ -6,7 +6,8 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 | --- | --- |
 | [app-store-metadata.tr.md](app-store-metadata.tr.md) | Türkçe mağaza metinleri, satın alma açıklaması ve inceleme notları |
 | [metadata.tr.json](metadata.tr.json) ve [kopyalanabilir alanlar](metadata/README.md) | Onaylı metinlerin 12 alanlı JSON kaynağı ve 10 düz metin kopyası; mağazaya henüz gönderilmedi |
-| [app-store-connect-setup.tr.md](app-store-connect-setup.tr.md) | Hesap sahibi için Team ID, uygulama/IAP kaydı, imzalama ve TestFlight adımları |
+| [app-store-connect-setup.tr.md](app-store-connect-setup.tr.md) | Hesap sahibi için kayıtlı takım, uygulama/IAP kaydı, imzalama ve TestFlight adımları |
+| [github-testflight.tr.md](github-testflight.tr.md) | Mac olmadan Codespaces, Apple sertifika/profil, GitHub Secrets, manuel IPA ve isteğe bağlı TestFlight yüklemesi |
 | [privacy-policy.tr.md](privacy-policy.tr.md) | Fevzi Çakmak ve onaylı destek adresini içeren gizlilik politikası |
 | [privacy-data-map.md](privacy-data-map.md) | Veri akışları, App Privacy ve Privacy Manifest kontrolü |
 | [release-checklist.md](release-checklist.md) | Apple hesabı, imzalama, ürün tanımı ve yayın sırası |
@@ -26,7 +27,10 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 
 - App Store görünen adı: **BHU**. Mağaza adı kullanılabilirliği App Store Connect'te ayrıca kontrol edilir.
 - Yayıncı/hizmet sağlayıcı: **Fevzi Çakmak**.
-- Apple Developer üyeliğinin etkin olduğu kullanıcı tarafından doğrulandı. Team erişimi, sertifika ve mağaza kaydı işlemleri ayrıca tamamlanmalıdır.
+- Apple Developer üyeliğinin etkin olduğu kullanıcı tarafından doğrulandı. **Team ID `T4F4D367KQ`** alındı ve App Debug/Release yapılandırmasına yazıldı; takım erişimi/sertifika/Bundle ID sahipliği ve mağaza kaydı ayrıca doğrulanmalıdır.
+- [Mac CI 43871719871 / job 133314330319](https://github.com/fevzicakmak/BHU/actions/runs/43871719871/job/133314330319), CLI Team override kullanmadan App Debug/Release ayarlarını `DEVELOPMENT_TEAM=T4F4D367KQ`, `Automatic` ve doğru Bundle ID olarak çözdü; `CODE_SIGNING_ALLOWED=NO` idi. Bu ayar kontrolü Apple takımına erişim veya dağıtım imzası kanıtı değildir.
+- [Mac CI 43874034746 / job 133322286941](https://github.com/fevzicakmak/BHU/actions/runs/43874034746/job/133322286941), kaynak `7e5943e2744fc0bb6505236429f45e224fedd28c` için **9/9 sentetik politika/P12 uyumluluk testini (0 hata, 0 atlama)** geçti; modern giriş P12 üretimdeki aynı yardımcıyla dönüştürülüp Mac keychain'e alındı ve Team ayarları tekrar doğrulandı. Gerçek Apple sertifikası/profili/API anahtarı kullanılmadı; imzalı archive/export/upload yapılmadı.
+- Kullanıcının Mac'i yoktur. İmzalama yolu, Apple portalı ve GitHub Codespaces üzerinden hazırlanan dosyalarla GitHub macOS runner kullanır; [gereken erişimler ve adımlar](github-testflight.tr.md) ayrı anlatılır.
 - Kamuya açık destek/gizlilik iletişimi: **fvzckmk35@gmail.com**; kullanıcı bu adresin yayımlanmasını açıkça onayladı.
 - Gizlilik URL'si: https://fevzicakmak.github.io/BHU/privacy.html
 - Destek URL'si: https://fevzicakmak.github.io/BHU/support.html
@@ -50,7 +54,7 @@ Native depolama testlerinde ilk yazma/okuma ve yeni plugin ile kalıcılık, esk
 
 Önceki iPhone ikinci açılışında güvenli alan hatası bulunduğu için okuma/paint kontrolüne dokuz gerçek kontrolün UIKit güvenli alanında kararlı kalması şartı eklendi. Üretim kodu güvenli alanı CSS'e aktarır; yeniden yükleme/görünme/yerleşim değişiminde yeniler. Bu denetim bütün modal, döndürme veya erişilebilirlik kontrollerinin yerine geçmez. İmzasız arşiv de fiziksel cihaza kurulum, dağıtım imzası, mağaza yüklemesi veya privacy beyanının hukuki yeterliliğini doğrulamaz.
 
-Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; sonraki değişiklikler yalnız belgeler ve `index.html` CSS önbellek parametresinin v7 olmasıdır; son imzalı gönderim arşivi yeniden doğrulanmalıdır.
+Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; Team ID ayar çözümlemesi ayrı Mac CI kontrolüyle doğrulandı, ancak önceki imzasız kanıtlar yeni workflow ile gerçek imzalı arşiv/export/upload yapıldığını göstermez; son imzalı gönderim arşivi yeniden doğrulanmalıdır.
 
 [Gizlilik](https://fevzicakmak.github.io/BHU/privacy.html) ve [destek](https://fevzicakmak.github.io/BHU/support.html) sayfaları 15 Kasım 2026'da canlı HTTP 200, onaylı kimlik/e-posta ve mobil taşma kontrolünden geçti.
 
@@ -60,7 +64,7 @@ Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; sonraki değişik
 
 ## Tamamlanması gereken mağaza adımları
 
-1. Gerçek Apple Developer Team ID / erişimi, kesin Bundle ID ve App Store Connect uygulama kaydı.
+1. Kayıtlı `T4F4D367KQ` takımına gerçek erişim, Bundle ID sahipliği, dağıtım sertifikası/profili ve App Store Connect uygulama kaydı.
 2. Çoklu Hesap ürününün gerçek App Store Connect kaydı; Türkiye için hedef 399 TL fiyat noktası, satış bölgeleri ve uygulama sürümüyle incelemeye eklenmesi.
 3. Dağıtım imzası, gerçek cihaz/TestFlight kabulü ve son derlemeye ait App Privacy / export-compliance yanıtları.
 4. iPhone/iPad gerçek ekran görüntüleri, son sürüm ve mağaza gönderimi.
@@ -69,8 +73,8 @@ Mağaza metni ve kontrol listeleri bu adımları yapılmış saymaz. Gizlilik ve
 
 ## Hesap sahibinden sıradaki bilgiler
 
-1. Apple Developer üyeliğindeki **10 karakterli Team ID** ve bu takımda App Store yayınlama yetkisinin bulunduğu doğrulaması.
+1. Team ID yeniden istenmez: **`T4F4D367KQ`** kayıtlıdır. Bu takımda Certificates/Identifiers/Profiles ve App Store Connect yayınlama yetkilerinin bulunduğu doğrulanmalıdır.
 2. `com.fevzicakmak.bhu` Bundle ID'sinin kendi takımında kayıt durumu ve bu kimlikle açılmış **BHU App Store Connect uygulama kaydı**.
 3. `com.fevzicakmak.bhu.multipleaccounts` ürününün aynı uygulama altında **Non-Consumable** olarak oluşturulup oluşturulmadığı; Türkiye hedef 399 TL fiyatı ve gerekli ücretli uygulama sözleşmeleri/vergi/banka adımlarının durumu.
 
-Bu kimlikler şu anda koddaki aday değerlerdir. Team ID, Bundle ID ve ürün kimliği yapılandırma bilgisidir; Apple parolası, dağıtım özel anahtarı veya App Store Connect API özel anahtarı belgeye/sohbete yazılmamalıdır. Dağıtım imzası ve yükleme sahibinin güvenli Xcode/CI kimlik bilgileriyle tamamlanır.
+Team ID kullanıcıdan alınmış gerçek yapılandırma değeridir; Bundle ID ve ürün kimliği Apple hesabında henüz doğrulanmamış adaylardır. Bu kimlikler yapılandırma bilgisidir; Apple parolası, dağıtım özel anahtarı veya App Store Connect API özel anahtarı belgeye/sohbete yazılmamalıdır. Dağıtım imzası ve yükleme sahibinin güvenli Xcode/CI kimlik bilgileriyle tamamlanır.
