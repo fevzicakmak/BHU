@@ -1,12 +1,12 @@
 # App Store Türkçe metadata taslağı
 
-**Durum:** BHU adı, yayıncı Fevzi Çakmak ve kamuya açık destek iletişimi kullanıcı tarafından onaylandı. Gerçek App Store Connect ürün kaydı/fiyat noktası, Team erişimi, imzalı derleme, gerçek cihaz ekran görüntüleri ve mağaza gönderimi henüz tamamlanmış sayılmaz.
+**Durum:** Kullanıcı Bundle ID `com.fevzicakmak.bhu` ve BHU uygulama kaydını tamamladığını bildirdi. Non-Consumable ürün `com.fevzicakmak.bhu.multipleaccounts`, ürün Apple ID'si `6835484249` ve **Prepare for Submission** durumu ekran görüntüsünde görüldü. Türkçe ürün adı/açıklamasının kaydedildiği bildirildi. 149,99 TL fiyat seçimi **Next → Confirm** aşamasında tamamlandı; son ürün **Save**, satış bölgeleri, imzalı derleme, gerçek cihaz/StoreKit kabulü ve mağaza gönderimi henüz tamamlanmadı. Apple API ile bağımsız fiyat doğrulaması yapılmadı.
 
 ## Önerilen alanlar
 
 | App Store Connect alanı | Taslak / yapılacak iş |
 | --- | --- |
-| Ad | `BHU` — kullanıcı tarafından seçildi; mağaza adı kullanılabilirliği geliştirici hesabında doğrulanacak |
+| Ad | `BHU` — kullanıcı uygulama kaydını tamamladığını bildirdi |
 | Alt başlık | `Ana ve alt hesaplarla kasa` |
 | Birincil kategori | Finance önerisi; nihai sınıflandırma satıcıya ait |
 | İkincil kategori | Productivity değerlendirilebilir |
@@ -19,7 +19,7 @@
 | Gizlilik politikası URL'si | https://fevzicakmak.github.io/BHU/privacy.html |
 | Pazarlama URL'si | İsteğe bağlı; bir URL uydurulmadı |
 | Telif hakkı | 2026 Fevzi Çakmak |
-| Bundle ID / SKU | Kesin kayıt geliştirici hesabında oluşturulacak; kodda geliştirme değeri bulunması hak sahipliği oluşturmaz |
+| Bundle ID / SKU | `com.fevzicakmak.bhu` kaydının tamamlandığı bildirildi; SKU `BHU-IOS-001` öneridir, gerçek kayıt değeri ayrıca karşılaştırılacak |
 
 Bu metinler finansal kayıt takibini anlatır. Uygulamanın banka hesabına bağlandığı, para transfer ettiği, fatura kestiği, vergi beyanı hazırladığı veya resmi muhasebe hizmeti sunduğu iddia edilmez.
 
@@ -54,9 +54,10 @@ Yayın öncesi App Store Connect alan sınırlarını ve son metnin uzunluğunu 
 
 ## Uygulama içi satın alma yerelleştirmesi
 
-- Görünen ad önerisi: **Çoklu Hesap**.
-- Açıklama önerisi: **Ek ana hesaplar için kalıcı erişim.**
-- Türkiye mağazası hedef fiyatı **399 TL**. Bu değer kullanıcı tarafından belirlendi; gerçek Apple fiyat noktası/vergiler/satış bölgeleri App Store Connect'te tamamlanıp doğrulanmalı. Diğer para birimleri için fiyat uydurulmadı.
+- Görünen ad: **Çoklu Hesap**.
+- Açıklama: **Ek ana hesaplar için kalıcı erişim.**
+- Kullanıcı Türkçe alanları **Display Name and Description → Add** üzerinden doldurup kaydettiğini bildirdi; bu ürünün inceleme/onayı değildir.
+- Türkiye mağazası güncel hedef fiyatı **149,99 TL**. Kullanıcı tutarı seçip **Next → Confirm** yaptı; ürün ana sayfasındaki son **Save** ve **Availability** ülkeleri/bölgeleri henüz doğrulanmadı. Apple API ile bağımsız fiyat kontrolü yapılmadı; diğer para birimleri için fiyat uydurulmadı.
 - Fiyat, StoreKit ürününden yerel para birimiyle gösterilir. Metinlere sabit veya henüz belirlenmemiş fiyat yazılmaz.
 - Paywall, ücretsiz ana hesap/alt hesap hakkını ve satın alımları geri yükleme seçeneğini açıkça gösterir.
 - Geliştirme StoreKit yapılandırması gerçek App Store Connect ürününün onaylandığını göstermez.

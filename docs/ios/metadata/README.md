@@ -15,10 +15,10 @@ Kanonik alanlar [metadata.tr.json](../metadata.tr.json) dosyasındadır. [Onayl�
 | `tr-TR/supportURL.txt` | Destek URL'si |
 | `tr-TR/privacyPolicyURL.txt` | Gizlilik politikası URL'si |
 
-Yayıncı ve kamuya açık destek e-postası JSON'da ayrıca bulunur. Uygulama adının mağaza kullanılabilirliği ve satıcı kaydı App Store Connect'te doğrulanmalıdır.
+Yayıncı ve kamuya açık destek e-postası JSON'da ayrıca bulunur. Kullanıcı BHU uygulama kaydını tamamladığını bildirdi; satıcı/yasal bilgiler son gönderimde ayrıca karşılaştırılır.
 
-Bu dosyalar **mağazaya gönderilmiş veya onaylanmış metadata değildir**. Gerçek iPhone/iPad, imzalı build, TestFlight ve gerçek StoreKit satın alma/geri yükleme kabulü tamamlanmalıdır. İnceleme notlarına gönderilecek build numarası ve gerçek ürün kaydına ait son bilgiler eklenmelidir. Yerel StoreKit test sonucu gerçek App Store ürününün hazır olduğunu kanıtlamaz.
+Kullanıcı Türkçe ürün adı/açıklamasını **Display Name and Description → Add** üzerinden kaydettiğini bildirdi. Bu dosyalar **incelemeye gönderilmiş veya onaylanmış bir mağaza sürümü değildir**. Gerçek iPhone/iPad, imzalı build, TestFlight ve gerçek StoreKit satın alma/geri yükleme kabulü tamamlanmalıdır. İnceleme notlarına gönderilecek build numarası ve gerçek ürün kaydına ait son bilgiler eklenmelidir. Yerel StoreKit test sonucu gerçek App Store ürününün hazır olduğunu kanıtlamaz.
 
-Fiyat, pazarlama metnine sabit yazılmadı. Fiyat ayarı App Store Connect'te yapılır; uygulama Apple'ın yerelleştirilmiş ürün fiyatını gösterir. Hesap sahibinin fiyat hedefi ve kurulum adımları [kurulum rehberinde](../app-store-connect-setup.tr.md) bulunur.
+Fiyat, pazarlama metnine sabit yazılmadı. Fiyat ayarı App Store Connect'te yapılır; uygulama Apple'ın yerelleştirilmiş ürün fiyatını gösterir. Güncel hedef **149,99 TL**; kullanıcı **Next → Confirm** yaptı, son ürün **Save** ve satış bölgeleri henüz doğrulanmadı. Hesap ilerlemesi ve kalan adımlar [kurulum rehberinde](../app-store-connect-setup.tr.md) bulunur.
 
 Alan sınırları kontrol edildi: ad 30, alt başlık 30, tanıtım 170, açıklama 4000, anahtar kelimeler 100 karakter; anahtar kelimeler ayrıca en fazla 100 UTF-8 bayt. Ürün adı 30, ürün açıklaması 45 karakter sınırının içindedir. Metin değiştirilirse JSON ve ilgili `.txt` dosyası birlikte güncellenip sınırlar yeniden kontrol edilmelidir.

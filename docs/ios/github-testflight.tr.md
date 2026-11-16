@@ -8,7 +8,9 @@ Hazırlık kanıtı: `7e5943e2744fc0bb6505236429f45e224fedd28c` kaynağında [Ma
 
 ## 1. Apple kayıtlarını tamamlayın
 
-[App Store Connect rehberinin](app-store-connect-setup.tr.md) 1–5. adımlarını uygulayın. Team ID **T4F4D367KQ** koddadır; Bundle ID **com.fevzicakmak.bhu** bu takımda kayıtlı ve App Store Connect'teki **BHU** uygulamasına bağlı olmalıdır. Çoklu Hesap ürünü **com.fevzicakmak.bhu.multipleaccounts**, **Non-Consumable** olmalıdır. Bir ana hesap ve alt hesapları ücretsizdir; ikinci ana hesap için tek seferlik kalıcı hak gerekir. Türkiye hedefi **399 TL** yalnız Apple'ın sunduğu fiyat noktasıyla doğrulanır; farklı tutar kendiliğinden seçilmez. Ücretli uygulama sözleşmesi/vergi/banka adımları Apple hesabında tamamlanır.
+Team ID **T4F4D367KQ** koddadır. Kullanıcı **com.fevzicakmak.bhu** Bundle ID kaydını ve **BHU** App Store Connect uygulamasını tamamladığını bildirdi. Mevcut **Non-Consumable** ürün **com.fevzicakmak.bhu.multipleaccounts** ve ürün Apple ID'si **6835484249** ekran görüntüsünde görüldü; durum **Prepare for Submission**. Türkçe ad/açıklama **Display Name and Description → Add** üzerinden kaydedildiği bildirildi. Bu kayıtları yeniden oluşturmayın.
+
+Bir ana hesap ve alt hesapları ücretsizdir; ikinci ana hesap için tek seferlik kalıcı hak gerekir. Yeni Türkiye hedefi **149,99 TL**; kullanıcı fiyat seçiminde **Next → Confirm** yaptı, ancak ürün ana sayfasındaki son **Save** ve **Availability** bölgeleri henüz doğrulanmadı. Bu fiyat bağımsız Apple API sorgusuyla teyit edilmedi; gerçek arayüz Apple'ın `displayPrice` değerini kullanır. [App Store Connect rehberinden](app-store-connect-setup.tr.md) kalan fiyat/bölge ve ücretli sözleşme/vergi/banka adımlarını tamamlayın; imzalı IPA/gerçek satın alma kabulü henüz yok.
 
 ## 2. Codespaces'te özel anahtar ve CSR hazırlayın
 

@@ -1,6 +1,6 @@
 # Gerçek iOS / TestFlight kabul planı
 
-Ürün adı **BHU**, yayıncı **Fevzi Çakmak**, kamuya açık destek adresi **fvzckmk35@gmail.com** olarak onaylandı. Türkiye Çoklu Hesap hedef fiyatı **399 TL**; gerçek App Store Connect fiyatı ve imzalı build ayrıca doğrulanmalıdır.
+Ürün adı **BHU**, yayıncı **Fevzi Çakmak**, kamuya açık destek adresi **fvzckmk35@gmail.com** olarak onaylandı. Türkiye Çoklu Hesap güncel hedef fiyatı **149,99 TL**. Kullanıcı fiyat seçiminde **Next → Confirm** yaptığını bildirdi; son ürün **Save**, satış bölgeleri ve gerçek StoreKit fiyatı ayrıca doğrulanmalıdır. Fiyat Apple API ile bağımsız teyit edilmedi; imzalı build ve gerçek satın alma kabulü henüz yok.
 
 ## Kapsam ve kayıt formu
 

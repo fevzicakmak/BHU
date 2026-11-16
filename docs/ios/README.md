@@ -18,7 +18,7 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 
 - Ücretsiz iOS kullanımında **bir ana hesap ve bu ana hesabın alt hesapları** kullanılabilir. Alt hesap başına ücret alınmaz.
 - İkinci ana hesabı açmak için **tek seferlik, kalıcı Çoklu Hesap satın alımı** gerekir. Abonelik yoktur.
-- Türkiye mağazası için hedef tek seferlik fiyat **399 TL**. Gerçek fiyat noktası App Store Connect'te doğrulanmalı; uygulama fiyatı Apple'ın yerelleştirilmiş ürün bilgisinden göstermeli.
+- Türkiye mağazası için güncel hedef tek seferlik fiyat **149,99 TL**. Kullanıcı bu tutarı seçip **Next → Confirm** yaptığını bildirdi; ürün ana sayfasındaki son **Save** ve satış bölgeleri henüz doğrulanmadı. Apple API ile bağımsız fiyat doğrulaması yapılmadı; uygulama Apple'ın gerçek yerelleştirilmiş `displayPrice` değerini göstermeye devam eder.
 - Satın alma, Apple'ın uygulama içi satın alma sistemiyle doğrulanır. Bir yerel ayar veya yedek dosyası ücretli hakkı açamaz.
 - Satın alma doğrulanamasa veya geri alınmış olsa da mevcut kayıtların görüntülenmesi, düzenlenmesi ve dışa aktarılması engellenmez. Yeni ek ana hesap açma ve aynı sonucu doğuran taşıma/geri yükleme işlemleri ayrıca denetlenir.
 - Web sürümünün mevcut tarayıcıda yerel kayıt düzeni korunur. Bu belgelerdeki StoreKit ve iOS dosya depolaması açıklamaları **native iOS sürümünü** anlatır; web sürümünde aynı satın alma altyapısının bulunduğu varsayılmaz.
@@ -27,10 +27,11 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 
 - App Store görünen adı: **BHU**. Mağaza adı kullanılabilirliği App Store Connect'te ayrıca kontrol edilir.
 - Yayıncı/hizmet sağlayıcı: **Fevzi Çakmak**.
-- Apple Developer üyeliğinin etkin olduğu kullanıcı tarafından doğrulandı. **Team ID `T4F4D367KQ`** alındı ve App Debug/Release yapılandırmasına yazıldı; takım erişimi/sertifika/Bundle ID sahipliği ve mağaza kaydı ayrıca doğrulanmalıdır.
+- Apple Developer üyeliğinin etkin olduğu kullanıcı tarafından doğrulandı. **Team ID `T4F4D367KQ`** alındı ve App Debug/Release yapılandırmasına yazıldı; sertifika/profil yetkisi ayrıca doğrulanmalıdır. Kullanıcı `com.fevzicakmak.bhu` Bundle ID kaydını ve BHU App Store Connect uygulama kaydını tamamladığını bildirdi.
 - [Mac CI 43871719871 / job 133314330319](https://github.com/fevzicakmak/BHU/actions/runs/43871719871/job/133314330319), CLI Team override kullanmadan App Debug/Release ayarlarını `DEVELOPMENT_TEAM=T4F4D367KQ`, `Automatic` ve doğru Bundle ID olarak çözdü; `CODE_SIGNING_ALLOWED=NO` idi. Bu ayar kontrolü Apple takımına erişim veya dağıtım imzası kanıtı değildir.
 - [Mac CI 43874034746 / job 133322286941](https://github.com/fevzicakmak/BHU/actions/runs/43874034746/job/133322286941), kaynak `7e5943e2744fc0bb6505236429f45e224fedd28c` için **9/9 sentetik politika/P12 uyumluluk testini (0 hata, 0 atlama)** geçti; modern giriş P12 üretimdeki aynı yardımcıyla dönüştürülüp Mac keychain'e alındı ve Team ayarları tekrar doğrulandı. Gerçek Apple sertifikası/profili/API anahtarı kullanılmadı; imzalı archive/export/upload yapılmadı.
 - Kullanıcının Mac'i yoktur. İmzalama yolu, Apple portalı ve GitHub Codespaces üzerinden hazırlanan dosyalarla GitHub macOS runner kullanır; [gereken erişimler ve adımlar](github-testflight.tr.md) ayrı anlatılır.
+- Çoklu Hesap ürün kaydında `com.fevzicakmak.bhu.multipleaccounts`, ürün Apple ID'si **6835484249**, **Non-Consumable** ve **Prepare for Submission** durumu ekran görüntüsünde görüldü. Kullanıcı Türkçe adı/açıklamayı **Display Name and Description → Add** üzerinden kaydettiğini bildirdi; ürünün incelemesi/onayı henüz yok.
 - Kamuya açık destek/gizlilik iletişimi: **fvzckmk35@gmail.com**; kullanıcı bu adresin yayımlanmasını açıkça onayladı.
 - Gizlilik URL'si: https://fevzicakmak.github.io/BHU/privacy.html
 - Destek URL'si: https://fevzicakmak.github.io/BHU/support.html
@@ -64,8 +65,8 @@ Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; Team ID ayar çö
 
 ## Tamamlanması gereken mağaza adımları
 
-1. Kayıtlı `T4F4D367KQ` takımına gerçek erişim, Bundle ID sahipliği, dağıtım sertifikası/profili ve App Store Connect uygulama kaydı.
-2. Çoklu Hesap ürününün gerçek App Store Connect kaydı; Türkiye için hedef 399 TL fiyat noktası, satış bölgeleri ve uygulama sürümüyle incelemeye eklenmesi.
+1. Dağıtım sertifikası/profili ve güvenli repository Secrets hazırlığı; kullanıcı tarafından tamamlandığı bildirilen Bundle ID/BHU uygulama kaydı yeniden oluşturulmaz.
+2. Mevcut Çoklu Hesap ürününde hedef 149,99 TL fiyat seçiminin son **Save** ile kaydı, kullanıcının belirleyeceği satış bölgeleri ve ürünün uygulama sürümüyle incelemeye eklenmesi.
 3. Dağıtım imzası, gerçek cihaz/TestFlight kabulü ve son derlemeye ait App Privacy / export-compliance yanıtları.
 4. iPhone/iPad gerçek ekran görüntüleri, son sürüm ve mağaza gönderimi.
 
@@ -73,8 +74,8 @@ Mağaza metni ve kontrol listeleri bu adımları yapılmış saymaz. Gizlilik ve
 
 ## Hesap sahibinden sıradaki bilgiler
 
-1. Team ID yeniden istenmez: **`T4F4D367KQ`** kayıtlıdır. Bu takımda Certificates/Identifiers/Profiles ve App Store Connect yayınlama yetkilerinin bulunduğu doğrulanmalıdır.
-2. `com.fevzicakmak.bhu` Bundle ID'sinin kendi takımında kayıt durumu ve bu kimlikle açılmış **BHU App Store Connect uygulama kaydı**.
-3. `com.fevzicakmak.bhu.multipleaccounts` ürününün aynı uygulama altında **Non-Consumable** olarak oluşturulup oluşturulmadığı; Türkiye hedef 399 TL fiyatı ve gerekli ücretli uygulama sözleşmeleri/vergi/banka adımlarının durumu.
+1. Mevcut ürünün **Availability** satış bölgeleri ve ürün ana sayfasındaki son **Save** adımının tamamlandığı bilgisi; 149,99 TL seçimi için **Next → Confirm** yapıldığı zaten bildirildi.
+2. Ücretli uygulama sözleşmeleri/vergi/banka adımlarının durumu.
+3. Dağıtım sertifikası/profili ve GitHub Secrets hazırlığı; Team ID, Bundle ID, BHU uygulaması veya ürün kimliği yeniden istenmez.
 
-Team ID kullanıcıdan alınmış gerçek yapılandırma değeridir; Bundle ID ve ürün kimliği Apple hesabında henüz doğrulanmamış adaylardır. Bu kimlikler yapılandırma bilgisidir; Apple parolası, dağıtım özel anahtarı veya App Store Connect API özel anahtarı belgeye/sohbete yazılmamalıdır. Dağıtım imzası ve yükleme sahibinin güvenli Xcode/CI kimlik bilgileriyle tamamlanır.
+Team ID `T4F4D367KQ` kayıtlıdır; Bundle ID ve BHU uygulama kaydı kullanıcı bildirimine, Product ID ve ürün Apple ID'si görülen ekran görüntüsüne dayanır. Bu ilerleme Apple API üzerinden bağımsız hesap/fiyat doğrulaması veya StoreKit kabulü değildir. Apple parolası, dağıtım özel anahtarı ve API özel anahtarı belgeye/sohbete yazılmaz; gereken gizli bilgiler yalnız güvenli GitHub Secrets akışıyla sağlanır.

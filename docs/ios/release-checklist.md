@@ -6,13 +6,14 @@ Bu liste, kod hazırlığından mağaza gönderimine kadar yapılacak somut işl
 
 - [x] App Store görünen adı **BHU** olarak seçildi.
 - [x] Hak sahibi/yayıncı kimliği kullanıcı tarafından **Fevzi Çakmak** olarak doğrulandı.
-- [ ] BHU adının mağaza kullanılabilirliği ve App Store Connect satıcı kaydı doğrulandı.
+- [x] Kullanıcı BHU App Store Connect uygulama kaydını tamamladığını bildirdi.
+- [ ] App Store Connect satıcı kaydı/yasal bilgiler son yayıncı bilgileriyle karşılaştırıldı.
 - [x] Apple Developer Program üyeliğinin etkin olduğu kullanıcı tarafından doğrulandı.
 - [x] Team ID **`T4F4D367KQ`** kullanıcıdan alındı ve App Debug/Release `DEVELOPMENT_TEAM` ayarlarına yazıldı.
 - [x] [Mac CI 43871719871 / job 133314330319](https://github.com/fevzicakmak/BHU/actions/runs/43871719871/job/133314330319), CLI Team override olmadan Debug/Release için kayıtlı Team ID, Automatic ve doğru Bundle ID ayarlarını çözdü (`CODE_SIGNING_ALLOWED=NO`); gerçek imzalama yapılmadı.
 - [ ] Bu takımda Apple Certificates/Identifiers/Profiles erişimi ve App Store Connect yayınlama yetkisi doğrulandı.
-- [ ] Kesin Bundle ID seçildi ve geliştirici hesabında kaydedildi. Geliştirme yapılandırmasındaki geçici ID üretim kimliği olarak yanlışlıkla kullanılmadı.
-- [ ] App Store Connect uygulama kaydı ve SKU oluşturuldu.
+- [x] Kullanıcı `com.fevzicakmak.bhu` Bundle ID kaydını tamamladığını bildirdi. Apple API ile bağımsız hesap kontrolü yapılmadı.
+- [ ] BHU uygulama kaydındaki gerçek SKU son gönderim bilgileriyle karşılaştırıldı; `BHU-IOS-001` rehberdeki öneridir.
 - [ ] Paid Apps Agreement, vergi ve ödeme/banka bilgileri tamamlandı.
 - [x] Kamuya açık destek adresi **fvzckmk35@gmail.com** olarak onaylandı; `privacy.html` ve `support.html` içerikleri Fevzi Çakmak kimliğiyle tamamlandı.
 - [x] https://fevzicakmak.github.io/BHU/privacy.html ve https://fevzicakmak.github.io/BHU/support.html 15 Kasım 2026'da canlı HTTP 200, kimlik/iletişim, bağlantı ve mobil taşma kontrolünden geçti.
@@ -37,10 +38,13 @@ Kod veya depo içine Apple parolası, özel anahtar, dağıtım sertifikası, pr
 
 Ürün kuralı: **1 ücretsiz ana hesap + bu ana hesabın alt hesapları; ikinci ana hesap için tek seferlik kalıcı hak.** Alt hesap başına ücret veya abonelik yok.
 
-- [ ] Kesin Product ID App Store Connect'te **Non-Consumable** olarak tanımlandı.
-- [ ] Kod/config, StoreKit test dosyası ve App Store Connect'teki Product ID aynı. Geçici geliştirme ID'si nihai değerle doğrulandı.
-- [ ] Türkçe ürün adı/açıklaması ve satın alma inceleme ekran görüntüsü yüklendi.
-- [ ] Türkiye için hedef **399 TL** fiyat noktası App Store Connect'te doğrulandı; satış bölgeleri ve varsa diğer para birimleri hesap sahibi tarafından seçildi. Paywall fiyatı `Product.displayPrice` gibi gerçek StoreKit yerelleştirmesinden alıyor; sabit tutar yazmıyor.
+- [x] Ekran görüntüsünde **Non-Consumable** ürün kaydı görüldü: Product ID `com.fevzicakmak.bhu.multipleaccounts`, ürün Apple ID'si **6835484249**, durum **Prepare for Submission**. Bu durum inceleme/onay değildir.
+- [x] Ekran görüntüsündeki Product ID, kod/config ve StoreKit test dosyasındaki `com.fevzicakmak.bhu.multipleaccounts` kimliğiyle aynı; gerçek ürünün StoreKit'ten yüklenmesi ayrıca test edilmelidir.
+- [x] Kullanıcı **Display Name and Description → Add** üzerinden Türkçe ürün adı/açıklamasını doldurup kaydettiğini bildirdi.
+- [ ] Satın alma inceleme ekran görüntüsü son gerçek native build'den hazırlanıp yüklendi.
+- [x] Kullanıcı güncel Türkiye hedefi **149,99 TL** tutarını seçip **Next → Confirm** yaptığını bildirdi; bu yalnız seçim/onay adımı kanıtıdır.
+- [ ] Ürün ana sayfasındaki son **Save**, kaydedilmiş fiyat ve **Availability** satış bölgeleri doğrulandı. Bölge seçimi henüz alınmadı; Apple API ile bağımsız fiyat kontrolü yapılmadı.
+- [ ] Paywall son gerçek üründen `Product.displayPrice` gösteriyor; hedef tutar arayüze sabit yazılmıyor.
 - [ ] İlk ana hesap ve bütün alt hesapları ücretsiz oluşturulabiliyor.
 - [ ] İkinci ana hesap, alt hesabı ana seviyeye çıkarma, çocukları ana seviyeye çıkaran silme ve ek ana hesap içeren yedek yükleme aynı yetki kontrolünü kullanıyor.
 - [ ] Yeni satın alma yalnızca doğrulanmış StoreKit işlemiyle hakkı açıyor; iptal/pending/başarısız/unverified işlem açmıyor.
