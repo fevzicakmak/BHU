@@ -29,9 +29,9 @@ Mağaza metinleri, yayımlanmış gizlilik/destek sayfaları ve gerçek cihaz ko
 
 ## Son iOS doğrulama durumu
 
-[CI 43853676076](https://github.com/fevzicakmak/BHU/actions/runs/43853676076), kod `6005053` için 33 Node testi, 45 Chromium senaryosu ve WebKit kontrolünü geçti. SDK 26.2 / arm64 **imzasız Release arşivi** 49 mekanik kontrolü geçti; [arşiv](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14219761788) ve [rapor](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14219262140) mevcut. SDK 26.5 / iPad Pro M5 simülatöründe iki soğuk açılış, gerçek native okuma ve görünür içerik kabulü de başarılı; [ekran görüntüleri ve kanıtlar](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14220931775) elle incelendi.
+[CI 43864667196](https://github.com/fevzicakmak/BHU/actions/runs/43864667196), kod `d0d4bbb1` için 33 Node testi, 45 Chromium senaryosu, gerçek WebKit ve 49 imzasız Release arşiv kontrolünü geçti ([arşiv](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/artifacts/14223574378), [rapor](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/artifacts/14224971626)). Aynı üretim güvenli alan düzeltmesi [iPad'de bu çalıştırmada](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/artifacts/14224439235), [iPhone'da a0d18d2 çalıştırmasında](https://github.com/fevzicakmak/BHU/actions/runs/43864576524/artifacts/14225102498) iki soğuk açılış/native okuma/paint ve dokuz kararlı kontrol ölçümüyle geçti; her iki cihazın ekranları elle incelendi.
 
-iPhone için 8 testli native XCTest paketi derlendi, ancak Simulator GUI açma zaman aşımı nedeniyle çalıştırılmadı. GUI açmayı isteğe bağlı yapan yeni yardımcı değişiklik ve UTF-8 baytlarını birebir karşılaştıran native yazma testleri çalışma sonucu bekliyor. Önceki iPhone iki soğuk açılış/okuma kanıtı ayrı tutulur; dağıtım imzası, gerçek cihaz dosya koruması, gerçek StoreKit ve TestFlight kabulü tamamlanmamıştır. Ayrıntılar ve kopyalanabilir mağaza metinleri [iOS yayın dosyalarında](docs/ios/README.md), düz alanlar [metadata JSON kaynağında](docs/ios/metadata.tr.json) bulunur.
+iPhone XCTest yürütmesi ayrı runner alanında **7 başarılı, 1 dosya koruma metadata testi atlandı** sonucu verdi. Daha sıkı d0 ekran/ölçüm sırasıyla iPhone işi iki denemede de BHU kurulmadan OS açılışında kaldı; son CI matrisinin tamamı başarılı değildir. BHU arayüzünden kaydetme/yeniden açma, gerçek cihaz koruması, Apple Team/App Store ürünü, dağıtım imzası, StoreKit ve TestFlight kabulü tamamlanmamıştır. Kanıt kapsamı [yayın belgelerinde](docs/ios/README.md), kopyalanabilir metinler [mağaza alanlarında](docs/ios/metadata/README.md) bulunur.
 
 ## Çalıştırma
 
@@ -147,9 +147,9 @@ python3 scripts/smoke-ios.py ios-build/Build/Products/Debug-iphonesimulator/App.
   com.fevzicakmak.bhu --device-family iPad --timeout 900
 ```
 
-`--storage-tests`, native SwiftPM XCTest paketini ayrı test runner sandbox'ında çalıştırır; BHU'nun sentetik kayıt dosyası değiştirilmemelidir. Native dosya yazma/karşılaştırma denetimi gerçek iOS API'lerini kullanır, ancak runner sandbox'ı BHU'nun gerçek cihazdaki saklama alanı veya donanım kilit koruması değildir. Bu paketin mevcut olması başarıyla çalıştığı anlamına gelmez; `.xcresult` ve sonuç JSON'u kabul edilmelidir. Gerçek StoreKit işlemi yapmaz.
+`--storage-tests`, native SwiftPM XCTest paketini ayrı test runner sandbox'ında çalıştırır; BHU'nun sentetik kayıt dosyası değiştirilmemelidir. Native dosya yazma/karşılaştırma denetimi gerçek iOS API'lerini kullanır, ancak runner sandbox'ı BHU'nun gerçek cihazdaki saklama alanı veya donanım kilit koruması değildir. Son doğrulanan yürütmede 7 test başarılı, dosya koruma metadata testi atlanmıştır; her yeni kaynak için `.xcresult` ve sonuç JSON'u ayrıca kabul edilmelidir. BHU arayüzünden kayıt oluşturup yeniden açma bu paketin kapsamı değildir. Gerçek StoreKit işlemi yapmaz.
 
-Simülatör kontrolü etkin Xcode SDK'sına uygun geçici iPhone/iPad çalışma ortamını seçer. Uygulamanın yalnızca geçici test kopyası yerel ad-hoc imzalanır; Apple dağıtım sertifikası kullanılmaz. Native okuma, sentetik kaydın JavaScript'e dönüşü, görünür içerik ve iki soğuk açılış kontrol edilir. İmzasız Release arşivi ve mekanik incelemesi ayrı çalışır:
+Simülatör kontrolü etkin Xcode SDK'sına uygun geçici iPhone/iPad çalışma ortamını seçer. Uygulamanın yalnızca geçici test kopyası yerel ad-hoc imzalanır; Apple dağıtım sertifikası kullanılmaz. Native okuma, sentetik kaydın JavaScript'e dönüşü, görünür içerik ve iki soğuk açılış kontrol edilir. Yeni DEBUG geometri denetimi ayrıca üst/alt gezinmedeki dokuz kontrolün UIKit güvenli alanı içinde kararlı kaldığını arar; iPad d0 ve iPhone a0 yürütmelerinde geçti; d0'ın daha sıkı ölçüm sırasıyla iPhone kontrolü, iki denemede de OS açılışı zaman aşımına uğradığından çalıştırılamadı. İmzasız Release arşivi ve mekanik incelemesi ayrı çalışır:
 
 ```sh
 npm run ios:sync
@@ -161,4 +161,4 @@ python3 scripts/check-ios-archive.py ios-release/BHU.xcarchive \
   --output test-artifacts/ios-release/report.json
 ```
 
-Arşiv kontrolü kimlik/sürüm/debug bayrağı, cihaz ailesi, arm64, ikon, yerel web dosyaları, test içeriği ve privacy manifest dosyalarını inceler. Rapor imza/provisioning, mağaza yüklemesi, gizlilik beyanının hukuki yeterliliği, gerçek cihaz dosya koruması veya gerçek satın alma onayı vermez.
+Arşiv kontrolü kimlik/sürüm/debug bayrağı, cihaz ailesi, arm64, ikon, yerel web dosyaları, test içeriği ve privacy manifest dosyalarını inceler. Rapor imza/provisioning, mağaza yüklemesi, gizlilik beyanının hukuki yeterliliği, gerçek cihaz dosya koruması veya gerçek satın alma onayı vermez. Kanıtlar belirtilen hash'lere aittir; sonraki değişiklikler yalnız belgeler ve `index.html` CSS önbellek parametresinin v7 olmasıdır; son imzalı gönderim arşivi yeniden doğrulanmalıdır.

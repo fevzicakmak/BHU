@@ -22,8 +22,9 @@ Kod veya depo içine Apple parolası, özel anahtar, dağıtım sertifikası, pr
 - [x] Paketleme betiği uygulama/gizlilik/destek dosyalarını ve yerel Capacitor köprüsünü `dist/` içine alıyor; CI native senkronizasyon ve derleme başarılı. Gerçek çevrimdışı açılış aşağıdaki ayrı kontroldür.
 - [ ] Uçak modunda ilk açılış ve daha önce kaydedilmiş işlemler çalışıyor.
 - [x] Kaynak Capacitor yapılandırmasında uzak `server.url` veya canlı yeniden yükleme adresi yok.
-- [x] [CI 43853676076](https://github.com/fevzicakmak/BHU/actions/runs/43853676076) gerçek imzasız iPhoneOS Release arşivinde 49 mekanik kontrolü geçti: kimlik/sürüm, debug bayrağı, arm64, ikon, native config ve birebir web dosyaları. Bu sonuç dağıtım imzası veya cihaz testi değildir.
-- [ ] Native JSON depolaması başarıyı gerçekten dosyaya yazıldıktan sonra bildiriyor; hata halinde formu ve önceki dosyayı koruyor.
+- [x] [CI 43864667196](https://github.com/fevzicakmak/BHU/actions/runs/43864667196) gerçek imzasız iPhoneOS Release arşivinde 49 mekanik kontrolü geçti: kimlik/sürüm, debug bayrağı, arm64, ikon, native config ve birebir web dosyaları. Bu sonuç dağıtım imzası veya cihaz testi değildir.
+- [x] Native depolama motorunda gerçek yazma/okuma, birebir UTF-8 karşılaştırması, eşzamanlı tek kazanan ve yazma hatasında önceki dosyayı koruma XCTest runner alanında geçti (7 başarılı, koruma metadata testi atlandı).
+- [ ] BHU arayüzünden kayıt oluşturma → kaydetme → yeniden açma ve native hata halinde formu koruma uçtan uca doğrulandı; ayrı runner dosya testleri bu maddeyi tamamlamaz.
 - [ ] Web/Safari kayıtları JSON yedeğiyle native uygulamaya aktarılabiliyor. İki uygulama alanının kendiliğinden ortak veri kullandığı varsayılmıyor.
 - [ ] App Store sürüm/build numarası tekil ve doğru; görünen ad, ikon ve launch ekranı nihai.
 - [ ] iPhone ve iPad düzenleri, güvenli alanlar, modal ve paylaşım popover'ları doğrulandı. Cihaz ailesi sonradan daraltılırsa mağaza alanları buna göre güncellendi.
@@ -69,13 +70,13 @@ Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı ş
 
 ## 5. Xcode ve TestFlight
 
-- [x] [CI 43853676076](https://github.com/fevzicakmak/BHU/actions/runs/43853676076) üzerinde 33 Node testi, 45 Chromium senaryosu ve ayrı WebKit kontrolü başarılı.
-- [x] Aynı çalıştırmada fiziksel iOS hedefli imzasız Release arşivi (SDK 26.2, arm64) ve 49 mekanik arşiv kontrolü başarılı; [arşiv](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14219761788) ve [rapor](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14219262140) mevcut.
-- [x] Aynı sürümde SDK 26.5 / iPad Pro M5 simülatöründe iki soğuk açılış, gerçek `KasaStorage.read` ve görünür içerik kabulü başarılı. [Ekran görüntüleri ve kanıtlar](https://github.com/fevzicakmak/BHU/actions/runs/43853676076/artifacts/14220931775) elle incelendi; doğru BHU hesabı görünüyor. Bu simülatör kabulü gerçek cihaz testi değildir.
-- [x] Önceki [iPhone çalıştırması 43772430952](https://github.com/fevzicakmak/BHU/actions/runs/43772430952) iki soğuk açılış ve gerçek native okumayı doğruladı; tarihsel sonuç güncel native yazma kabulü değildir.
-- [x] Güncel iPhone hedefli 8 senaryolu SwiftPM XCTest paketi derlendi; derleme, test yürütmesi anlamına gelmez.
-- [ ] Güncel iPhone native açılış/görünür içerik kabulü ve `--storage-tests` yürütmesi tamamlandı. Son denemede Simulator GUI açma isteği 20 saniyelik sınırda kaldı (25,57 saniye); native yazma testleri başlamadı. Yeni yardımcı GUI açmayı 60 saniyelik isteğe bağlı adım yapar, zorunlu boot/framebuffer/kayıt servisi/native/görünür içerik kontrollerini korur; tekrar test bekliyor.
-- [ ] 8 native senaryonun çalışma sonuçları kabul edildi: ilk yazma/okuma ve yeni plugin ile kalıcılık, eski kayıt çatışması, birebir UTF-8/Unicode NFC-NFD karşılaştırması, eşzamanlı tek kazanan, geçersiz JSON/eksik karşılaştırma değeri, UTF-8 boyut sınırı, yazma hatasında dosyayı koruma ve sunuluyorsa koruma niteliği. Runner ayrı sandbox kullanır; donanım dosya korumasını veya gerçek StoreKit'i doğrulamaz.
+- [x] [CI 43864667196](https://github.com/fevzicakmak/BHU/actions/runs/43864667196), kod `d0d4bbb1` üzerinde 33 Node testi, 45 Chromium senaryosu ve gerçek WebKit başarılı; dokuz kontrol sınırı/dikey-yatay ekran/CSS değerlerinin tekrarlı uygulanması/env geri dönüşü ve mevcut form/işlem akışları geçti.
+- [x] Aynı kaynakta fiziksel iOS hedefli imzasız Release arşivi (SDK 26.2, arm64) ve 49 mekanik kontrol başarılı; [arşiv](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/artifacts/14223574378), [rapor](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/artifacts/14224971626) mevcut. 11 web dosyası birebir, 3 privacy manifest okunabilir, test içeriği yok.
+- [x] Aynı kaynakta iPad Pro 13-inch M5 / SDK 26.5 simülatöründe iki soğuk açılış, gerçek native okuma, değişmeyen kayıt ve paint geçti; dokuz kontrol iki kararlı ölçümle güvenli alan içinde (üst 32 / alt 20 pt). [Kanıtlar](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/artifacts/14224439235) mevcut.
+- [x] Güncel iPad iki açılış ekranı ayrı ayrı elle incelendi: başlık/hesap seçimi/+ ve dört alt menü sistem alanıyla çakışmıyor, hesap ağacı okunaklı. Bu kontrol bütün modal/döndürme/erişilebilirlik kabulü değildir.
+- [x] Aynı üretim Swift/CSS/config koduyla `a0d18d2` / [iPhone job 133289724143](https://github.com/fevzicakmak/BHU/actions/runs/43864576524/job/133289724143) iki soğuk açılış/native okuma/paint/değişmeyen kayıt ve dokuz kararlı güvenli alan kontrolünü geçti (üst 62 / alt 34 pt). [İki ekran](https://github.com/fevzicakmak/BHU/actions/runs/43864576524/artifacts/14225102498) ayrı ayrı elle incelendi: başlık/alt menü güvenli alanda, durum çubuğu yazıları beyaz.
+- [x] Aynı a0 iPhone işinde ayrı XCTest runner alanında 8 test yürütüldü: **7 başarılı, 1 dosya koruma metadata testi atlandı, 0 hata**. Unicode byte CAS, eşzamanlı tek kazanan ve salt okunur üst dizinde hata koruması geçti. BHU arayüzünden kaydetme/yeniden açma, donanım koruması ve gerçek StoreKit bu kapsamda değildir.
+- [ ] Daha sıkı d0 ekran/ölçüm sırasıyla iPhone kontrolü kabul edildi. İki deneme de OS boot 300 saniye sınırında BHU kurulmadan başarısız oldu; [ikinci job 133296529337](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/job/133296529337) komutu 322,62 saniyede zaman aşımına uğradı ([ilk hata](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/artifacts/14226106017), [ikinci hata](https://github.com/fevzicakmak/BHU/actions/runs/43864667196/artifacts/14225244147)). Native XCTest/UI/geometri testleri başlamadı; son CI matrisinin tamamı başarılı değildir.
 - [ ] Gerçek iPhone ve iPad'e kurulup [TestFlight planı](testflight-test-plan.md) uygulandı.
 - [ ] Dağıtım imzası/provisioning doğru; `Archive` ve `Validate App` başarılı.
 - [ ] Organizer / onaylı yükleme aracıyla App Store Connect'e build yüklendi.
@@ -83,6 +84,8 @@ Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı ş
 - [ ] TestFlight iç test gerçekleştirildi. Dış test seçilirse gerekli Beta App Review süreci tamamlandı.
 - [ ] Gerçek StoreKit sandbox/TestFlight satın alma ve geri yükleme akışı doğrulandı; yerel StoreKit testiyle karıştırılmadı.
 - [ ] Crash ve veri kaybı bulguları çözüldü; son test edilen build ile gönderilecek build aynı.
+
+Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; sonraki değişiklikler yalnız belgeler ve `index.html` CSS önbellek parametresinin v7 olmasıdır; son imzalı gönderim arşivi yeniden doğrulanmalıdır.
 
 ## 6. Son gönderim
 
