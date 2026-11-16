@@ -11,11 +11,12 @@ const MAX_RESPONSE = 1024 * 1024;
 export class StatusError extends Error {}
 const checked = (condition, message) => { if (!condition) throw new StatusError(message); };
 
-export function createToken(env, nowSeconds = Math.floor(Date.now() / 1000)) {
+export function createToken(env, nowSeconds = Math.floor(Date.now() / 1000), authentication = 'team') {
   const kid = env.APP_STORE_CONNECT_KEY_ID?.trim();
   const issuer = env.APP_STORE_CONNECT_ISSUER_ID?.trim();
   checked(/^[A-Z0-9]{10}$/.test(kid || ''), 'Invalid APP_STORE_CONNECT_KEY_ID.');
-  checked(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(issuer || ''), 'Invalid APP_STORE_CONNECT_ISSUER_ID.');
+  checked(['team', 'individual'].includes(authentication), 'Invalid API key authentication type.');
+  if (authentication === 'team') checked(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(issuer || ''), 'Invalid APP_STORE_CONNECT_ISSUER_ID.');
   checked(Number.isSafeInteger(nowSeconds) && nowSeconds > 0, 'Invalid token timestamp.');
   try {
     const pem = env.APP_STORE_CONNECT_PRIVATE_KEY;
@@ -23,7 +24,8 @@ export function createToken(env, nowSeconds = Math.floor(Date.now() / 1000)) {
     const key = createPrivateKey(pem);
     checked(key.asymmetricKeyType === 'ec' && key.asymmetricKeyDetails?.namedCurve === 'prime256v1', 'Invalid App Store Connect private key.');
     const encode = value => Buffer.from(JSON.stringify(value)).toString('base64url');
-    const input = `${encode({ alg: 'ES256', kid, typ: 'JWT' })}.${encode({ iss: issuer, iat: nowSeconds, exp: nowSeconds + 300, aud: 'appstoreconnect-v1' })}`;
+    const identity = authentication === 'individual' ? { sub: 'user' } : { iss: issuer };
+    const input = `${encode({ alg: 'ES256', kid, typ: 'JWT' })}.${encode({ ...identity, iat: nowSeconds, exp: nowSeconds + 300, aud: 'appstoreconnect-v1' })}`;
     return `${input}.${sign('sha256', Buffer.from(input), { key, dsaEncoding: 'ieee-p1363' }).toString('base64url')}`;
   } catch (_) { throw new StatusError('Invalid App Store Connect private key.'); }
 }
@@ -56,15 +58,24 @@ export async function getStatus({ version, build, env = process.env, fetchImpl =
   const numericVersion = value => typeof value === 'string' && /^[1-9][0-9]{0,3}(?:\.[0-9]{1,2}){0,2}$/.test(value);
   checked(numericVersion(version) && numericVersion(build), 'Version and build must be valid numeric Apple version strings.');
   createToken(env, nowSeconds); // Validate credentials before any network request.
+  let authentication = 'team';
   async function get(path, parameters, stage, optional = false) {
     const url = new URL(path, ORIGIN);
     if (parameters) url.search = new URLSearchParams(parameters).toString();
-    // Use standard Team API claims; requests below enforce GET and the exact BHU filters.
-    const token = createToken(env, nowSeconds);
     let response;
-    try {
-      response = await fetchImpl(url.href, { method: 'GET', redirect: 'error', signal: AbortSignal.timeout(20000), headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
-    } catch (_) { throw new StatusError(`${stage} request failed.`); }
+    async function request() {
+      const token = createToken(env, nowSeconds, authentication);
+      try {
+        return await fetchImpl(url.href, { method: 'GET', redirect: 'error', signal: AbortSignal.timeout(20000), headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } });
+      } catch (_) { throw new StatusError(`${stage} request failed.`); }
+    }
+    response = await request();
+    // Individual keys use sub=user instead of iss. Negotiate once, only on the initial 401.
+    if (path === '/v1/apps' && response.status === 401 && authentication === 'team') {
+      try { await response.body?.cancel(); } catch (_) { /* The unauthorized response is not logged. */ }
+      authentication = 'individual';
+      response = await request();
+    }
     if (optional && [403, 404].includes(response.status)) {
       try { await response.body?.cancel(); } catch (_) { /* Primary processing status remains valid. */ }
       return null;
@@ -77,7 +88,7 @@ export async function getStatus({ version, build, env = process.env, fetchImpl =
   const apps = await get('/v1/apps', { 'filter[bundleId]': BUNDLE_ID, 'fields[apps]': 'bundleId', limit: '2' }, 'App lookup');
   checked(Array.isArray(apps.data) && apps.data.length === 1 && !apps.links?.next && apps.data[0].type === 'apps' && apps.data[0].attributes?.bundleId === BUNDLE_ID, 'App lookup did not identify exactly one BHU application.');
   const appId = identifier(apps.data[0].id);
-  const output = { appId, bundleId: BUNDLE_ID, version, build, found: false, processingState: null, usesNonExemptEncryption: null, expired: null, uploadedDate: null };
+  const output = { appId, bundleId: BUNDLE_ID, version, build, authentication, found: false, processingState: null, usesNonExemptEncryption: null, expired: null, uploadedDate: null };
   const builds = await get('/v1/builds', { 'filter[app]': appId, 'filter[version]': build, include: 'preReleaseVersion', 'fields[builds]': 'version,processingState,usesNonExemptEncryption,expired,uploadedDate,preReleaseVersion,app', 'fields[preReleaseVersions]': 'version,platform', limit: '200' }, 'Build lookup');
   checked(Array.isArray(builds.data) && !builds.links?.next, 'Build lookup returned an invalid or incomplete result.');
   if (!builds.data.length) return output;

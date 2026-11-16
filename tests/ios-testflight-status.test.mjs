@@ -34,7 +34,7 @@ const response = (body, status = 200) => new Response(JSON.stringify(body), {
 });
 
 function mockedAPI({ apps = [app()], builds = [build()], included = [preRelease()], betaStatus = 200,
-  betaBody = { data: beta() }, failApps = null } = {}) {
+  betaBody = { data: beta() }, failApps = null, individualKey = false } = {}) {
   const calls = [];
   const fetchImpl = async (input, options = {}) => {
     const url = new URL(input);
@@ -50,6 +50,8 @@ function mockedAPI({ apps = [app()], builds = [build()], included = [preRelease(
     assert.equal(requestClaims.scope, undefined, 'Use the standard Team API token claims');
     if (url.pathname === '/v1/apps') {
       assert.equal(url.searchParams.get('filter[bundleId]'), BUNDLE);
+      if (individualKey && requestClaims.iss) return response({ errors: [{ code: 'NOT_AUTHORIZED' }] }, 401);
+      if (individualKey) { assert.equal(requestClaims.sub, 'user'); assert.equal(requestClaims.iss, undefined); }
       if (failApps) return failApps;
       return response({ data: apps });
     }
@@ -104,6 +106,39 @@ test('missing or malformed API credentials are rejected without echoing private 
     assert(!String(error.message).includes('BEGIN PRIVATE KEY'));
     return true;
   });
+});
+
+test('individual API key JWT omits issuer and signs the required user subject', () => {
+  const token = createToken({ ...credentials(), APP_STORE_CONNECT_ISSUER_ID: '' }, NOW, 'individual');
+  const [header, claims, signature] = token.split('.');
+  const payload = JSON.parse(Buffer.from(claims, 'base64url'));
+  assert.equal(payload.sub, 'user'); assert.equal(payload.iss, undefined);
+  assert(verify('sha256', Buffer.from(`${header}.${claims}`),
+    { key: keys.publicKey, dsaEncoding: 'ieee-p1363' }, Buffer.from(signature, 'base64url')));
+});
+
+test('initial Team 401 negotiates the same individual key once and keeps that mode for later GETs', async () => {
+  const mock = mockedAPI({ individualKey: true });
+  const result = await status(mock);
+  assert.equal(result.authentication, 'individual'); assert.equal(result.processingState, 'VALID');
+  assert.equal(mock.calls.length, 4);
+  for (const call of mock.calls.slice(1)) {
+    const claims = JSON.parse(Buffer.from(call.headers.get('authorization').split('.')[1], 'base64url'));
+    assert.equal(claims.sub, 'user'); assert.equal(claims.iss, undefined);
+  }
+});
+
+test('two unauthorized models stop after two GETs, while forbidden access never retries', async () => {
+  for (const code of [401, 403]) {
+    const calls = [];
+    const fetchImpl = async (url, options) => {
+      calls.push({ url, options });
+      assert.equal(options.method, 'GET');
+      return response({ errors: [{ code: 'NOT_AUTHORIZED' }] }, code);
+    };
+    await assert.rejects(getStatus({ version: '1.0', build: '3.1', env: credentials(), fetchImpl, nowSeconds: NOW }), isStatusError);
+    assert.equal(calls.length, code === 401 ? 2 : 1);
+  }
 });
 
 test('correct app, build and linked iOS marketing version return processing and beta state through GET only', async () => {
