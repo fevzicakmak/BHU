@@ -1,0 +1,73 @@
+name: iOS signing settings
+
+on:
+  push:
+    branches: [main, codex/ios-signing]
+    paths:
+      - ios/App/App.xcodeproj/project.pbxproj
+      - .github/workflows/signing-settings.yml
+      - .github/workflows/testflight.yml
+      - scripts/ios-signing.mjs
+      - tests/ios-signing.test.mjs
+  pull_request:
+    paths:
+      - ios/App/App.xcodeproj/project.pbxproj
+      - .github/workflows/signing-settings.yml
+      - .github/workflows/testflight.yml
+      - scripts/ios-signing.mjs
+      - tests/ios-signing.test.mjs
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-signing-settings-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: macos-15-intel
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run ios:sync
+      - name: Check distribution helper when present
+        run: |
+          if [ -f scripts/ios-signing.mjs ]; then
+            node --check scripts/ios-signing.mjs
+            node --test tests/ios-signing.test.mjs
+          fi
+      - name: Read effective Xcode settings without a signing account
+        run: |
+          for configuration in Debug Release; do
+            xcodebuild -project ios/App/App.xcodeproj -scheme App \
+              -configuration "$configuration" -sdk iphoneos \
+              -showBuildSettings -json CODE_SIGNING_ALLOWED=NO \
+              > "$RUNNER_TEMP/BHU-$configuration-settings.json"
+          done
+      - name: Verify the configured team in both App configurations
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          for (const configuration of ['Debug', 'Release']) {
+            const records = JSON.parse(readFileSync(`${process.env.RUNNER_TEMP}/BHU-${configuration}-settings.json`, 'utf8'));
+            const apps = records.filter(record => record.target === 'App');
+            assert.equal(apps.length, 1, 'Expected one App target');
+            const settings = apps[0].buildSettings;
+            assert.equal(settings.CONFIGURATION, configuration);
+            assert.equal(settings.DEVELOPMENT_TEAM, 'T4F4D367KQ');
+            assert.equal(settings.CODE_SIGN_STYLE, 'Automatic');
+            assert.equal(settings.CODE_SIGNING_ALLOWED, 'NO');
+            assert.equal(settings.PRODUCT_BUNDLE_IDENTIFIER, 'com.fevzicakmak.bhu');
+            console.log(`PASS ${configuration}: configured team T4F4D367KQ, Automatic signing, verification remains unsigned.`);
+          }
+          JS

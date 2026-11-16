@@ -17,3 +17,15 @@ ios-build/
 BHU-simulator.zip
 ios-release/
 BHU-unsigned-release-archive.zip
+
+# Local/CI signing material and signed distribution outputs.
+.ios-signing/
+ios-distribution/
+*.p12
+*.p8
+*.mobileprovision
+*.key
+*.csr
+*.cer
+*.keychain-db
+*.ipa
