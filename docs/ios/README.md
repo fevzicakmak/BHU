@@ -43,7 +43,7 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 
 ## Son incelenen doğrulama kanıtı
 
-[Mac CI 43933501366 / job 133531868110](https://github.com/fevzicakmak/BHU/actions/runs/43933501366/job/133531868110), kaynak `0bc49976fa23b3100d3e8c63eef73f3154e1b1b0` için **10/10 test, 0 hata/0 atlama** ile başarılıdır. Gerçek dağıtım kimliği/profil eşleşmesi, imzalı Archive, 49 arşiv kontrolü, IPA export, derin/sıkı codesign doğrulaması, gömülü profil/Team/Bundle yetkileri ve imzalayan sertifika eşleşmesi geçti. [BHU-AppStore-IPA](https://github.com/fevzicakmak/BHU/actions/runs/43933501366/artifacts/14260217350) içindeki **1.0 / build 2.1** IPA ve özet bağımsız olarak da incelendi; özel anahtar/Secrets veya test içeriği bulunmadı (artifact son erişim: 23 Kasım 2026, 18:57 UTC); `upload_to_testflight=false` olduğundan Apple sunucu doğrulaması veya yükleme yapılmadı. TestFlight/gerçek cihaz/gerçek satın alma kabulü ayrıca tamamlanmalıdır.
+[Mac CI 43945652513 / job 133574498195](https://github.com/fevzicakmak/BHU/actions/runs/43945652513/job/133574498195), kaynak `3be76547d3b5e8c9323cf1e9c44210aaef338cd3` için **10/10 test, 0 hata/0 atlama** ile başarılıdır. Gerçek dağıtım kimliği/profil eşleşmesi, imzalı Archive, 49 arşiv kontrolü, IPA export, derin/sıkı codesign doğrulaması, gömülü profil/Team/Bundle yetkileri ve imzalayan sertifika eşleşmesi geçti. [BHU-AppStore-IPA](https://github.com/fevzicakmak/BHU/actions/runs/43945652513/artifacts/14265645219) içindeki **1.0 / build 3.1** IPA ve özet bağımsız olarak da incelendi; özel anahtar/Secrets veya test içeriği bulunmadı (artifact son erişim: 23 Kasım 2026, 20:05 UTC); `upload_to_testflight=true` ile Apple `altool` doğrulama ve yüklemesi **16 Kasım 2026, 20:05:12 UTC** itibarıyla başarılı kabul edildi. App Store Connect işlemesinin tamamlandığı ve TestFlight hazırlığı henüz doğrulanmadı (**beklemede**); App Review, gerçek cihaz ve gerçek satın alma kabulü ayrıca tamamlanmalıdır.
 
 16 Kasım 2026 tarihli [CI 43864667196](https://github.com/fevzicakmak/BHU/actions/runs/43864667196), kod `d0d4bbb1e595adf501e0224263e245bea3f96826` için aşağıdaki sonuçları verdi. iPhone güvenli alan düzeltmesi aynı üretim Swift/CSS/config dosyalarını taşıyan `a0d18d2` çalıştırmasında geçti. `d0d4bbb1` yalnız test yardımcı betiğinin ekran öncesi ölçüm sırasını sıkılaştırır; bu son iPhone işi iki denemede de OS açılışında başarısız oldu, dolayısıyla son CI matrisinin tamamı başarılı değildir.
 
@@ -71,7 +71,7 @@ Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; Team ID ayar çö
 
 ## Tamamlanması gereken mağaza adımları
 
-1. İmzalı IPA üretimi tamamlandı; sıradaki teknik adım TestFlight API anahtarı ve ayrı yükleme hazırlığıdır; kullanıcı tarafından tamamlandığı bildirilen Bundle ID/BHU uygulama kaydı yeniden oluşturulmaz.
+1. İmzalı IPA üretimi tamamlandı; Apple yüklemesi de kabul edildi; sıradaki teknik adım App Store Connect işlemesi ve TestFlight hazırlığını doğrulamaktır; kullanıcı tarafından tamamlandığı bildirilen Bundle ID/BHU uygulama kaydı yeniden oluşturulmaz.
 2. Mevcut Çoklu Hesap ürününde hedef 149,99 TL fiyat seçiminin son **Save** ile kaydı ve ürünün uygulama sürümüyle incelemeye eklenmesi. Kullanıcı BHU ve satın alma ürününden AB ülkelerini çıkardığını bildirdi; diğer uygun ülkeler korunur.
 3. Gerçek cihaz/TestFlight kabulü ve son imzalı build'e ait App Privacy / export-compliance yanıtları.
 4. iPhone/iPad gerçek ekran görüntüleri, son sürüm ve mağaza gönderimi.
@@ -82,6 +82,6 @@ Mağaza metni ve kontrol listeleri bu adımları yapılmış saymaz. Gizlilik ve
 
 1. Ürün ana sayfasındaki son **Save** adımının tamamlandığı bilgisi; 149,99 TL seçimi için **Next → Confirm** yapıldığı ve BHU/satın alma ürününden AB ülkelerinin çıkarıldığı zaten bildirildi.
 2. Diğer uygulamada da AB ülkelerinin çıkarıldığı bildirildi; hesap genelindeki DSA son onayı henüz doğrulanmadı. Paid Apps Agreement, banka ve W-8BEN için **Active** durumu önceki ekran görüntüsünde görüldü.
-3. İmzalı IPA üretiminde kullanılan sertifika/profil/Secrets yeniden hazırlanmaz; TestFlight API anahtarı ve yükleme hazırlığı ayrıdır; Team ID, Bundle ID, BHU uygulaması veya ürün kimliği yeniden istenmez.
+3. İmzalı IPA üretiminde kullanılan sertifika/profil/Secrets yeniden hazırlanmaz; API Secrets ile Apple yüklemesi kabul edildi; işleme/TestFlight hazırlığı ayrıca doğrulanmalıdır; Team ID, Bundle ID, BHU uygulaması veya ürün kimliği yeniden istenmez.
 
 Team ID `T4F4D367KQ` kayıtlıdır; Bundle ID ve BHU uygulama kaydı kullanıcı bildirimine, Product ID ve ürün Apple ID'si görülen ekran görüntüsüne dayanır. Bu ilerleme Apple API üzerinden bağımsız hesap/fiyat doğrulaması veya StoreKit kabulü değildir. Apple parolası, dağıtım özel anahtarı ve API özel anahtarı belgeye/sohbete yazılmaz; gereken gizli bilgiler yalnız güvenli GitHub Secrets akışıyla sağlanır.
