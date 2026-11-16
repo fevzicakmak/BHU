@@ -118,6 +118,31 @@ function parsePlist(xml) { return require('plist').parse(xml); }
 function decodeProfile(path) { return parsePlist(command('Decode provisioning profile', 'security', ['cms', '-D', '-i', path]).stdout); }
 function signedEntitlements(app) { return parsePlist(command('Read app entitlements', 'codesign', ['-d', '--entitlements', ':-', app]).stdout); }
 
+/** Accept modern encrypted P12 inputs, then bridge Apple's Keychain import format. */
+export function normalizeP12(input, output, password) {
+  const directory = mkdtempSync(join(dirname(output), 'p12-compat-')); chmodSync(directory, 0o700);
+  const pem = join(directory, 'identity.pem');
+  const env = { APPLE_DISTRIBUTION_P12_PASSWORD: password };
+  let complete = false;
+  try {
+    // Create before OpenSSL opens the file, so plaintext private material is always 0600.
+    privateWrite(pem, '');
+    command('Decode P12 for temporary Keychain compatibility', 'openssl', ['pkcs12', '-in', input, '-nodes', '-out', pem,
+      '-passin', 'env:APPLE_DISTRIBUTION_P12_PASSWORD'], { env });
+    privateWrite(output, '');
+    command('Prepare encrypted Keychain-compatible P12', 'openssl', ['pkcs12', '-export', '-in', pem, '-out', output,
+      '-name', 'BHU Apple Distribution', '-keypbe', 'PBE-SHA1-3DES', '-certpbe', 'PBE-SHA1-3DES', '-macalg', 'sha1',
+      '-passout', 'env:APPLE_DISTRIBUTION_P12_PASSWORD'], { env });
+    chmodSync(output, 0o600);
+    complete = true;
+  } finally {
+    // The plaintext private key is removed immediately, including failed conversions.
+    rmSync(directory, { recursive: true, force: true });
+    if (!complete) rmSync(output, { force: true });
+  }
+  return output;
+}
+
 export async function distribute() {
   const secrets = credentials(); // Fail before touching signing assets or Xcode.
   checked(process.platform === 'darwin', 'Signed distribution requires the macOS GitHub Actions runner.');
@@ -139,7 +164,8 @@ export async function distribute() {
     command('Create temporary signing keychain', 'security', ['create-keychain', '-p', keychainPassword, keychain]);
     command('Set temporary keychain lifetime', 'security', ['set-keychain-settings', '-lut', '21600', keychain]);
     command('Unlock temporary signing keychain', 'security', ['unlock-keychain', '-p', keychainPassword, keychain]);
-    command('Import distribution identity', 'security', ['import', p12, '-k', keychain, '-P', secrets.password, '-T', '/usr/bin/codesign', '-T', '/usr/bin/security']);
+    const compatibleP12 = normalizeP12(p12, join(directory, 'keychain-compatible.p12'), secrets.password);
+    command('Import distribution identity', 'security', ['import', compatibleP12, '-k', keychain, '-P', secrets.password, '-T', '/usr/bin/codesign', '-T', '/usr/bin/security']);
     command('Authorize Apple signing tools', 'security', ['set-key-partition-list', '-S', 'apple-tool:,apple:,codesign:', '-s', '-k', keychainPassword, keychain]);
     command('Select temporary keychain', 'security', ['list-keychains', '-d', 'user', '-s', keychain, ...previousKeychains]);
     const identities = command('Verify imported signing identity', 'security', ['find-identity', '-v', '-p', 'codesigning', keychain]).stdout.match(/[A-F0-9]{40}/g) || [];

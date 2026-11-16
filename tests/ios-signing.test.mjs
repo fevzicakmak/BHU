@@ -1,12 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createHash, generateKeyPairSync, randomBytes, X509Certificate } from 'node:crypto';
-import { readFileSync, mkdtempSync, rmSync, chmodSync, existsSync } from 'node:fs';
+import { createHash, generateKeyPairSync, randomBytes, sign, verify, X509Certificate } from 'node:crypto';
+import { readFileSync, mkdtempSync, rmSync, chmodSync, existsSync, readdirSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
-import { TEAM_ID, BUNDLE_ID, buildNumber, credentials, decodeBase64, requiredSecrets, inspectCertificate, validateProfile, patchAppSigning } from '../scripts/ios-signing.mjs';
+import { TEAM_ID, BUNDLE_ID, buildNumber, credentials, decodeBase64, requiredSecrets, inspectCertificate, validateProfile, patchAppSigning, normalizeP12 } from '../scripts/ios-signing.mjs';
 const require = createRequire(import.meta.url);
 const parser = require('xcode/lib/parser/pbxproj');
 const certificateBytes = Buffer.from('Synthetic certificate bytes, never an Apple identity');
@@ -123,7 +123,37 @@ test('CLI preflight fails closed without echoing supplied secret values or stack
   assert.ok(!`${result.stdout}${result.stderr}`.includes(sentinel)); assert.ok(!result.stderr.includes(' at '));
 });
 
-test('macOS imports a modern synthetic PKCS12 private identity into a disposable keychain', { skip: process.platform !== 'darwin' }, () => {
+test('P12 compatibility conversion preserves the certificate/private-key binding and cleans temporary PEMs', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'bhu-synthetic-conversion-')); chmodSync(directory, 0o700);
+  const password = randomBytes(32).toString('base64url');
+  const run = (stage, args) => {
+    const result = spawnSync('openssl', args, { encoding: 'utf8', env: { ...process.env, BHU_SYNTHETIC_P12_PASSWORD: password }, timeout: 60000 });
+    assert.equal(result.status, 0, `${stage} succeeds; sensitive subprocess output is withheld`);
+    return result.stdout;
+  };
+  try {
+    const key = join(directory, 'synthetic.key'), pem = join(directory, 'synthetic.pem');
+    const input = join(directory, 'modern.p12'), output = join(directory, 'compatible.p12');
+    run('Generate synthetic identity', ['req', '-new', '-x509', '-newkey', 'rsa:2048', '-nodes', '-days', '1', '-keyout', key, '-out', pem, '-subj', '/CN=BHU Synthetic Conversion']);
+    run('Export modern encrypted input', ['pkcs12', '-export', '-inkey', key, '-in', pem, '-out', input, '-keypbe', 'AES-256-CBC', '-certpbe', 'AES-256-CBC', '-macalg', 'sha256', '-passout', 'env:BHU_SYNTHETIC_P12_PASSWORD']);
+    const original = readFileSync(input), certificate = new X509Certificate(readFileSync(pem));
+    normalizeP12(input, output, password);
+    assert.equal(statSync(output).mode & 0o777, 0o600, 'Encrypted output is private');
+    assert.deepEqual(readFileSync(input), original, 'Modern input remains unchanged');
+    const convertedCertificate = new X509Certificate(run('Read converted certificate', ['pkcs12', '-in', output, '-clcerts', '-nokeys', '-passin', 'env:BHU_SYNTHETIC_P12_PASSWORD']));
+    assert.equal(convertedCertificate.fingerprint256, certificate.fingerprint256);
+    const convertedKey = run('Read converted synthetic private key', ['pkcs12', '-in', output, '-nocerts', '-nodes', '-passin', 'env:BHU_SYNTHETIC_P12_PASSWORD']);
+    const message = Buffer.from('Synthetic conversion key binding');
+    assert.ok(verify('sha256', message, certificate.publicKey, sign('sha256', message, convertedKey)), 'The converted private key matches the original certificate');
+    assert.deepEqual(readdirSync(directory).filter(name => name.startsWith('p12-compat-')), [], 'Plaintext conversion PEM is removed immediately');
+    const failed = join(directory, 'failed.p12');
+    assert.throws(() => normalizeP12(input, failed, 'synthetic-wrong-password'), /Decode P12/);
+    assert.equal(existsSync(failed), false);
+    assert.deepEqual(readdirSync(directory).filter(name => name.startsWith('p12-compat-')), [], 'Failed conversions also remove plaintext PEMs');
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('macOS imports modern synthetic PKCS12 through the production compatibility helper', { skip: process.platform !== 'darwin' }, () => {
   const directory = mkdtempSync(join(tmpdir(), 'bhu-synthetic-p12-')); chmodSync(directory, 0o700);
   const keychain = join(directory, 'synthetic.keychain-db');
   const password = randomBytes(32).toString('base64url');
@@ -143,7 +173,8 @@ test('macOS imports a modern synthetic PKCS12 private identity into a disposable
     run('Read modern PKCS12 using the distribution inspection command', 'openssl', ['pkcs12', '-in', p12, '-clcerts', '-nokeys', '-passin', 'env:BHU_SYNTHETIC_P12_PASSWORD'], { BHU_SYNTHETIC_P12_PASSWORD: password });
     run('Create disposable keychain', 'security', ['create-keychain', '-p', password, keychain]);
     run('Unlock disposable keychain', 'security', ['unlock-keychain', '-p', password, keychain]);
-    run('Import modern PKCS12', 'security', ['import', p12, '-k', keychain, '-P', password, '-T', '/usr/bin/codesign', '-T', '/usr/bin/security']);
+    const compatibleP12 = normalizeP12(p12, join(directory, 'compatible.p12'), password);
+    run('Import compatible PKCS12', 'security', ['import', compatibleP12, '-k', keychain, '-P', password, '-T', '/usr/bin/codesign', '-T', '/usr/bin/security']);
     // No trust override: a self-signed identity remains untrusted, yet must include its private key.
     const identities = run('Find imported private identity', 'security', ['find-identity', '-p', 'basic', keychain]);
     const fingerprint = new X509Certificate(readFileSync(pem)).fingerprint.replaceAll(':', '');
