@@ -276,9 +276,11 @@ export async function distribute() {
       const keys = join(directory, 'private_keys'); mkdirSync(keys, { mode: 0o700 });
       privateWrite(join(keys, `AuthKey_${secrets.keyId}.p8`), secrets.privateKey);
       const authentication = ['--apiKey', secrets.keyId, '--apiIssuer', secrets.issuerId];
-      const validation = command('Apple IPA validation', 'xcrun', ['altool', '--validate-app', '--file', ipa, '--type', 'ios', '--output-format', 'json', ...authentication], { cwd: directory });
+      const help = command('Inspect Apple upload tool interface', 'xcrun', ['altool', '--help'], { cwd: directory });
+      const tool = ['altool', ...(/--use-old-altool\b/.test(`${help.stdout}\n${help.stderr}`) ? ['--use-old-altool'] : [])];
+      const validation = command('Apple IPA validation', 'xcrun', [...tool, '--validate-app', '--file', ipa, '--type', 'ios', '--output-format', 'json', ...authentication], { cwd: directory });
       appleValidation = parseAltoolResponse(validation.stdout, validation.stderr, 'validate');
-      const upload = command('Upload to TestFlight processing', 'xcrun', ['altool', '--upload-app', '--file', ipa, '--type', 'ios', '--output-format', 'json', ...authentication], { cwd: directory });
+      const upload = command('Upload to TestFlight processing', 'xcrun', [...tool, '--upload-app', '--file', ipa, '--type', 'ios', '--output-format', 'json', ...authentication], { cwd: directory });
       appleUpload = parseAltoolResponse(upload.stdout, upload.stderr, 'upload');
     }
     privateWrite(join(finalDirectory, 'distribution-summary.json'), JSON.stringify({ bundleId: BUNDLE_ID, teamId: TEAM_ID, build: secrets.build,

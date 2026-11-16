@@ -51,6 +51,14 @@ try {
     const categories = ['invalid-operation', 'response-too-large', 'invalid-json', 'reported-error', 'missing-json', 'missing-explicit-success'];
     report.category = categories.includes(error.category) ? error.category.toUpperCase().replaceAll('-', '_') : 'VALIDATION_RESPONSE_REJECTED';
     report.diagnostics = Array.isArray(error.diagnostics) ? error.diagnostics.filter(value => /^(?:ITMS-[0-9]{4,8}|HTTP-[0-9]{3}|-?[0-9]{1,10})$/.test(String(value))).map(String) : [];
+    const text = `${result.stdout || ''}\n${result.stderr || ''}`;
+    report.appleErrorClass = /no suitable application records|application record.{0,50}(?:not found|missing)/i.test(text) ? 'APP_RECORD_NOT_FOUND'
+      : /authenticat|unauthori[sz]ed|\bJWT\b|invalid.{0,30}(?:token|credentials|API key)/i.test(text) ? 'AUTHENTICATION_FAILED'
+      : /forbidden|insufficient permissions|access denied|not permitted/i.test(text) ? 'FORBIDDEN_ROLE'
+      : /ITMS-[0-9]|invalid.{0,30}(?:bundle|provision|signature)/i.test(text) ? 'BINARY_VALIDATION'
+      : /timed out|network|connection|could not resolve|DNS/i.test(text) ? 'NETWORK_ERROR'
+      : /usage:|unrecognized (?:option|argument)|unknown (?:option|command)/i.test(text) ? 'UNSUPPORTED_COMMAND'
+      : 'UNCLASSIFIED_ERROR';
     throw new Error('VALIDATION_RESPONSE_REJECTED');
   }
   if (result.error || result.status !== 0) throw new Error('VALIDATION_PROCESS_FAILED');
