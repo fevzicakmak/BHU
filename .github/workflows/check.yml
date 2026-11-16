@@ -71,7 +71,7 @@ jobs:
           if [ "$BHU_DEVICE_FAMILY" = "iPhone" ]; then
             python3 scripts/smoke-ios.py ios-build/Build/Products/Debug-iphonesimulator/App.app com.fevzicakmak.bhu --device-family "$BHU_DEVICE_FAMILY" --storage-tests --timeout 1200
           else
-            python3 scripts/smoke-ios.py ios-build/Build/Products/Debug-iphonesimulator/App.app com.fevzicakmak.bhu --device-family "$BHU_DEVICE_FAMILY"
+            python3 scripts/smoke-ios.py ios-build/Build/Products/Debug-iphonesimulator/App.app com.fevzicakmak.bhu --device-family "$BHU_DEVICE_FAMILY" --timeout 900
           fi
       - name: Package simulator bundle preserving executable permissions
         if: matrix.family == 'iPhone'

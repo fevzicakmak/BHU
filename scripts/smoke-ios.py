@@ -6,6 +6,7 @@ TEST COPY of the simulator app, and synthetic on-device data. No distribution
 certificate, production test hooks, StoreKit bypass or real user records are used.
 """
 import argparse
+from collections import Counter
 import errno
 import json
 import os
@@ -14,6 +15,7 @@ import pty
 import re
 import select
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -27,6 +29,49 @@ BAD_STARTUP = re.compile(
     r'WebView (?:failed to load|failed provisional navigation|process terminated)|JS Eval error|'
     r'\b(?:ReferenceError|TypeError|SyntaxError):|Error loading plugin KasaStorage', re.IGNORECASE)
 NATIVE_READ = re.compile(r'To Native\s*->\s+KasaStorage\s+read\b', re.IGNORECASE)
+
+
+def bitmap_paint_metrics(path):
+    """Sample a macOS sips BMP, excluding system status/navigation strips.
+
+    This rejects a uniform WKWebView background; it does not verify individual
+    controls, account text, accessibility or the correctness of the layout.
+    """
+    data = path.read_bytes()
+    if len(data) < 54 or data[:2] != b'BM':
+        raise RuntimeError('Screenshot conversion did not return a BMP image.')
+    offset = struct.unpack_from('<I', data, 10)[0]
+    dib_size, width, signed_height, planes, depth, compression = struct.unpack_from('<IiiHHI', data, 14)
+    height = abs(signed_height)
+    if dib_size < 40 or width <= 0 or height == 0 or planes != 1 or depth not in (24, 32) or compression not in (0, 3):
+        raise RuntimeError(f'Unsupported screenshot BMP: {width}x{height}, {depth}bit, compression={compression}.')
+    pixel_bytes = depth // 8
+    channels = (2, 1, 0)  # Default BMP pixel order is BGR or BGRA.
+    if compression == 3:
+        if depth != 32 or len(data) < 66:
+            raise RuntimeError('Unsupported BMP color masks.')
+        masks = struct.unpack_from('<III', data, 54)
+        shifts = tuple(mask.bit_length() - 8 for mask in masks)
+        if any(shift < 0 or shift % 8 or mask != 255 << shift for mask, shift in zip(masks, shifts)):
+            raise RuntimeError('Screenshot BMP must use full 8bit RGB color channels.')
+        channels = tuple(shift // 8 for shift in shifts)
+        if len(set(channels)) != 3 or max(channels) >= pixel_bytes:
+            raise RuntimeError('Invalid screenshot BMP color channels.')
+    stride = ((width * depth + 31) // 32) * 4
+    if offset < 14 + dib_size or offset + stride * height > len(data):
+        raise RuntimeError('Screenshot BMP pixel data is incomplete.')
+    left, right, top, bottom = width // 10, width * 9 // 10, height // 5, height * 4 // 5
+    colors = Counter()
+    for y in range(top, bottom, max(1, (bottom - top) // 100)):
+        row = y if signed_height < 0 else height - 1 - y
+        for x in range(left, right, max(1, (right - left) // 100)):
+            start = offset + row * stride + x * pixel_bytes
+            colors[tuple(data[start + channel] >> 4 for channel in channels)] += 1
+    samples = sum(colors.values())
+    nonmodal = (samples - max(colors.values(), default=0)) / max(1, samples)
+    return {'width': width, 'height': height, 'centralSampleCount': samples,
+            'quantizedColors': len(colors), 'nonmodalFraction': round(nonmodal, 5),
+            'painted': len(colors) >= 8 and nonmodal >= .01}
 
 
 def main():
@@ -51,7 +96,12 @@ def main():
     console_master = None
     console_log = None
     staging = None
-    metadata = {'bundleId': args.bundle_id, 'hostArchitecture': os.uname().machine, 'deviceFamily': args.device_family, 'timings': []}
+    metadata = {'bundleId': args.bundle_id, 'hostArchitecture': os.uname().machine, 'deviceFamily': args.device_family,
+                'timings': [], 'launches': [],
+                'nativeStorageTests': {'status': 'not-run' if args.storage_tests else 'not-requested'},
+                'doesNotVerify': ['StoreKit purchases or restoration', 'hardware-backed file protection and lock-state enforcement',
+                                 'real-device document/photo/printing flows', 'App Store distribution signing or upload',
+                                 'individual controls, account text, accessibility or layout correctness']}
 
     def command(parts, limit=45, check=True, stage=None, cwd=None, log_path=None):
         remaining = deadline - time.monotonic()
@@ -189,7 +239,7 @@ def main():
         # MobileInstallation are ready. Attach the active Xcode's Simulator UI.
         command(['open', '-a', str(simulator_app), '--args', '-CurrentDeviceUDID', device], limit=20,
                 stage='Attach Simulator UI to owned device')
-        run('bootstatus', device, '-b', limit=180, stage='Wait for OS boot status')
+        run('bootstatus', device, '-b', limit=300, stage='Wait for OS boot status')
         ready_screenshot = ARTIFACTS / 'native-ios-ready.png'
         metadata['readiness'] = {}
         # Give each independent service its own bounded readiness phase. A slow
@@ -234,52 +284,6 @@ def main():
         raw = json.dumps(fixture, separators=(',', ':'), ensure_ascii=False)
         state_file.parent.mkdir(parents=True, exist_ok=True)
         state_file.write_text(raw, encoding='utf-8')
-        environment = os.environ.copy(); environment['SIMCTL_CHILD_NSUnbufferedIO'] = 'YES'
-        records = []
-
-        for attempt in (1, 2):
-            launched_at = time.monotonic()
-            print(f'BEGIN Native cold launch {attempt}', flush=True)
-            log_path = ARTIFACTS / f'native-ios-startup-{attempt}.log'
-            console_log = log_path.open('wb')
-            console_master, slave = pty.openpty()
-            os.set_blocking(console_master, False)
-            try:
-                console = subprocess.Popen(['xcrun', 'simctl', 'launch', '--console-pty', '--terminate-running-process', device, args.bundle_id],
-                                           stdin=slave, stdout=slave, stderr=slave, env=environment, start_new_session=True)
-            finally:
-                os.close(slave)
-            launch_deadline = min(deadline, time.monotonic() + (60 if attempt == 1 else 45))
-            proof = False
-            while time.monotonic() < launch_deadline:
-                pump_console()
-                output = log_path.read_text(encoding='utf-8', errors='replace')
-                if BAD_STARTUP.search(output):
-                    raise RuntimeError(f'Native/JavaScript startup error in {log_path.name}:\n{output[-5000:]}')
-                returned_fixture = any('TO JS' in line and 'raw' in line and marker in line for line in output.splitlines())
-                if NATIVE_READ.search(output) and returned_fixture and 'WebView loaded' in output:
-                    proof = True; break
-                if console.poll() is not None:
-                    raise RuntimeError(f'Console exited before startup proof in {log_path.name}:\n{output[-5000:]}')
-            if not proof:
-                raise RuntimeError(f'Timed out waiting for actual KasaStorage.read and matching TO JS payload: {log_path.name}')
-            settling = time.monotonic() + 2
-            while time.monotonic() < settling:
-                pump_console()
-            output = log_path.read_text(encoding='utf-8', errors='replace')
-            if BAD_STARTUP.search(output) or console.poll() is not None:
-                raise RuntimeError(f'App failed after native storage returned: {log_path.name}')
-            screenshot = ARTIFACTS / ('native-ios-startup.png' if attempt == 1 else 'native-ios-relaunch.png')
-            run('io', device, 'screenshot', '--type=png', str(screenshot), limit=20)
-            if state_file.read_text(encoding='utf-8') != raw:
-                raise RuntimeError('Launching unexpectedly replaced the seeded native snapshot.')
-            records.append({'launch': attempt, 'nativeRead': True, 'fixtureReturnedToJS': True, 'snapshotUnchanged': True,
-                            'screenshot': screenshot.name, 'log': log_path.name})
-            run('terminate', device, args.bundle_id, check=False, limit=15)
-            stop_console()
-            print(f'PASS real native bridge and unchanged persistent snapshot on cold launch {attempt} ({time.monotonic()-launched_at:.2f}s).', flush=True)
-
-        metadata['launches'] = records
         if args.storage_tests:
             metadata['nativeStorageTests'] = {'status': 'running', 'host': 'SwiftPM XCTest runner sandbox'}
             package = ROOT / 'ios' / 'App' / 'CapApp-SPM'
@@ -325,8 +329,91 @@ def main():
             print(f'PASS native storage XCTest: {passed} passed, {skipped} skipped; BHU app snapshot untouched.', flush=True)
         else:
             metadata['nativeStorageTests'] = {'status': 'not-requested'}
-        metadata['doesNotVerify'] = ['StoreKit purchases or restoration', 'hardware-backed file protection and lock-state enforcement',
-                                    'real-device document/photo/printing flows', 'App Store distribution signing or upload']
+
+        environment = os.environ.copy(); environment['SIMCTL_CHILD_NSUnbufferedIO'] = 'YES'
+        records = metadata['launches']
+
+        for attempt in (1, 2):
+            launched_at = time.monotonic()
+            print(f'BEGIN Native cold launch {attempt}', flush=True)
+            log_path = ARTIFACTS / f'native-ios-startup-{attempt}.log'
+            screenshot = ARTIFACTS / ('native-ios-startup.png' if attempt == 1 else 'native-ios-relaunch.png')
+            record = {'launch': attempt, 'nativeRead': False, 'fixtureReturnedToJS': False,
+                      'contentPaintDetected': False, 'snapshotUnchanged': False,
+                      'screenshot': screenshot.name, 'log': log_path.name}
+            records.append(record)
+            console_log = log_path.open('wb')
+            console_master, slave = pty.openpty()
+            os.set_blocking(console_master, False)
+            try:
+                console = subprocess.Popen(['xcrun', 'simctl', 'launch', '--console-pty', '--terminate-running-process', device, args.bundle_id],
+                                           stdin=slave, stdout=slave, stderr=slave, env=environment, start_new_session=True)
+            finally:
+                os.close(slave)
+            launch_deadline = min(deadline, time.monotonic() + (120 if attempt == 1 else 90))
+            proof = False
+            while time.monotonic() < launch_deadline:
+                pump_console()
+                output = log_path.read_text(encoding='utf-8', errors='replace')
+                if BAD_STARTUP.search(output):
+                    raise RuntimeError(f'Native/JavaScript startup error in {log_path.name}:\n{output[-5000:]}')
+                returned_fixture = any('TO JS' in line and 'raw' in line and marker in line for line in output.splitlines())
+                if NATIVE_READ.search(output) and returned_fixture and 'WebView loaded' in output:
+                    proof = True; break
+                if console.poll() is not None:
+                    raise RuntimeError(f'Console exited before startup proof in {log_path.name}:\n{output[-5000:]}')
+            if not proof:
+                raise RuntimeError(f'Timed out waiting for actual KasaStorage.read and matching TO JS payload: {log_path.name}')
+            record.update({'nativeRead': True, 'fixtureReturnedToJS': True, 'webViewLoaded': True})
+            # A completed navigation/native read can precede the first GPU paint
+            # on a fresh simulator. Never accept a uniform native background.
+            paint_deadline = min(deadline, time.monotonic() + 90)
+            paint_attempt = 0
+            last_paint_error = None
+            with tempfile.TemporaryDirectory(prefix='bhu-ios-paint-') as paint_directory:
+                bitmap = Path(paint_directory) / 'screenshot.bmp'
+                while time.monotonic() < paint_deadline:
+                    paint_attempt += 1
+                    pump_console(0)
+                    output = log_path.read_text(encoding='utf-8', errors='replace')
+                    if BAD_STARTUP.search(output) or console.poll() is not None:
+                        raise RuntimeError(f'App failed while waiting for content paint: {log_path.name}')
+                    try:
+                        screenshot.unlink(missing_ok=True)
+                        bitmap.unlink(missing_ok=True)
+                        remaining = max(.1, paint_deadline-time.monotonic())
+                        run('io', device, 'screenshot', '--type=png', str(screenshot), limit=min(20, remaining),
+                            stage=f'Cold launch {attempt} paint screenshot {paint_attempt}')
+                        remaining = max(.1, paint_deadline-time.monotonic())
+                        command(['sips', '-s', 'format', 'bmp', str(screenshot), '--out', str(bitmap)],
+                                limit=min(15, remaining), stage=f'Cold launch {attempt} inspect screenshot {paint_attempt}')
+                        metrics = bitmap_paint_metrics(bitmap)
+                        record['paint'] = {**metrics, 'attempts': paint_attempt}
+                        print(f'Content paint sample: {json.dumps(metrics, sort_keys=True)}', flush=True)
+                        if metrics['painted']:
+                            record['contentPaintDetected'] = True
+                            break
+                        last_paint_error = f'Uniform or insufficient central content: {metrics}'
+                    except (RuntimeError, TimeoutError) as error:
+                        last_paint_error = str(error)
+                        print(f'Content paint not ready: {error}', flush=True)
+                    retry_at = min(paint_deadline, time.monotonic()+2)
+                    while time.monotonic() < retry_at:
+                        pump_console()
+                else:
+                    raise RuntimeError(f'Content paint did not appear within its 90s budget: {last_paint_error}')
+            pump_console(0)
+            output = log_path.read_text(encoding='utf-8', errors='replace')
+            if BAD_STARTUP.search(output) or console.poll() is not None:
+                raise RuntimeError(f'App failed after native storage returned: {log_path.name}')
+            if state_file.read_text(encoding='utf-8') != raw:
+                raise RuntimeError('Launching unexpectedly replaced the seeded native snapshot.')
+            record['snapshotUnchanged'] = True
+            run('terminate', device, args.bundle_id, check=False, limit=15)
+            stop_console()
+            print(f'PASS real native bridge and unchanged persistent snapshot on cold launch {attempt} ({time.monotonic()-launched_at:.2f}s).', flush=True)
+
+        metadata['launches'] = records
         if metadata['nativeStorageTests']['status'] != 'passed':
             metadata['doesNotVerify'].append('native writes, compare-and-swap and write-failure preservation')
         (ARTIFACTS / 'native-ios-startup.json').write_text(json.dumps(metadata, indent=2) + '\n', encoding='utf-8')
@@ -334,6 +421,8 @@ def main():
     except Exception as error:
         if metadata.get('nativeStorageTests', {}).get('status') == 'running':
             metadata['nativeStorageTests']['status'] = 'failed'
+        if metadata['nativeStorageTests']['status'] != 'passed':
+            metadata['doesNotVerify'].append('native writes, compare-and-swap and write-failure preservation')
         diagnostics(error)
         raise
     finally:
