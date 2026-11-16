@@ -239,7 +239,8 @@ def main():
         # MobileInstallation are ready. Attach the active Xcode's Simulator UI.
         command(['open', '-a', str(simulator_app), '--args', '-CurrentDeviceUDID', device], limit=20,
                 stage='Attach Simulator UI to owned device')
-        run('bootstatus', device, '-b', limit=300, stage='Wait for OS boot status')
+        command(['xcrun', 'simctl', 'bootstatus', device, '-b'], limit=300,
+                stage='Wait for OS boot status', log_path=ARTIFACTS / 'native-ios-bootstatus.log')
         ready_screenshot = ARTIFACTS / 'native-ios-ready.png'
         metadata['readiness'] = {}
         # Give each independent service its own bounded readiness phase. A slow
