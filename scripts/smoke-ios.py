@@ -474,6 +474,10 @@ def main():
                     if BAD_STARTUP.search(output) or console.poll() is not None:
                         raise RuntimeError(f'App failed while waiting for content paint: {log_path.name}')
                     try:
+                        # Only capture evidence after two stable, ready DOM
+                        # readings. A later good reading must not validate an
+                        # earlier screenshot taken while insets were missing.
+                        safe_area_layout(output, metadata['deviceType'])
                         screenshot.unlink(missing_ok=True)
                         bitmap.unlink(missing_ok=True)
                         remaining = max(.1, paint_deadline-time.monotonic())
