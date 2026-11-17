@@ -17,6 +17,17 @@ try {
   const kid = process.env.APP_STORE_CONNECT_KEY_ID?.trim();
   const issuer = process.env.APP_STORE_CONNECT_ISSUER_ID?.trim();
   const pem = process.env.APP_STORE_CONNECT_PRIVATE_KEY?.trim();
+  const expectedKeyHash = process.env.BHU_EXPECTED_API_KEY_HASH?.trim();
+  const expectedIssuerHash = process.env.BHU_EXPECTED_API_ISSUER_HASH?.trim();
+  if (expectedKeyHash || expectedIssuerHash) {
+    if (![expectedKeyHash, expectedIssuerHash].every(value => /^[0-9a-f]{64}$/.test(value || ''))) throw new Error('INVALID_EXPECTED_ID_HASHES');
+    const hash = value => createHash('sha256').update(value || '').digest('hex');
+    report.apiIdentifierChecks = {
+      keyIdMatchesActiveKey: hash(kid) === expectedKeyHash,
+      issuerIdMatchesTeam: hash(issuer?.toLowerCase()) === expectedIssuerHash,
+    };
+    if (!report.apiIdentifierChecks.keyIdMatchesActiveKey || !report.apiIdentifierChecks.issuerIdMatchesTeam) throw new Error('API_IDENTIFIER_MISMATCH');
+  }
   if (!/^[A-Z0-9]{10}$/.test(kid || '') || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(issuer || '')) throw new Error('INVALID_API_IDENTIFIERS');
   let key;
   try { key = createPrivateKey(pem); } catch (_) { throw new Error('INVALID_API_KEY'); }
@@ -67,7 +78,7 @@ try {
   if (!report.accepted) throw new Error('VALIDATION_NOT_ACCEPTED');
   console.log('Apple explicitly confirmed validation of existing BHU 1.0 (3.1).');
 } catch (error) {
-  const allowed = ['MACOS_REQUIRED', 'TRUSTED_MANUAL_RUN_REQUIRED', 'INVALID_API_IDENTIFIERS', 'INVALID_API_KEY', 'EXISTING_IPA_DIGEST_MISMATCH', 'UNSUPPORTED_TOOL_INTERFACE', 'VALIDATION_RESPONSE_REJECTED', 'VALIDATION_PROCESS_FAILED', 'VALIDATION_NOT_ACCEPTED'];
+  const allowed = ['MACOS_REQUIRED', 'TRUSTED_MANUAL_RUN_REQUIRED', 'INVALID_EXPECTED_ID_HASHES', 'API_IDENTIFIER_MISMATCH', 'INVALID_API_IDENTIFIERS', 'INVALID_API_KEY', 'EXISTING_IPA_DIGEST_MISMATCH', 'UNSUPPORTED_TOOL_INTERFACE', 'VALIDATION_RESPONSE_REJECTED', 'VALIDATION_PROCESS_FAILED', 'VALIDATION_NOT_ACCEPTED'];
   report.failure = allowed.includes(error.message) ? error.message : 'VALIDATION_DIAGNOSTICS_FAILED';
   console.error(report.failure);
   process.exitCode = 1;

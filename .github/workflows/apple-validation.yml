@@ -2,6 +2,15 @@ name: iOS Apple validation diagnostics
 
 on:
   workflow_dispatch:
+    inputs:
+      expected_key_hash:
+        description: Optional SHA-256 of the owner-confirmed active Key ID
+        type: string
+        required: false
+      expected_issuer_hash:
+        description: Optional SHA-256 of the owner-confirmed normalized Issuer ID
+        type: string
+        required: false
 
 permissions:
   contents: read
@@ -36,6 +45,8 @@ jobs:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          BHU_EXPECTED_API_KEY_HASH: ${{ inputs.expected_key_hash }}
+          BHU_EXPECTED_API_ISSUER_HASH: ${{ inputs.expected_issuer_hash }}
         run: node scripts/ios-apple-validation.mjs
       - name: Keep the sanitized validation report
         if: always()
