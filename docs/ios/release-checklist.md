@@ -89,17 +89,17 @@ Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı ş
 - [x] [Mac CI 43874034746 / job 133322286941](https://github.com/fevzicakmak/BHU/actions/runs/43874034746/job/133322286941), kaynak `7e5943e2744fc0bb6505236429f45e224fedd28c` için **9/9 sentetik imzalama politikası/P12 uyumluluk testini, 0 hata/0 atlama ile** geçti; modern P12 aynı üretim dönüşümünden sonra Mac keychain'e alındı. Debug/Release Team/Automatic/Bundle ID ayarları imzalama kapalıyken tekrar doğru çözüldü. Gerçek Apple sertifikası/profili/API anahtarı kullanılmadı; gerçek imzalı pipeline bu maddeyle tamamlanmaz.
 - [x] Gerçek Apple Distribution sertifikasının Team/geçerlilik ve aynı CSR ile eşleşmesi, şifreli P12 ve App Store profilinin resmî imza zinciri/Team/Bundle ID/sertifika eşleşmesi doğrulandı; özel bilgiler yayımlanmadı.
 - [x] Kullanıcı P12/parola/profil için üç repository Secrets kaydını tamamladığını bildirdi; bağımsız Secrets listesi doğrulaması yapılmadı.
-- [x] [Mac CI 43945652513 / job 133574498195](https://github.com/fevzicakmak/BHU/actions/runs/43945652513/job/133574498195), kaynak `3be76547d3b5e8c9323cf1e9c44210aaef338cd3` için 10/10 test, 0 hata/0 atlama ve gerçek kimlik/profil eşleşmesi başarılı.
-- [x] Gerçek imzalı Archive ve 49 arşiv kontrolü başarılı; IPA export ve `codesign --verify --deep --strict` geçti. Gömülü profil, Team/Bundle yetkileri ve imzalayan sertifika eşleşmesi doğrulandı; [BHU-AppStore-IPA](https://github.com/fevzicakmak/BHU/actions/runs/43945652513/artifacts/14265645219) içindeki **1.0 / build 3.1** IPA ve özet bağımsız olarak da incelendi; özel anahtar/Secrets veya test içeriği bulunmadı (artifact son erişim: 23 Kasım 2026, 20:05 UTC).
-- [ ] Apple sunucu doğrulaması gerçek yanıtı çözümlenerek kabul edildi. `upload_to_testflight=true` işinde komut çıkış kodu 0 görüldü, ancak yanıt/teslim alındısı doğrulanmadı; CI yeşil olması bu maddeyi tamamlamaz.
-- [ ] Gerçek **1.0 / build 3.1** imzalı IPA için Apple yükleme kabulü/teslim alındısı doğrulandı. Kullanıcının BHU → TestFlight ekranında **No Builds** görünüyor; çıkış kodu 0 tek başına yükleme kanıtı değildir.
-- [ ] Salt okunur [durum sorgusu](https://github.com/fevzicakmak/BHU/actions/runs/43949331627/job/133587320669) Apple API'den işleme sonucu aldı. Yardımcının 14 testi geçti fakat canlı uygulama sorgusu HTTP 401 ile reddedildi; bu, işleme sonucu değildir. Kullanıcının BHU → TestFlight ekranında **No Builds** görüldü; build'in ulaştığı doğrulanmadı.
-- [ ] App Store Connect işlemeyi tamamladı ve TestFlight için hazır; şu anda yükleme kabulü ve bu sonuç bilinmiyor; **No Builds** görünüyor. Privacy/SDK/ikon/yetenek ve beta hazırlığı ayrıca kontrol edilir.
+- [x] [Mac yükleme 44066603228](https://github.com/fevzicakmak/BHU/actions/runs/44066603228/job/133981767444), kaynak `2fd4ff8139d941470d858e63fb59380ff068ccdd`: 15/15 Mac testi, 0 hata/0 atlama; gerçek imzalı Archive/49 kontrol/export/codesign/profil/Team/Bundle doğrulandı. [IPA artifact'ı](https://github.com/fevzicakmak/BHU/actions/runs/44066603228/artifacts/14320937112) **1.0 / build 4.1** olarak bağımsız incelendi.
+- [x] Gerçek yapılandırılmış Apple yanıtlarında doğrulama ve yükleme ayrı ayrı `accepted=true`, hata kodları boş.
+- [x] [canlı build durumu 44067395725](https://github.com/fevzicakmak/BHU/actions/runs/44067395725/job/133984517485) doğru BHU/bundle için 1.0/4.1 `found=true`, `processingState=VALID`, `internalBuildState=READY_FOR_BETA_TESTING`, `expired=false` ve `usesNonExemptEncryption=false` doğruladı.
+- [ ] Hesap sahibinin dahili grup/testçi ataması ve **4.1** seçimi tamamlandı; otomatik davet veya e-posta gönderilmedi.
+- [ ] Gerçek cihazda TestFlight kurulum/kayıt/yeniden açma ve satın alma kabulü tamamlandı.
+- [ ] Dış test/Beta App Review tamamlandı; mevcut `READY_FOR_BETA_SUBMISSION` yalnız dış incelemeye gönderilmeye hazırlık durumudur.
 - [ ] TestFlight iç test gerçekleştirildi. Dış test seçilirse gerekli Beta App Review süreci tamamlandı.
 - [ ] Gerçek StoreKit sandbox/TestFlight satın alma ve geri yükleme akışı doğrulandı; yerel StoreKit testiyle karıştırılmadı.
 - [ ] Crash ve veri kaybı bulguları çözüldü; son test edilen build ile gönderilecek build aynı.
 
-Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; Team ID çözümlemesi ayrı Mac CI kontrolüyle doğrulansa da gerçek imzalı Archive/export/IPA ayrı 43945652513 çalıştırmasında doğrulandı, Apple doğrulaması/upload kabulü çözümlenmiş gerçek yanıtla doğrulanmadı; App Store Connect işlemesi ve TestFlight hazırlığı bilinmiyor; son imzalı gönderim arşivi yeniden doğrulanmalıdır.
+Arşiv ve simülatör kanıtları belirtilen hash'lere aittir. Güncel 4.1 için gerçek imzalı Archive/export/IPA ve Apple yüklemesi 44066603228 çalıştırmasında, tamamlanmış işleme ve dahili TestFlight hazırlığı 44067395725 sorgusunda doğrulandı. Gerçek cihaz/testçi ve inceleme aşamaları ayrıdır; sonraki gönderimlerde gönderilecek arşiv ayrıca doğrulanmalıdır.
 
 ## 6. Son gönderim
 
