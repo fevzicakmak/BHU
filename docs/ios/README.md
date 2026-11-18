@@ -43,7 +43,9 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 
 ## Son incelenen doğrulama kanıtı
 
-**Güncel TestFlight kanıtı:** `2fd4ff8139d941470d858e63fb59380ff068ccdd` kaynağında [Mac yükleme 44066603228](https://github.com/fevzicakmak/BHU/actions/runs/44066603228/job/133981767444) başarılı: **15/15 Mac testi, 0 hata/0 atlama**; gerçek Apple JSON yanıtlarında doğrulama ve yükleme `accepted=true`, hata kodları boş. [Doğrulanan IPA artifact'ı](https://github.com/fevzicakmak/BHU/actions/runs/44066603228/artifacts/14320937112) **1.0 / build 4.1** içerir (son erişim 24 Kasım 2026, 10:41:37 UTC). [canlı build durumu 44067395725](https://github.com/fevzicakmak/BHU/actions/runs/44067395725/job/133984517485), doğru BHU uygulaması/bundle için **found=true**, **processingState=VALID**, **internalBuildState=READY_FOR_BETA_TESTING**, **externalBuildState=READY_FOR_BETA_SUBMISSION**, `expired=false` ve `usesNonExemptEncryption=false` döndürdü. Apple yüklemesi, işleme ve dahili teste hazırlık doğrulandı; dış Beta App Review, testçi ataması, cihaz kurulumu, gerçek satın alma, App Review ve herkese açık yayın tamamlanmış sayılmaz.
+**18 Kasım güncel TestFlight kanıtı:** `c4d09beeb27ef6571210b83f31ce6357a406a2e0` kaynağında [yükleme 44312503648](https://github.com/fevzicakmak/BHU/actions/runs/44312503648/job/134829998804) başarılı: **15/15 Mac testi, 0 hata/0 atlama**. Gerçek Apple doğrulama/yükleme yanıtlarında `accepted=true`; iki işlemdeki **90725 SDK bildirimi kabulü engellemedi**. [IPA artifact'ı](https://github.com/fevzicakmak/BHU/actions/runs/44312503648/artifacts/14431257071) **1.0 / build 5.1** içerir (son erişim 25 Kasım 2026, 13:24:53 UTC). [Güncel canlı Apple sorgusu 44341875903](https://github.com/fevzicakmak/BHU/actions/runs/44341875903/job/134933774627), doğru BHU/bundle için `found=true`, **processingState=VALID**, **expired=false**, **internalBuildState=IN_BETA_TESTING**, **externalBuildState=READY_FOR_BETA_SUBMISSION** ve `usesNonExemptEncryption=false` doğruladı. Yükleme/işleme tamamlandı, dahili dağıtım aktif. Kullanıcının ekranında grup ve **bir davet** görüldü; kendi alıcı hesabı, e-posta teslimi/kabulü ve cihaz kurulumu doğrulanmadı. Dış Beta App Review, gerçek satın alma, App Review ve herkese açık yayın tamamlanmış sayılmaz.
+
+**Önceki build:** 4.1, 17 Kasım'da hazırdı; [18 Kasım sorgusunda](https://github.com/fevzicakmak/BHU/actions/runs/44312149712/job/134828758919) **Expired** görüldü. Sona erme nedeni doğrulanmadı; güncel kurulum sürümü 5.1'dir.
 
 16 Kasım 2026 tarihli [CI 43864667196](https://github.com/fevzicakmak/BHU/actions/runs/43864667196), kod `d0d4bbb1e595adf501e0224263e245bea3f96826` için aşağıdaki sonuçları verdi. iPhone güvenli alan düzeltmesi aynı üretim Swift/CSS/config dosyalarını taşıyan `a0d18d2` çalıştırmasında geçti. `d0d4bbb1` yalnız test yardımcı betiğinin ekran öncesi ölçüm sırasını sıkılaştırır; bu son iPhone işi iki denemede de OS açılışında başarısız oldu, dolayısıyla son CI matrisinin tamamı başarılı değildir.
 
@@ -65,7 +67,7 @@ Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; Team ID ayar çö
 
 [Gizlilik](https://fevzicakmak.github.io/BHU/privacy.html) ve [destek](https://fevzicakmak.github.io/BHU/support.html) sayfaları 15 Kasım 2026'da canlı HTTP 200, onaylı kimlik/e-posta ve mobil taşma kontrolünden geçti.
 
-Önceki 3.1 CLI çıkış kodu yükleme kabulü sayılmadı. Güncel **4.1** için ayrı gerçek Apple yükleme yanıtı ve canlı REST durumu doğrulandı; mevcut sürüm dahili TestFlight testi için hazırdır.
+Önceki 3.1 CLI çıkış kodu yükleme kabulü sayılmadı. Güncel **5.1** Apple yükleme yanıtı ve canlı REST sorgusuyla doğrulandı; **VALID**, süresi dolmamış ve dahili dağıtımı **IN_BETA_TESTING** durumundadır. Bu, gerçek cihaz testi veya dış Beta App Review onayı değildir.
 
 ## Kopyalanabilir mağaza alanları
 
@@ -73,7 +75,7 @@ Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; Team ID ayar çö
 
 ## Tamamlanması gereken mağaza adımları
 
-1. İmzalı **4.1** IPA, Apple yüklemesi/işlemesi ve dahili teste hazırlık tamamlandı; sıradaki adım dahili testçi/grup ataması ve cihaz testidir; kullanıcı tarafından tamamlandığı bildirilen Bundle ID/BHU uygulama kaydı yeniden oluşturulmaz.
+1. 5.1 yüklemesi/işlemesi tamamlandı ve dahili dağıtımı aktif; grup/bir davet görünür. Sıradaki adım kendi davetini kabul edip cihazda kurmak ve test etmektir; kullanıcı tarafından tamamlandığı bildirilen Bundle ID/BHU uygulama kaydı yeniden oluşturulmaz.
 2. Mevcut Çoklu Hesap ürününde hedef 149,99 TL fiyat seçiminin son **Save** ile kaydı ve ürünün uygulama sürümüyle incelemeye eklenmesi. Kullanıcı BHU ve satın alma ürününden AB ülkelerini çıkardığını bildirdi; diğer uygun ülkeler korunur.
 3. Gerçek cihaz/TestFlight kabulü ve son imzalı build'e ait App Privacy / export-compliance yanıtları.
 4. iPhone/iPad gerçek ekran görüntüleri, son sürüm ve mağaza gönderimi.
@@ -84,6 +86,6 @@ Mağaza metni ve kontrol listeleri bu adımları yapılmış saymaz. Gizlilik ve
 
 1. Ürün ana sayfasındaki son **Save** adımının tamamlandığı bilgisi; 149,99 TL seçimi için **Next → Confirm** yapıldığı ve BHU/satın alma ürününden AB ülkelerinin çıkarıldığı zaten bildirildi.
 2. Diğer uygulamada da AB ülkelerinin çıkarıldığı bildirildi; hesap genelindeki DSA son onayı henüz doğrulanmadı. Paid Apps Agreement, banka ve W-8BEN için **Active** durumu önceki ekran görüntüsünde görüldü.
-3. İmzalı IPA üretiminde kullanılan sertifika/profil/Secrets yeniden hazırlanmaz; API Secrets CLI çağrılarında kullanıldı; Apple yüklemesi/işlemesi ve dahili TestFlight hazırlığı doğrulandı; testçi ataması/kurulum ve gerçek cihaz kabulü ayrıdır; Team ID, Bundle ID, BHU uygulaması veya ürün kimliği yeniden istenmez.
+3. İmzalı IPA üretiminde kullanılan sertifika/profil/Secrets yeniden hazırlanmaz; API Secrets CLI çağrılarında kullanıldı; 5.1 Apple yüklemesi/işlemesi ve aktif dahili dağıtım doğrulandı; grup/bir davet vardır, kendi alıcı hesabı/davet kabulü/cihaz kurulumu ayrıca doğrulanmalıdır; Team ID, Bundle ID, BHU uygulaması veya ürün kimliği yeniden istenmez.
 
 Team ID `T4F4D367KQ` kayıtlıdır; Bundle ID ve BHU uygulama kaydı kullanıcı bildirimine, Product ID ve ürün Apple ID'si görülen ekran görüntüsüne dayanır. BHU uygulaması/bundle eşleşmesi artık REST API ile doğrulandı; bu sorgu fiyat/bölge veya StoreKit kabulü değildir. Apple parolası, dağıtım özel anahtarı ve API özel anahtarı belgeye/sohbete yazılmaz; gereken gizli bilgiler yalnız güvenli GitHub Secrets akışıyla sağlanır.

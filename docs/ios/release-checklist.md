@@ -89,17 +89,18 @@ Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı ş
 - [x] [Mac CI 43874034746 / job 133322286941](https://github.com/fevzicakmak/BHU/actions/runs/43874034746/job/133322286941), kaynak `7e5943e2744fc0bb6505236429f45e224fedd28c` için **9/9 sentetik imzalama politikası/P12 uyumluluk testini, 0 hata/0 atlama ile** geçti; modern P12 aynı üretim dönüşümünden sonra Mac keychain'e alındı. Debug/Release Team/Automatic/Bundle ID ayarları imzalama kapalıyken tekrar doğru çözüldü. Gerçek Apple sertifikası/profili/API anahtarı kullanılmadı; gerçek imzalı pipeline bu maddeyle tamamlanmaz.
 - [x] Gerçek Apple Distribution sertifikasının Team/geçerlilik ve aynı CSR ile eşleşmesi, şifreli P12 ve App Store profilinin resmî imza zinciri/Team/Bundle ID/sertifika eşleşmesi doğrulandı; özel bilgiler yayımlanmadı.
 - [x] Kullanıcı P12/parola/profil için üç repository Secrets kaydını tamamladığını bildirdi; bağımsız Secrets listesi doğrulaması yapılmadı.
-- [x] [Mac yükleme 44066603228](https://github.com/fevzicakmak/BHU/actions/runs/44066603228/job/133981767444), kaynak `2fd4ff8139d941470d858e63fb59380ff068ccdd`: 15/15 Mac testi, 0 hata/0 atlama; gerçek imzalı Archive/49 kontrol/export/codesign/profil/Team/Bundle doğrulandı. [IPA artifact'ı](https://github.com/fevzicakmak/BHU/actions/runs/44066603228/artifacts/14320937112) **1.0 / build 4.1** olarak bağımsız incelendi.
-- [x] Gerçek yapılandırılmış Apple yanıtlarında doğrulama ve yükleme ayrı ayrı `accepted=true`, hata kodları boş.
-- [x] [canlı build durumu 44067395725](https://github.com/fevzicakmak/BHU/actions/runs/44067395725/job/133984517485) doğru BHU/bundle için 1.0/4.1 `found=true`, `processingState=VALID`, `internalBuildState=READY_FOR_BETA_TESTING`, `expired=false` ve `usesNonExemptEncryption=false` doğruladı.
-- [ ] Hesap sahibinin dahili grup/testçi ataması ve **4.1** seçimi tamamlandı; otomatik davet veya e-posta gönderilmedi.
+- [x] `c4d09beeb27ef6571210b83f31ce6357a406a2e0` / [yükleme 44312503648](https://github.com/fevzicakmak/BHU/actions/runs/44312503648/job/134829998804): 15/15 Mac testi, 0 hata/0 atlama; gerçek imza/Archive/49 kontrol/export doğrulandı. [IPA artifact'ı](https://github.com/fevzicakmak/BHU/actions/runs/44312503648/artifacts/14431257071) **1.0 / build 5.1** olarak bağımsız incelendi.
+- [x] Gerçek Apple doğrulama/yükleme yanıtlarında `accepted=true`; her iki işlemde 90725 SDK bildirimi var ve mevcut kabulü engellemedi. Bildirimler boş olarak yazılmaz.
+- [x] [Canlı Apple durumu 44341875903](https://github.com/fevzicakmak/BHU/actions/runs/44341875903/job/134933774627), doğru BHU/bundle/1.0/5.1 için `found=true`, `VALID`, `expired=false`, `IN_BETA_TESTING`, dış test için `READY_FOR_BETA_SUBMISSION` ve `usesNonExemptEncryption=false` doğruladı.
+- [x] Kullanıcının ekranında dahili grup ve bir davet görüldü; bu çalışma otomatik davet/e-posta göndermedi.
+- [ ] Kendi davetinin alıcı kimliği, e-posta teslimi/kabulü ve 5.1 cihaz kurulumu doğrulandı.
 - [ ] Gerçek cihazda TestFlight kurulum/kayıt/yeniden açma ve satın alma kabulü tamamlandı.
-- [ ] Dış test/Beta App Review tamamlandı; mevcut `READY_FOR_BETA_SUBMISSION` yalnız dış incelemeye gönderilmeye hazırlık durumudur.
+- [ ] Dış test/Beta App Review tamamlandı; 5.1 için `READY_FOR_BETA_SUBMISSION` yalnız başvuruya hazırlık durumudur, inceleme onayı değildir.
 - [ ] TestFlight iç test gerçekleştirildi. Dış test seçilirse gerekli Beta App Review süreci tamamlandı.
 - [ ] Gerçek StoreKit sandbox/TestFlight satın alma ve geri yükleme akışı doğrulandı; yerel StoreKit testiyle karıştırılmadı.
 - [ ] Crash ve veri kaybı bulguları çözüldü; son test edilen build ile gönderilecek build aynı.
 
-Arşiv ve simülatör kanıtları belirtilen hash'lere aittir. Güncel 4.1 için gerçek imzalı Archive/export/IPA ve Apple yüklemesi 44066603228 çalıştırmasında, tamamlanmış işleme ve dahili TestFlight hazırlığı 44067395725 sorgusunda doğrulandı. Gerçek cihaz/testçi ve inceleme aşamaları ayrıdır; sonraki gönderimlerde gönderilecek arşiv ayrıca doğrulanmalıdır.
+Arşiv ve simülatör kanıtları belirtilen hash'lere aittir. Güncel 5.1 imzalı IPA, Apple kabulü ve aktif dahili dağıtım gerçek yanıtlarla doğrulandı. Önceki 4.1, 18 Kasım sorgusunda Expired görüldü; neden doğrulanmadı. Gerçek cihaz/testçi ve inceleme aşamaları ayrıdır; sonraki gönderimlerde gönderilecek arşiv ayrıca doğrulanmalıdır.
 
 ## 6. Son gönderim
 

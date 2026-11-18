@@ -2,15 +2,17 @@
 
 Mac sahibi olmanız gerekmez; derleme GitHub'ın macOS runner'ında yapılır. Mevcut özel CSR/sertifika/P12/profil hazırlığı tamamlandı; aşağıdaki Codespaces yolu gerektiğinde alternatif hazırlık içindir, hazır dosyaları yeniden üretmeniz gerekmez. Aşağıdaki hazırlıklar tarayıcıdaki GitHub Codespaces Linux terminalinden yapılabilir. Bunun için **Codespaces erişimi**, depoda Actions/Secrets yönetme yetkisi, kullanılabilir GitHub macOS Actions runner'ı ve **T4F4D367KQ takımında Apple Certificates, Identifiers & Profiles yetkisi** gerekir. TestFlight yüklemesi ayrıca App Store Connect API anahtarı oluşturma/yükleme yetkisi ister. Yalnız telefonda normal GitHub dosya sayfasını açmak terminal yerine geçmez; Codespaces açıp terminaline erişmelisiniz.
 
-Bu rehber ve workflow hazırlığı Apple hesabınızda sertifika, profil, uygulama veya satın alma ürünü oluşturmaz. Hiçbiri otomatik oluşturulmaz veya iptal edilmez; portal adımlarını hesap sahibi yapar. Güncel **1.0 / build 4.1** gerçek Apple yanıtıyla kabul edildi; canlı REST sorgusunda işleme **VALID** ve dahili test durumu **READY_FOR_BETA_TESTING** olarak doğrulandı.
+Bu rehber ve workflow hazırlığı Apple hesabınızda sertifika, profil, uygulama veya satın alma ürünü oluşturmaz. Hiçbiri otomatik oluşturulmaz veya iptal edilmez; portal adımlarını hesap sahibi yapar. Güncel **1.0 / build 5.1** gerçek Apple yanıtlarıyla kabul edildi; canlı REST sorgusunda **VALID**, `expired=false` ve **IN_BETA_TESTING** doğrulandı. Dahili dağıtım aktif, cihaz kurulumu henüz doğrulanmadı.
 
 Hazırlık kanıtı: `7e5943e2744fc0bb6505236429f45e224fedd28c` kaynağında [Mac CI 43874034746 / job 133322286941](https://github.com/fevzicakmak/BHU/actions/runs/43874034746/job/133322286941) **9/9 sentetik politika/uyumluluk testini, 0 hata ve 0 atlama ile** geçti. Modern AES-256/SHA-256 P12, üretimdeki aynı dönüşüm yardımcısından geçirilerek Mac keychain'e başarıyla alındı; Debug/Release Team/Automatic/Bundle ID ayarları imzalama kapalıyken tekrar doğrulandı. Gerçek Apple sertifikası, profili veya API anahtarı kullanılmadı; bu testler gerçek imzalı archive/export/upload veya Apple hesabına erişim kanıtı değildir.
 
-**Güncel TestFlight kanıtı:** `2fd4ff8139d941470d858e63fb59380ff068ccdd` kaynağında [Mac yükleme 44066603228](https://github.com/fevzicakmak/BHU/actions/runs/44066603228/job/133981767444) başarılı: **15/15 Mac testi, 0 hata/0 atlama**; gerçek Apple JSON yanıtlarında doğrulama ve yükleme `accepted=true`, hata kodları boş. [Doğrulanan IPA artifact'ı](https://github.com/fevzicakmak/BHU/actions/runs/44066603228/artifacts/14320937112) **1.0 / build 4.1** içerir (son erişim 24 Kasım 2026, 10:41:37 UTC). [canlı build durumu 44067395725](https://github.com/fevzicakmak/BHU/actions/runs/44067395725/job/133984517485), doğru BHU uygulaması/bundle için **found=true**, **processingState=VALID**, **internalBuildState=READY_FOR_BETA_TESTING**, **externalBuildState=READY_FOR_BETA_SUBMISSION**, `expired=false` ve `usesNonExemptEncryption=false` döndürdü. Apple yüklemesi, işleme ve dahili teste hazırlık doğrulandı; dış Beta App Review, testçi ataması, cihaz kurulumu, gerçek satın alma, App Review ve herkese açık yayın tamamlanmış sayılmaz.
+**18 Kasım güncel TestFlight kanıtı:** `c4d09beeb27ef6571210b83f31ce6357a406a2e0` kaynağında [yükleme 44312503648](https://github.com/fevzicakmak/BHU/actions/runs/44312503648/job/134829998804) başarılı: **15/15 Mac testi, 0 hata/0 atlama**. Gerçek Apple doğrulama/yükleme yanıtlarında `accepted=true`; iki işlemdeki **90725 SDK bildirimi kabulü engellemedi**. [IPA artifact'ı](https://github.com/fevzicakmak/BHU/actions/runs/44312503648/artifacts/14431257071) **1.0 / build 5.1** içerir (son erişim 25 Kasım 2026, 13:24:53 UTC). [Güncel canlı Apple sorgusu 44341875903](https://github.com/fevzicakmak/BHU/actions/runs/44341875903/job/134933774627), doğru BHU/bundle için `found=true`, **processingState=VALID**, **expired=false**, **internalBuildState=IN_BETA_TESTING**, **externalBuildState=READY_FOR_BETA_SUBMISSION** ve `usesNonExemptEncryption=false` doğruladı. Yükleme/işleme tamamlandı, dahili dağıtım aktif. Kullanıcının ekranında grup ve **bir davet** görüldü; kendi alıcı hesabı, e-posta teslimi/kabulü ve cihaz kurulumu doğrulanmadı. Dış Beta App Review, gerçek satın alma, App Review ve herkese açık yayın tamamlanmış sayılmaz.
+
+**Önceki build:** 4.1, 17 Kasım'da hazırdı; [18 Kasım sorgusunda](https://github.com/fevzicakmak/BHU/actions/runs/44312149712/job/134828758919) **Expired** görüldü. Sona erme nedeni doğrulanmadı; güncel kurulum sürümü 5.1'dir.
 
 ## 1. Apple kayıtlarını tamamlayın
 
-Önceki 3.1 CLI sonucu yükleme kanıtı sayılmadı. Güncel 4.1 yüklemesi ayrı gerçek Apple yanıtı ve canlı REST sorgusuyla doğrulandı; dış test durumu **READY_FOR_BETA_SUBMISSION**, dış Beta App Review onayı değildir.
+Önceki 3.1 CLI sonucu yükleme kanıtı sayılmadı. 4.1 Expired tarihsel durumdur. Güncel 5.1 için dış durum **READY_FOR_BETA_SUBMISSION**, dış Beta App Review onayı değildir.
 
 Team ID **T4F4D367KQ** koddadır. Kullanıcı **com.fevzicakmak.bhu** Bundle ID kaydını ve **BHU** App Store Connect uygulamasını tamamladığını bildirdi. Mevcut **Non-Consumable** ürün **com.fevzicakmak.bhu.multipleaccounts** ve ürün Apple ID'si **6835484249** ekran görüntüsünde görüldü; durum **Prepare for Submission**. Türkçe ad/açıklama **Display Name and Description → Add** üzerinden kaydedildiği bildirildi. Bu kayıtları yeniden oluşturmayın.
 
@@ -18,7 +20,7 @@ Bir ana hesap ve alt hesapları ücretsizdir; ikinci ana hesap için tek seferli
 
 Kullanıcı BHU, uygulama içi satın alım ve diğer uygulamasından **AB ülkelerini çıkardığını** bildirdi; diğer uygun ülkeler korunur. AB'de dağıtım yapmama gerekçesiyle birleşik ikinci DSA seçeneği için yönerge verildi, fakat kullanıcı son onayı tamamladığını bildirmedi; DSA tamamlanmış sayılmaz. Bölge değişiklikleri bağımsız doğrulanmadı.
 
-Önceki ekran görüntüsünde **Paid Apps Agreement: Active**, **banka: Active**, **W-8BEN: Active** görüldü; yeniden sözleşme veya ürün oluşturmayın. [App Store Connect rehberindeki](app-store-connect-setup.tr.md) son ürün **Save** ve DSA onayı ayrı açık maddelerdir. Sertifika/P12/profil hazırlığı tamamlandı; üç imzalama Secrets kaydının yapıldığı bildirildi. İmzalı IPA doğrulandı ve API Secrets CLI çağrılarında kullanıldı; güncel 4.1 Apple yüklemesi/işlemesi ve dahili TestFlight hazırlığı doğrulandı; testçi ataması, cihaz kurulum/testi ve gerçek satın alma kabulü henüz tamamlanmadı.
+Önceki ekran görüntüsünde **Paid Apps Agreement: Active**, **banka: Active**, **W-8BEN: Active** görüldü; yeniden sözleşme veya ürün oluşturmayın. [App Store Connect rehberindeki](app-store-connect-setup.tr.md) son ürün **Save** ve DSA onayı ayrı açık maddelerdir. Sertifika/P12/profil hazırlığı tamamlandı; üç imzalama Secrets kaydının yapıldığı bildirildi. İmzalı IPA doğrulandı ve API Secrets CLI çağrılarında kullanıldı; 5.1 Apple yüklemesi/işlemesi ve aktif dahili dağıtım doğrulandı; mevcut grup/bir davet görünür. Kendi alıcı hesabı, davet kabulü, cihaz kurulum/testi ve gerçek satın alma kabulü henüz doğrulanmadı.
 
 ## 2. Codespaces'te özel anahtar ve CSR hazırlayın
 
@@ -58,6 +60,8 @@ openssl pkcs12 -export -inkey .ios-signing/distribution.key.pem \
 Önce özel anahtarın PEM parolası, ardından yeni P12 **Export Password** sorulur. P12 parolasını boş bırakmayın; GitHub'a eklenecek parola bu **Export Password** değeridir. PEM parolasıyla aynı olmak zorunda değildir. Parolalar OpenSSL'in gizli girişinde kalır; komut geçmişine yazılmaz.
 
 Workflow, modern giriş P12 dosyasını değiştirmeden Mac keychain uyumlu şifreli bir pakete dönüştürür; **aynı özel anahtar, sertifika ve P12 parolası korunur**. Dönüşüm yalnız `0700` izinli geçici klasörde, `0600` izinli geçici PEM üzerinden yapılır; PEM log/artifact'a alınmaz ve başarı/hata durumunda `finally` ile hemen silinir. Giriş P12 hazırlama komutunu değiştirmeyin.
+
+IPA, SDK 26.2 / Xcode 26.3 ile iOS 15 minimum hedefi için üretildi. İki Apple işlemindeki 90725 SDK bildirimi mevcut kabulü engellemedi; bildirim metni hakkında çıkarım yapılmaz. Sonraki gönderimlerde güncel Apple SDK gereksinimi yeniden kontrol edilir.
 
 ## 4. API anahtarı yalnız TestFlight yüklemesi için
 
@@ -123,7 +127,7 @@ Repo Secrets sayfasında yalnız anahtar adlarının listelendiğini kontrol edi
 
 ## 6. Önce IPA, sonra isteğe bağlı TestFlight
 
-**Şimdiki adım:** App Store Connect → **Apps → BHU → TestFlight → Internal Testing** içinde grup oluşturun/açın; kendi yetkili kullanıcınızı ve **1.0 / build 4.1** sürümünü seçin. Bu çalışma otomatik testçi eklemedi veya davet e-postası göndermedi. Kurulumdan sonra gerçek cihaz kabul planı uygulanır.
+**Şimdiki adım:** Dahili grup ve bir davet zaten görünüyor. Kendi Apple hesabınıza ait mevcut TestFlight daveti ulaştıysa e-postada **View in TestFlight → Accept → Install** adımlarını izleyip **1.0 / build 5.1** sürümünü kurun. Kendi alıcı kimliği, e-posta teslimi/kabulü ve cihaz kurulumu henüz doğrulanmadı. Bu çalışma otomatik davet/e-posta göndermedi; gerçek cihaz kabul planı kurulumdan sonra uygulanır.
 
 Workflow `main` dalında bulunmalıdır. GitHub deposunda **Actions → iOS Signing and TestFlight → Run workflow** açın; dağıtım için `main` dalını seçin. Başka daldan dağıtım işi çalıştırılmaz. Kaynak [testflight.yml](../../.github/workflows/testflight.yml), yardımcı [ios-signing.mjs](../../scripts/ios-signing.mjs) dosyasıdır; workflow `preflight` kontrolünden sonra `distribute` adımını çalıştırır.
 
