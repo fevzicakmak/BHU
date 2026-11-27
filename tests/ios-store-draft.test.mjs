@@ -23,6 +23,11 @@ function fixture() {
     '/v1/appInfos/info-1/appInfoLocalizations': list(one('appInfoLocalizations', 'info-tr', { locale: 'tr', name: 'BHU', subtitle: null, privacyPolicyUrl: null })),
     '/v1/appStoreVersions/version-1/appStoreVersionLocalizations': list(one('appStoreVersionLocalizations', 'version-tr', { locale: 'tr', description: null, keywords: null, promotionalText: null, supportUrl: null })),
     '/v1/appStoreVersions/version-1/appStoreReviewDetail': { data: null },
+    [`/v1/apps/${APP_ID}/appAvailabilityV2`]: { data: one('appAvailabilities', 'app-availability-1', { availableInNewTerritories: true }) },
+    '/v2/appAvailabilities/app-availability-1/territoryAvailabilities': list(
+      one('territoryAvailabilities', 'tur-record-opaque', { available: true, releaseDate: null, preOrderEnabled: false }, { territory: link('territories', 'TUR') }),
+      one('territoryAvailabilities', 'usa-record', { available: true, releaseDate: '2026-12-01', preOrderEnabled: false }, { territory: link('territories', 'USA') }),
+      one('territoryAvailabilities', 'fra-record', { available: false, releaseDate: null, preOrderEnabled: false }, { territory: link('territories', 'FRA') })),
     [`/v2/inAppPurchases/${IAP_ID}/inAppPurchaseAvailability`]: { data: one('inAppPurchaseAvailabilities', 'availability-1', { availableInNewTerritories: true }) },
     '/v1/inAppPurchaseAvailabilities/availability-1/availableTerritories': list(...['USA', 'GBR', 'NOR'].map(id => one('territories', id, { currency: 'USD' }))),
     [`/v2/inAppPurchases/${IAP_ID}/iapPriceSchedule`]: { data: one('inAppPurchasePriceSchedules', 'schedule-1') },
@@ -148,6 +153,39 @@ test('future, different-currency or ambiguous saved prices cannot authorize open
 test('incomplete territory pagination fails closed and never follows server-provided external links', async () => {
   const d = fixture(); d['/v1/inAppPurchaseAvailabilities/availability-1/availableTerritories'].links = { next: 'https://evil.example/steal' };
   const m = mock(d); await assert.rejects(prepare(m), /Incomplete Apple collection/); assert.equal(m.writes().length, 0);
+});
+
+test('app Turkey update uses only the fetched TUR record, preserves every other setting and keeps IAP changes last', async () => {
+  const data = fixture(), rows = data['/v2/appAvailabilities/app-availability-1/territoryAvailabilities'].data;
+  rows[0].id = 'opaque_TUR_record=='; rows[0].attributes.available = false; rows[0].attributes.preOrderEnabled = true; rows[0].attributes.releaseDate = '2026-12-10';
+  const m = mock(data), p = await prepare(m), receipt = await apply(m, p);
+  const appWrite = m.writes().find(x => x.path.startsWith('/v1/territoryAvailabilities/'));
+  assert.deepEqual(appWrite, { method: 'PATCH', path: '/v1/territoryAvailabilities/opaque_TUR_record%3D%3D', parameters: {}, body: { data: { type: 'territoryAvailabilities', id: 'opaque_TUR_record==', attributes: { available: true } } } });
+  assert.equal(m.writes().filter(x => x.path.startsWith('/v1/territoryAvailabilities/')).length, 1);
+  assert.equal(m.writes().at(-1).path, '/v1/inAppPurchaseAvailabilities');
+  assert.equal(receipt.operations.length, 8); assert.equal(receipt.status, 'completed');
+  assert.equal(data[`/v1/apps/${APP_ID}/appAvailabilityV2`].data.attributes.availableInNewTerritories, true);
+  assert.equal(rows[1].attributes.releaseDate, '2026-12-01'); assert.equal(rows[2].attributes.available, false);
+  const read = m.calls.find(x => x.path === '/v2/appAvailabilities/app-availability-1/territoryAvailabilities');
+  assert.equal(read.parameters.include, 'territory');
+});
+
+test('missing, ambiguous, unlinked or incompletely paginated app Turkey rows cannot authorize a write', async () => {
+  const mutate = [
+    d => { d['/v2/appAvailabilities/app-availability-1/territoryAvailabilities'].data.shift(); },
+    d => { const rows = d['/v2/appAvailabilities/app-availability-1/territoryAvailabilities'].data; rows.push(clone(rows[0])); },
+    d => { delete d['/v2/appAvailabilities/app-availability-1/territoryAvailabilities'].data[0].relationships.territory.data; },
+    d => { delete d['/v2/appAvailabilities/app-availability-1/territoryAvailabilities'].data[0].attributes.available; },
+    d => { d['/v2/appAvailabilities/app-availability-1/territoryAvailabilities'].links = { next: 'https://evil.example/read-other-app' }; },
+  ];
+  for (const change of mutate) { const d = fixture(); change(d); const m = mock(d); await assert.rejects(prepare(m)); assert.equal(m.writes().length, 0); }
+});
+
+test('a concurrent change to another app territory makes the entire private plan stale before any mutation', async () => {
+  const d = fixture(); d['/v2/appAvailabilities/app-availability-1/territoryAvailabilities'].data[0].attributes.available = false;
+  const m = mock(d), p = await prepare(m);
+  d['/v2/appAvailabilities/app-availability-1/territoryAvailabilities'].data[1].attributes.preOrderEnabled = true;
+  await assert.rejects(apply(m, p), /stale or changed/); assert.equal(m.writes().length, 0);
 });
 
 test('already matching metadata produces no mutations and does not query price or alter an existing category', async () => {

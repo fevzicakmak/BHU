@@ -45,19 +45,20 @@ export function assertRequest(method, path) {
   const resource = `${parts[0]}/${parts[1]}`, tail = parts.slice(3).join('/');
   if (method === 'GET') {
     const allowed = {
-      'v1/apps': ['appInfos', 'appStoreVersions', 'inAppPurchasesV2'],
+      'v1/apps': ['appInfos', 'appStoreVersions', 'inAppPurchasesV2', 'appAvailabilityV2'],
       'v1/appInfos': ['appInfoLocalizations'],
       'v1/appStoreVersions': ['appStoreVersionLocalizations', 'appStoreReviewDetail'],
       'v2/inAppPurchases': ['inAppPurchaseAvailability', 'iapPriceSchedule'],
       'v1/inAppPurchaseAvailabilities': ['availableTerritories'],
       'v1/inAppPurchasePriceSchedules': ['manualPrices', 'automaticPrices'],
+      'v2/appAvailabilities': ['territoryAvailabilities'],
     };
     check(allowed[resource]?.includes(tail), 'Request route is forbidden.');
     if (resource === 'v1/apps') check(value === APP_ID, 'Another application is forbidden.');
     if (resource === 'v2/inAppPurchases') check(value === IAP_ID, 'Another product is forbidden.');
     return;
   }
-  check(method === 'PATCH' && ((parts.length === 3 && ['v1/appInfoLocalizations', 'v1/appInfos', 'v1/appStoreVersionLocalizations', 'v1/appStoreVersions', 'v1/appStoreReviewDetails'].includes(resource)) || (resource === 'v1/appStoreVersions' && tail === 'relationships/build')), 'Request route is forbidden.');
+  check(method === 'PATCH' && ((parts.length === 3 && ['v1/appInfoLocalizations', 'v1/appInfos', 'v1/appStoreVersionLocalizations', 'v1/appStoreVersions', 'v1/appStoreReviewDetails', 'v1/territoryAvailabilities'].includes(resource)) || (resource === 'v1/appStoreVersions' && tail === 'relationships/build')), 'Request route is forbidden.');
 }
 
 export function validateSession(session, now = Math.floor(Date.now() / 1000)) {
@@ -177,6 +178,20 @@ export async function compilePlan({ request, metadata, notes, contact, nowSecond
   baseline.review = review ? { id: review.id, ...attributes(review, Object.keys(desired.review)) } : null;
   if (review) patch('reviewContactAndNotes', 'appStoreReviewDetails', review, desired.review);
   else operations.push({ label: 'reviewContactAndNotes', method: 'POST', path: '/v1/appStoreReviewDetails', body: { data: { type: 'appStoreReviewDetails', attributes: desired.review, relationships: { appStoreVersion: { data: { type: 'appStoreVersions', id: version.id } } } } } });
+  const appAvailability = single(await request('GET', `/v1/apps/${APP_ID}/appAvailabilityV2`, { 'fields[appAvailabilities]': 'availableInNewTerritories' }), 'appAvailabilities');
+  check(typeof appAvailability.attributes?.availableInNewTerritories === 'boolean', 'Existing application availability is incomplete.');
+  const appTerritories = collection(await request('GET', `/v2/appAvailabilities/${rid(appAvailability.id)}/territoryAvailabilities`, {
+    'fields[territoryAvailabilities]': 'available,releaseDate,preOrderEnabled,territory', include: 'territory', 'fields[territories]': 'currency', limit: '200',
+  }), 'territoryAvailabilities');
+  const territoryRows = appTerritories.map(item => {
+    const linked = relationship(item, 'territory');
+    check(linked?.type === 'territories' && /^[A-Z]{3}$/.test(linked.id) && typeof item.attributes?.available === 'boolean', 'Application territory linkage or availability flag is incomplete.');
+    return { id: item.id, territory: linked.id, ...attributes(item, ['available', 'releaseDate', 'preOrderEnabled']) };
+  }).sort((a, b) => a.territory.localeCompare(b.territory));
+  check(new Set(territoryRows.map(x => x.territory)).size === territoryRows.length, 'Duplicate application territory records.');
+  const turkeyRow = unique(territoryRows, x => x.territory === 'TUR', 'No unique Turkey availability record for this application.');
+  baseline.appAvailability = { id: appAvailability.id, availableInNewTerritories: appAvailability.attributes.availableInNewTerritories, territories: territoryRows };
+  if (!turkeyRow.available) operations.push({ label: 'enableAppTurkeyWithoutOtherTerritoryChanges', method: 'PATCH', path: `/v1/territoryAvailabilities/${rid(turkeyRow.id)}`, body: { data: { type: 'territoryAvailabilities', id: turkeyRow.id, attributes: { available: true } } } });
   const availability = single(await request('GET', `/v2/inAppPurchases/${IAP_ID}/inAppPurchaseAvailability`, { 'fields[inAppPurchaseAvailabilities]': 'availableInNewTerritories' }), 'inAppPurchaseAvailabilities');
   const countries = collection(await request('GET', `/v1/inAppPurchaseAvailabilities/${rid(availability.id)}/availableTerritories`, { 'fields[territories]': 'currency', limit: '200' }), 'territories').map(x => x.id).sort();
   check(countries.every(x => /^[A-Z]{3}$/.test(x)) && new Set(countries).size === countries.length && typeof availability.attributes?.availableInNewTerritories === 'boolean', 'Existing product availability is incomplete.');

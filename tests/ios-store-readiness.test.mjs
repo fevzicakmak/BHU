@@ -69,6 +69,7 @@ test('fixed app audit returns readiness facts without publishing reviewer data, 
   const m = mock(); const result = await audit(m);
   assert.equal(result.appId, APP_ID); assert.equal(result.bundleId, 'com.fevzicakmak.bhu'); assert.equal(result.primaryLocale, 'tr');
   assert.equal(result.readOnly, true); assert.equal(result.appVersion.found, true);
+  assert.equal(result.appInfo.entries[0].primaryCategoryPresent, true);
   assert.equal(result.appVersion.attachedBuildNumber, '5.1');
   assert.equal(result.appVersion.review.contactPhonePresent, true);
   assert.equal(result.appVersion.review.demoAccountPasswordPresent, true);
@@ -83,6 +84,38 @@ test('fixed app audit returns readiness facts without publishing reviewer data, 
   for (const call of m.calls) {
     if (call.url.pathname.includes('Prices')) assert.equal(call.url.searchParams.get('filter[territory]'), 'TUR');
     assert(!call.url.pathname.endsWith('/pricePoints'), 'Potential price points are not saved price evidence');
+  }
+});
+
+test('app info explicitly includes the category linkage omitted by the live sparse-fieldset response', async () => {
+  const m = mock();
+  const fetchImpl = async (input, config) => {
+    const url = new URL(input);
+    if (url.pathname === `/v1/apps/${APP_ID}/appInfos`) {
+      if (url.searchParams.get('include') !== 'primaryCategory') return reply(list(one('appInfos', 'app-info', { state: 'PREPARE_FOR_SUBMISSION' }, { primaryCategory: { links: { related: 'https://api.appstoreconnect.apple.com/v1/appInfos/app-info/primaryCategory' } } })));
+      assert(url.searchParams.get('fields[appInfos]').split(',').includes('primaryCategory'));
+      assert.equal(url.searchParams.get('fields[appCategories]'), 'platforms');
+    }
+    return m.fetchImpl(input, config);
+  };
+  const result = await audit({ fetchImpl });
+  assert.equal(result.appInfo.entries[0].primaryCategoryPresent, true);
+});
+
+test('an explicitly empty category differs from missing or malformed linkage', async () => {
+  const cases = [
+    { relationship: { data: null }, expected: false },
+    { relationship: { links: { related: 'https://example.invalid/private-link' } }, expected: null },
+    { relationship: { data: { type: 'territories', id: 'TUR' } }, expected: null },
+    { relationship: { data: { type: 'appCategories', id: '../private' } }, expected: null },
+  ];
+  for (const entry of cases) {
+    const result = await audit(mock({ [`/v1/apps/${APP_ID}/appInfos`]: {
+      data: [one('appInfos', 'app-info', { state: 'PREPARE_FOR_SUBMISSION' }, { primaryCategory: entry.relationship })],
+      included: [one('appCategories', 'FINANCE', { platforms: ['IOS'] })],
+    } }));
+    assert.equal(result.appInfo.entries[0].primaryCategoryPresent, entry.expected);
+    assert(!JSON.stringify(result).includes('private-link'));
   }
 });
 

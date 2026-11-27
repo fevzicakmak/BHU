@@ -208,13 +208,25 @@ async function versionSummary(client, version) {
 }
 
 async function infoSummary(client) {
-  const infos = collection(await client.get(`/v1/apps/${APP_ID}/appInfos`, { 'fields[appInfos]': 'appStoreState,state,app,primaryCategory', limit: '200' }), 'appInfos', 20);
+  const infos = collection(await client.get(`/v1/apps/${APP_ID}/appInfos`, {
+    include: 'primaryCategory', 'fields[appInfos]': 'appStoreState,state,app,primaryCategory', 'fields[appCategories]': 'platforms', limit: '200',
+  }), 'appInfos', 20);
   if (!infos.known) return infos;
   const entries = [];
   for (const info of infos.data) {
     boundApp(info);
+    // Apple may return only relationship links for a sparse fieldset. Missing
+    // linkage is unknown, not proof that the app has no category configured.
+    const category = info.relationships?.primaryCategory;
+    let primaryCategoryPresent = null;
+    if (category && Object.hasOwn(category, 'data')) {
+      if (category.data === null) primaryCategoryPresent = false;
+      else if (category.data?.type === 'appCategories') {
+        try { id(category.data.id); primaryCategoryPresent = true; } catch (_) { /* Malformed linkage remains unknown. */ }
+      }
+    }
     const values = collection(await client.get(`/v1/appInfos/${id(info.id)}/appInfoLocalizations`, { 'fields[appInfoLocalizations]': 'locale,name,subtitle,privacyPolicyUrl', limit: '50' }), 'appInfoLocalizations', 20);
-    entries.push({ state: state(info.attributes?.state ?? info.attributes?.appStoreState, APP_STATES), primaryCategoryPresent: Boolean(info.relationships?.primaryCategory?.data),
+    entries.push({ state: state(info.attributes?.state ?? info.attributes?.appStoreState, APP_STATES), primaryCategoryPresent,
       localizations: values.known ? { known: true, entries: values.data.map(x => {
         const a = x.attributes ?? {};
         return { locale: locale(a.locale), nameLength: length(a.name), nameMatchesBHU: a.name === 'BHU', subtitleLength: length(a.subtitle),
