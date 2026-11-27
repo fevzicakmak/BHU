@@ -20,11 +20,15 @@ const PREFERRED = {
   iPad: ['iPad Pro 13-inch (M5)', 'iPad Pro 13-inch (M4)', 'iPad Pro (12.9-inch) (6th generation)', 'iPad Air 13-inch (M3)', 'iPad Air 13-inch (M2)'],
 };
 
-function fixture() {
-  const accounts = [
+function fixture(family) {
+  if (!Object.hasOwn(PREFERRED, family)) throw new Error('Unsupported screenshot fixture family.');
+  const accountRows = family === 'iPhone' ? [
+    ['demo-root', 'Örnek', null], ['demo-cash', 'Kasa', 'demo-root'],
+  ] : [
     ['demo-root', 'Örnek İşletme', null], ['demo-cash', 'Kasa', 'demo-root'],
     ['demo-bank', 'Banka', 'demo-root'], ['demo-pos', 'POS', 'demo-root'],
-  ].map(([id, name, parentId]) => ({ id, name, parentId, includeInParentTotals: true, createdAt: '2026-11-01T09:00:00.000Z' }));
+  ];
+  const accounts = accountRows.map(([id, name, parentId]) => ({ id, name, parentId, includeInParentTotals: true, createdAt: '2026-11-01T09:00:00.000Z' }));
   const transactions = [
     ['demo-root', 'income', 2000000, '2026-11-02', 'Örnek İşletme', 'Açılış bakiyesi'],
     ['demo-root', 'expense', 350000, '2026-11-03', 'Örnek Tedarikçi', 'Malzeme alımı'],
@@ -35,7 +39,9 @@ function fixture() {
     ['demo-pos', 'income', 3860000, '2026-11-20', 'Örnek Müşteri', 'Kartlı satış'],
     ['demo-pos', 'expense', 190000, '2026-11-23', 'Örnek İşletme', 'Banka komisyonu'],
   ].map(([kasaId, type, amountCents, date, customerName, description], index) => ({
-    id: `demo-tx-${index + 1}`, kasaId, type, amountCents, date, customerName, description,
+    id: `demo-tx-${index + 1}`,
+    kasaId: family === 'iPhone' ? (kasaId === 'demo-bank' ? 'demo-root' : kasaId === 'demo-pos' ? 'demo-cash' : kasaId) : kasaId,
+    type, amountCents, date, customerName, description,
     attachments: [], createdAt: `${date}T12:00:00.000Z`,
   }));
   const data = Core.normalizeState({ version: 2, kasalar: accounts, transactions, activeKasaId: 'demo-root', revision: null });
@@ -60,7 +66,7 @@ function prepareHarness(family) {
   if (start < 0 || end < 0 || source.indexOf('        fixture = {', start + 1) >= 0) throw new Error('Native fixture anchor changed; no capture attempted.');
   // Capacitor may truncate console payloads: keep the invisible revision marker
   // at the start of the raw file, never in an account name shown in the image.
-  const seed = `        fixture = json.loads(${JSON.stringify(JSON.stringify(fixture()))})\n        fixture.pop('revision', None)\n        fixture = {'revision': marker, **fixture}\n`;
+  const seed = `        fixture = json.loads(${JSON.stringify(JSON.stringify(fixture(family)))})\n        fixture.pop('revision', None)\n        fixture = {'revision': marker, **fixture}\n`;
   source = source.slice(0, start) + seed + source.slice(end);
   source = replaceOnce(source, "        run('install', device, str(test_app), limit=120, stage='Install signed simulator test copy')",
     "        run('status_bar', device, 'override', '--time', '9:41', '--dataNetwork', 'wifi', '--wifiMode', 'active', '--wifiBars', '3', '--batteryState', 'charged', '--batteryLevel', '100', stage='Set screenshot status bar')\n        run('install', device, str(test_app), limit=120, stage='Install signed simulator test copy')");
@@ -104,16 +110,18 @@ print(json.dumps({'width':size[0],'height':size[1],'mode':'RGB','opaque':True,'s
 function main() {
   const args = process.argv.slice(2);
   if (args.length === 1 && args[0] === '--check') {
-    const data = fixture();
+    const samples = Object.fromEntries(Object.keys(PREFERRED).map(family => [family, fixture(family)]));
+    if (JSON.stringify(Core.totals(samples.iPhone.transactions)) !== JSON.stringify(Core.totals(samples.iPad.transactions))) throw new Error('Family fixtures must preserve the same income, expense and balance totals.');
     for (const family of Object.keys(PREFERRED)) command('python3', ['-c', 'import sys; compile(sys.stdin.read(), "native-screenshot-harness", "exec")'], { input: prepareHarness(family), stdio: ['pipe', 'inherit', 'inherit'] });
     command('python3', ['-c', 'import sys; compile(sys.stdin.read(), "lossless-screenshot-export", "exec")'], { input: EXPORT_PNG, stdio: ['pipe', 'inherit', 'inherit'] });
-    console.log(JSON.stringify({ checked: true, sampleAccounts: data.kasalar.length, freeRootAccounts: 1, sampleTransactions: data.transactions.length, sourceHarnessFileUnmodified: true, acceptedPortraitDimensions: ACCEPTED }));
+    console.log(JSON.stringify({ checked: true, fixtures: Object.fromEntries(Object.entries(samples).map(([family, data]) => [family, { sampleAccounts: data.kasalar.length, freeRootAccounts: data.kasalar.filter(account => account.parentId === null).length, sampleTransactions: data.transactions.length, totals: Core.totals(data.transactions) }])), sourceHarnessFileUnmodified: true, acceptedPortraitDimensions: ACCEPTED }));
     return;
   }
   if (args.length !== 4 || args[0] !== '--app' || args[2] !== '--family' || !Object.hasOwn(PREFERRED, args[3])) throw new Error('Usage: node scripts/ios-app-store-screenshots.mjs --app <Debug simulator App.app> --family iPhone|iPad; or --check');
   if (process.platform !== 'darwin') throw new Error('Native capture requires macOS and an installed matching Xcode/iOS Simulator runtime.');
   const app = resolve(ROOT, args[1]);
   const family = args[3];
+  const data = fixture(family);
   if (!isAbsolute(app) || !app.endsWith('.app') || !existsSync(join(app, 'Info.plist'))) throw new Error('Compiled simulator application was not found.');
   const dir = join(OUTPUT, family), raw = join(OUTPUT, 'raw', family);
   if (existsSync(dir) || existsSync(raw)) throw new Error('Capture output already exists; use a fresh job instead of accepting stale screenshots.');
@@ -131,7 +139,8 @@ function main() {
     const pixels = JSON.parse(exported);
     const report = { bundleId: BUNDLE, sourceCommit: process.env.GITHUB_SHA || null, nativeSimulator: true, simulatorModel: evidence.deviceType,
       sdk: evidence.activeSDK, runtime: evidence.runtime, family, buildConfiguration: 'Debug', productionSourceModified: false,
-      syntheticSampleOnly: true, freeRootAccounts: 1, accountCount: 4, transactionCount: 8, storeKitEntitlementBypass: false,
+      syntheticSampleOnly: true, freeRootAccounts: data.kasalar.filter(account => account.parentId === null).length,
+      accountCount: data.kasalar.length, transactionCount: data.transactions.length, storeKitEntitlementBypass: false,
       capture: 'Actual simctl framebuffer after native file read and stable UIKit/DOM safe-area checks', coldLaunchesVerified: 2,
       screenshot: '01-hesaplar.png', screenshotSHA256: createHash('sha256').update(readFileSync(destination)).digest('hex'), ...pixels,
       specification: SPEC, screenshotScope: 'Account tree and income/expense/balance summary', requiresVisualReview: true,

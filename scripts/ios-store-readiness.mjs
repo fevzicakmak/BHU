@@ -233,14 +233,25 @@ async function availabilitySummary(client, product = false) {
     product ? { 'fields[inAppPurchaseAvailabilities]': 'availableInNewTerritories' } : { 'fields[appAvailabilities]': 'availableInNewTerritories' }), product ? 'inAppPurchaseAvailabilities' : 'appAvailabilities');
   if (!resource.known || !resource.present) return resource;
   const values = collection(await client.get(product ? `/v1/inAppPurchaseAvailabilities/${id(resource.data.id)}/availableTerritories` : `/v2/appAvailabilities/${id(resource.data.id)}/territoryAvailabilities`,
-    product ? { 'fields[territories]': 'currency', limit: '200' } : { 'fields[territoryAvailabilities]': 'available,territory', limit: '200' }), product ? 'territories' : 'territoryAvailabilities');
+    product ? { 'fields[territories]': 'currency', limit: '200' } : {
+      include: 'territory', 'fields[territoryAvailabilities]': 'available,territory', 'fields[territories]': 'currency', limit: '200',
+    }), product ? 'territories' : 'territoryAvailabilities');
   if (!values.known) return values;
   const ids = [];
+  let missingTerritoryCount = 0, missingAvailabilityFlagCount = 0;
   for (const item of values.data) {
-    const territory = product ? item.id : item.relationships?.territory?.data?.id;
-    if (typeof territory !== 'string' || !/^[A-Z]{3}$/.test(territory) || (!product && typeof item.attributes?.available !== 'boolean')) return unknown('INCOMPLETE_TERRITORY_DATA');
-    if (product || item.attributes.available) ids.push(territory);
+    const relationship = item.relationships?.territory?.data;
+    const territory = product ? item.id : relationship?.id;
+    if (typeof territory !== 'string' || !/^[A-Z]{3}$/.test(territory) || (!product && relationship?.type !== 'territories')) missingTerritoryCount++;
+    if (!product && typeof item.attributes?.available !== 'boolean') missingAvailabilityFlagCount++;
+    if (product || item.attributes?.available === true) ids.push(territory);
   }
+  // Sparse relationship fieldsets do not by themselves guarantee linkage. Ask for
+  // the documented include above, and never infer territory IDs from opaque IDs,
+  // included-array order, omitted booleans or resource counts.
+  if (missingTerritoryCount || missingAvailabilityFlagCount) return unknown('INCOMPLETE_TERRITORY_DATA', {
+    observedRecordCount: values.data.length, missingTerritoryCount, missingAvailabilityFlagCount,
+  });
   return { ...territorySummary(ids), availableInNewTerritories: bool(resource.data.attributes?.availableInNewTerritories) };
 }
 

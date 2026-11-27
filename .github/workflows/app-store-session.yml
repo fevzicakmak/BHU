@@ -1,0 +1,50 @@
+name: Authorized BHU App Store draft session
+
+on:
+  workflow_dispatch:
+    inputs:
+      recipient_public_key:
+        description: Public RSA-4096 recipient key only; never provide a private key
+        type: string
+        required: true
+      request_nonce:
+        description: Fresh 32-byte base64url request nonce generated with the recipient key
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-authorized-app-store-session
+  cancel-in-progress: false
+
+jobs:
+  seal:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && github.repository == 'fevzicakmak/BHU' && github.actor == 'fevzicakmak' && github.triggering_actor == 'fevzicakmak'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify encrypted handoff boundaries
+        run: |
+          node --check scripts/ios-app-store-session.mjs
+          node --test tests/ios-app-store-session.test.mjs
+      - name: Seal the short-lived API token for the authorized recipient
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          BHU_RECIPIENT_PUBLIC_KEY: ${{ inputs.recipient_public_key }}
+          BHU_REQUEST_NONCE: ${{ inputs.request_nonce }}
+        run: node scripts/ios-app-store-session.mjs --seal --output test-artifacts/authorized-store-session/envelope.json
+      - name: Keep only the recipient-encrypted envelope
+        uses: actions/upload-artifact@v4
+        with:
+          name: BHU-Authorized-Store-Session
+          path: test-artifacts/authorized-store-session/envelope.json
+          if-no-files-found: error
+          retention-days: 1

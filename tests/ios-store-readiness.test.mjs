@@ -131,6 +131,35 @@ test('available EU regions are identified, while missing territory relationships
   assert.deepEqual(yes.inAppPurchase.availability.euTerritoriesAvailable, ['FRA']);
   const bad = await audit(mock({ '/v2/appAvailabilities/app-availability/territoryAvailabilities': list(one('territoryAvailabilities', 'bad', { available: true })) }));
   assert.equal(bad.appAvailability.known, false); assert.equal(bad.appAvailability.turkeyAvailable, undefined);
+  assert.equal(bad.appAvailability.missingTerritoryCount, 1); assert.equal(bad.appAvailability.missingAvailabilityFlagCount, 0);
+});
+
+test('app availability explicitly includes territory linkage required by the live Apple relationship response', async () => {
+  const m = mock();
+  const fetchImpl = async (input, config) => {
+    const url = new URL(input);
+    if (url.pathname === '/v2/appAvailabilities/app-availability/territoryAvailabilities') {
+      // The live response omitted linkage when only the sparse fieldset was sent.
+      if (url.searchParams.get('include') !== 'territory') return reply(list(one('territoryAvailabilities', 'opaque-id', { available: true })));
+      assert.equal(url.searchParams.get('fields[territoryAvailabilities]'), 'available,territory');
+      assert.equal(url.searchParams.get('fields[territories]'), 'currency');
+    }
+    return m.fetchImpl(input, config);
+  };
+  const result = await audit({ fetchImpl });
+  assert.equal(result.appAvailability.known, true);
+  assert.equal(result.appAvailability.turkeyAvailable, true);
+  assert.equal(result.appAvailability.euExcluded, true);
+});
+
+test('included territories and incomplete availability flags cannot be used to invent a configured sales region', async () => {
+  const missing = await audit(mock({ '/v2/appAvailabilities/app-availability/territoryAvailabilities': {
+    data: [one('territoryAvailabilities', 'unlinked', { available: true }), one('territoryAvailabilities', 'no-flag', {}, { territory: { data: { type: 'territories', id: 'TUR' } } })],
+    included: [territory('TUR'), territory('FRA')],
+  } }));
+  assert.deepEqual(missing.appAvailability, { known: false, reason: 'INCOMPLETE_TERRITORY_DATA', observedRecordCount: 2, missingTerritoryCount: 1, missingAvailabilityFlagCount: 1 });
+  assert.equal(missing.appAvailability.turkeyAvailable, undefined);
+  assert.equal(missing.appAvailability.euExcluded, undefined);
 });
 
 test('saved pricing is date-bounded and conflicting active prices are not promoted as the current price', async () => {

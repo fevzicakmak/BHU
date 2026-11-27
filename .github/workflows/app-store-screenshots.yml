@@ -2,6 +2,16 @@ name: iOS App Store screenshot candidates
 
 on:
   workflow_dispatch:
+    inputs:
+      family:
+        description: Capture both display families or only the family that needs new candidates
+        type: choice
+        required: true
+        default: both
+        options:
+          - both
+          - iPhone
+          - iPad
 
 permissions:
   contents: read
@@ -18,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        family: [iPhone, iPad]
+        family: ${{ fromJSON(inputs.family == 'iPhone' && '["iPhone"]' || inputs.family == 'iPad' && '["iPad"]' || '["iPhone","iPad"]') }}
     steps:
       - uses: actions/checkout@v4
       - name: Reduce host indexing on the disposable CI machine
