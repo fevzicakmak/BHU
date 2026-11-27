@@ -1,0 +1,71 @@
+name: iOS App Store screenshot candidates
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-app-store-screenshots
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: macos-26
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        family: [iPhone, iPad]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reduce host indexing on the disposable CI machine
+        continue-on-error: true
+        timeout-minutes: 1
+        run: sudo -n mdutil -a -i off
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install lossless PNG export utility
+        run: python3 -m pip install Pillow==12.0.0
+      - run: npm ci
+      - run: npm run ios:sync
+      - name: Check synthetic sample and preserved native harness gates
+        run: |
+          node --check scripts/ios-app-store-screenshots.mjs
+          node scripts/ios-app-store-screenshots.mjs --check
+      - name: Build the genuine native simulator application without distribution signing
+        run: >-
+          xcodebuild -project ios/App/App.xcodeproj -scheme App
+          -sdk iphonesimulator -destination 'generic/platform=iOS Simulator'
+          -configuration Debug -derivedDataPath ios-screenshot-build
+          CODE_SIGNING_ALLOWED=NO build
+      - name: Capture owned simulator with fictional free account data
+        run: >-
+          node scripts/ios-app-store-screenshots.mjs
+          --app ios-screenshot-build/Build/Products/Debug-iphonesimulator/App.app
+          --family '${{ matrix.family }}'
+      - name: Keep verified screenshot candidates for visual review
+        uses: actions/upload-artifact@v4
+        with:
+          name: BHU-AppStore-Screenshot-Candidates-${{ matrix.family }}
+          path: test-artifacts/app-store-screenshot-candidates/${{ matrix.family }}/
+          if-no-files-found: error
+          retention-days: 7
+      - name: Keep bounded native simulator failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BHU-Screenshot-Diagnostics-${{ matrix.family }}
+          path: test-artifacts/app-store-screenshot-candidates/raw/${{ matrix.family }}/
+          if-no-files-found: ignore
+          retention-days: 7

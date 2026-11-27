@@ -1,0 +1,19 @@
+BHU — Review notes for version 1.0 (build 5.1)
+
+The interface is in Turkish. BHU requires no sign-in or registration. An "account" is a local cash/ledger account, not an online user account. The app does not connect to bank accounts or transfer real money.
+
+Free use
+1. A fresh installation starts with no ledger accounts. Tap "İlk hesabımı oluştur", enter a unique name in "Hesap adı", keep "Üst hesap yok (ana hesap)" selected, and tap "Hesabı oluştur".
+2. On that account's card in "Hesap ağ şeması", tap "＋ Alt" to create a child account. Keep its parent selected and tap "Hesabı oluştur". The first root account and all its descendants are free.
+3. Select an account and open "İşlem ekle". Choose "＋ Gelir" (income) or "− Gider" (expense), enter "Tutar (₺)", and check "İşlemin hesabı" and "Tarih". Save with "Geliri kaydet" or "Gideri kaydet". "Cari / müşteri", "Açıklama", and attachments are optional.
+4. Open "İşlemler" to view records. Tap a record, then "Düzenle", to edit it. The header gear has the accessible label "Ayarlar ve yedekleme"; its "Yedeği paylaş / Dosyalara kaydet" action exports a JSON backup through the iOS share sheet.
+
+One-time In-App Purchase
+Product ID: com.fevzicakmak.bhu.multipleaccounts
+Type: Non-Consumable. This is permanent access to additional root accounts, not a subscription. Child accounts are not charged separately.
+
+To reach the purchase screen, keep the first root account, tap the header "＋" ("Yeni ana hesap oluştur"), enter another unique account name, leave "Üst hesap yok (ana hesap)" selected, and tap "Hesabı oluştur". The "Çoklu Hesap" screen opens. When the product is available from StoreKit, the purchase button shows Apple's localized price followed by "Bir kez satın al"; the price is not hardcoded in the app. Apple handles purchase authentication and payment.
+
+Restore path: header gear ("Ayarlar ve yedekleme") > "Çoklu Hesap" > "Satın alımları geri yükle". It is also available directly on the purchase screen. When this screen was opened while adding an account, a verified purchase or restore returns to that account form; tap "Hesabı oluştur" again to finish the requested action.
+
+Viewing, editing, and exporting existing records do not require buying additional-root access. Promoting a child account to a root, deleting an account in a way that creates additional roots, or importing a backup with additional roots uses the same verified StoreKit entitlement check. An imported JSON file cannot grant purchase access. There is no external payment flow.

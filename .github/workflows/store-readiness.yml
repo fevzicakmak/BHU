@@ -1,0 +1,47 @@
+name: iOS Store readiness audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_version:
+        description: Existing BHU marketing version to inspect without changing Apple records
+        type: string
+        default: '1.0'
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-store-readiness
+  cancel-in-progress: false
+
+jobs:
+  inspect:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify read-only boundaries and private-data redaction
+        run: |
+          node --check scripts/ios-store-readiness.mjs
+          node --test tests/ios-store-readiness.test.mjs
+      - name: Inspect the fixed BHU app and its existing purchase product
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          BHU_READINESS_VERSION: ${{ inputs.app_version }}
+        run: node scripts/ios-store-readiness.mjs --version "$BHU_READINESS_VERSION" --output test-artifacts/store-readiness/report.json
+      - name: Keep only the sanitized readiness report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: BHU-Store-readiness
+          path: test-artifacts/store-readiness/report.json
+          if-no-files-found: ignore
+          retention-days: 7
