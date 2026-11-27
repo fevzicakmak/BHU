@@ -6,17 +6,17 @@ Bu liste, kod hazırlığından mağaza gönderimine kadar yapılacak somut işl
 
 - [x] App Store görünen adı **BHU** olarak seçildi.
 - [x] Hak sahibi/yayıncı kimliği kullanıcı tarafından **Fevzi Çakmak** olarak doğrulandı.
-- [x] Kullanıcı BHU App Store Connect uygulama kaydını tamamladığını bildirdi.
+- [x] BHU App Store Connect uygulama/bundle eşleşmesi canlı API ile doğrulandı.
 - [ ] App Store Connect satıcı kaydı/yasal bilgiler son yayıncı bilgileriyle karşılaştırıldı.
 - [x] Apple Developer Program üyeliğinin etkin olduğu kullanıcı tarafından doğrulandı.
 - [x] Team ID **`T4F4D367KQ`** kullanıcıdan alındı ve App Debug/Release `DEVELOPMENT_TEAM` ayarlarına yazıldı.
 - [x] [Mac CI 43871719871 / job 133314330319](https://github.com/fevzicakmak/BHU/actions/runs/43871719871/job/133314330319), CLI Team override olmadan Debug/Release için kayıtlı Team ID, Automatic ve doğru Bundle ID ayarlarını çözdü (`CODE_SIGNING_ALLOWED=NO`); gerçek imzalama yapılmadı.
 - [ ] Bu takımda Apple Certificates/Identifiers/Profiles erişimi ve App Store Connect yayınlama yetkisi doğrulandı.
-- [x] Kullanıcı `com.fevzicakmak.bhu` Bundle ID kaydını tamamladığını bildirdi. Apple API ile bağımsız hesap kontrolü yapılmadı.
+- [x] `com.fevzicakmak.bhu` uygulama/bundle ve Çoklu Hesap ürün eşleşmesi Apple API ile bağımsız doğrulandı.
 - [ ] BHU uygulama kaydındaki gerçek SKU son gönderim bilgileriyle karşılaştırıldı; `BHU-IOS-001` rehberdeki öneridir.
 - [x] Önceki ekran görüntüsünde Paid Apps Agreement, banka ve W-8BEN için **Active** durumu görüldü; başka vergi formları veya son gönderim kabulü çıkarımı yapılmaz.
-- [x] Kullanıcı BHU, satın alma ürünü ve diğer uygulamasından AB ülkelerini çıkardığını bildirdi; diğer uygun ülkeler korunur. Bağımsız Apple API bölge doğrulaması yapılmadı.
-- [ ] AB'de dağıtım yapmama gerekçesiyle hesap genelindeki DSA bildiriminin son onayı tamamlandı.
+- [x] [27 Kasım mağaza raporu](https://github.com/fevzicakmak/BHU/actions/runs/46033077370): BHU ve ürün 134 bölgede, Türkiye açık ve AB ülkeleri kapalı. Türkiye uygulama erişimi diğer mevcut bölgeler değiştirilmeden kaydedildi; bu rapor başka uygulamaları denetlemez.
+- [ ] Kullanıcının tamamladığını bildirdiği hesap geneli DSA kaydının son durumu bağımsız doğrulandı. Kullanıcı adımının yeniden yapılması istenmez; hukuki sınıflama varsayılmaz.
 - [x] Kamuya açık destek adresi **fvzckmk35@gmail.com** olarak onaylandı; `privacy.html` ve `support.html` içerikleri Fevzi Çakmak kimliğiyle tamamlandı.
 - [x] https://fevzicakmak.github.io/BHU/privacy.html ve https://fevzicakmak.github.io/BHU/support.html 15 Kasım 2026'da canlı HTTP 200, kimlik/iletişim, bağlantı ve mobil taşma kontrolünden geçti.
 
@@ -31,7 +31,8 @@ Kod veya depo içine Apple parolası, özel anahtar, dağıtım sertifikası, pr
 - [x] Native depolama motorunda gerçek yazma/okuma, birebir UTF-8 karşılaştırması, eşzamanlı tek kazanan ve yazma hatasında önceki dosyayı koruma XCTest runner alanında geçti (7 başarılı, koruma metadata testi atlandı).
 - [ ] BHU arayüzünden kayıt oluşturma → kaydetme → yeniden açma ve native hata halinde formu koruma uçtan uca doğrulandı; ayrı runner dosya testleri bu maddeyi tamamlamaz.
 - [ ] Web/Safari kayıtları JSON yedeğiyle native uygulamaya aktarılabiliyor. İki uygulama alanının kendiliğinden ortak veri kullandığı varsayılmıyor.
-- [ ] App Store sürüm/build numarası tekil ve doğru; görünen ad, ikon ve launch ekranı nihai.
+- [x] App Store Connect sürüm 1.0 taslağına doğrulanmış build **5.1** bağlandı; Türkçe görünen ad **BHU** olarak geri okundu.
+- [ ] Görünen ad, ikon ve launch ekranının nihai cihaz kabulü tamamlandı.
 - [ ] iPhone ve iPad düzenleri, güvenli alanlar, modal ve paylaşım popover'ları doğrulandı. Cihaz ailesi sonradan daraltılırsa mağaza alanları buna göre güncellendi.
 - [ ] Minimum deployment target iOS 15 ile **yükleme için gerekli derleme SDK'sı/Xcode sürümü** birbirinden ayrıldı. Apple'ın gönderim günündeki SDK/Xcode gereksinimleri karşılanıyor.
 - [x] Aynı Release incelemesinde `.storekit`, `.xctest`, `Tests` ve `test-artifacts` içeriği bulunmadı; 11 web dosyası yeni `dist/` ile birebir eşleşti. Son gönderilecek arşiv yeniden incelenmelidir.
@@ -40,12 +41,12 @@ Kod veya depo içine Apple parolası, özel anahtar, dağıtım sertifikası, pr
 
 Ürün kuralı: **1 ücretsiz ana hesap + bu ana hesabın alt hesapları; ikinci ana hesap için tek seferlik kalıcı hak.** Alt hesap başına ücret veya abonelik yok.
 
-- [x] Ekran görüntüsünde **Non-Consumable** ürün kaydı görüldü: Product ID `com.fevzicakmak.bhu.multipleaccounts`, ürün Apple ID'si **6835484249**, durum **Prepare for Submission**. Bu durum inceleme/onay değildir.
-- [x] Ekran görüntüsündeki Product ID, kod/config ve StoreKit test dosyasındaki `com.fevzicakmak.bhu.multipleaccounts` kimliğiyle aynı; gerçek ürünün StoreKit'ten yüklenmesi ayrıca test edilmelidir.
-- [x] Kullanıcı **Display Name and Description → Add** üzerinden Türkçe ürün adı/açıklamasını doldurup kaydettiğini bildirdi.
+- [x] API'de **NON_CONSUMABLE** ürün doğrulandı: `com.fevzicakmak.bhu.multipleaccounts` / **6835484249**. 27 Kasım durumu **MISSING_METADATA**; yerelleştirme `PREPARE_FOR_SUBMISSION`. Bu durum inceleme/onay değildir.
+- [x] API'deki Product ID, kod/config ve StoreKit test dosyasıyla aynı; gerçek ürünün StoreKit'ten cihazda yüklenmesi ayrıca test edilmelidir.
+- [x] Türkçe ürün adı/açıklamasının kaydı canlı API'de doğrulandı.
 - [ ] Satın alma inceleme ekran görüntüsü son gerçek native build'den hazırlanıp yüklendi.
-- [x] Kullanıcı güncel Türkiye hedefi **149,99 TL** tutarını seçip **Next → Confirm** yaptığını bildirdi; bu yalnız seçim/onay adımı kanıtıdır.
-- [ ] Ürün ana sayfasındaki son **Save**, kaydedilmiş fiyat ve **Availability** satış bölgeleri son kez doğrulandı. AB ülkelerinin çıkarıldığı kullanıcı tarafından bildirildi; Apple API ile bağımsız fiyat/bölge kontrolü yapılmadı.
+- [x] 27 Kasım UTC tarihi için kaydedilmiş aktif Türkiye ürün fiyatı API'de **149,99 TRY** olarak doğrulandı; fiyat değiştirilmedi.
+- [x] Kaydedilmiş fiyat ve **Availability** bölgeleri API ile geri okundu: uygulama/ürün 134 bölgede, Türkiye açık, AB ülkeleri kapalı. Bu, gerçek satın alma kabulü değildir.
 - [ ] Paywall son gerçek üründen `Product.displayPrice` gösteriyor; hedef tutar arayüze sabit yazılmıyor.
 - [ ] İlk ana hesap ve bütün alt hesapları ücretsiz oluşturulabiliyor.
 - [ ] İkinci ana hesap, alt hesabı ana seviyeye çıkarma, çocukları ana seviyeye çıkaran silme ve ek ana hesap içeren yedek yükleme aynı yetki kontrolünü kullanıyor.
@@ -63,16 +64,17 @@ Geliştirme `.storekit` dosyasında başarılı satın alma görmek, gerçek ür
 
 - [ ] [Veri haritası](privacy-data-map.md) son native kod/bağımlılıklar/ağ kayıtlarıyla karşılaştırıldı.
 - [x] [Gizlilik politikası](privacy-policy.tr.md) gerçek kimlik, onaylı iletişim ve 15 Kasım 2026 tarihiyle tamamlandı.
-- [x] Politikanın kamuya açık HTTPS URL'si 15 Kasım 2026'da son canlı sayfada HTTP 200 ve onaylı kimlik/iletişim içeriğiyle doğrulandı.
+- [x] Politika ve destek HTTPS URL'leri 27 Kasım'da yeniden HTTP 200 ve onaylı kimlik/iletişim içeriğiyle doğrulandı; içerik geçerlilik tarihi 15 Kasım 2026'dır.
 - [ ] App Privacy yanıtları son veri akışıyla tutarlı. “Data Not Collected” koşulsuz varsayılmadı.
 - [x] Release arşivinde 3 privacy manifest okunabildi; uygulamanın CapApp kaynak manifesti kaynakla eşleşti ve gerçek içerikler raporlandı.
 - [ ] Privacy Manifest / Required Reason API beyanlarının son kullanıma hukuki uygunluğu ve App Privacy yanıtları ayrıca değerlendirildi; mekanik rapor bunu onaylamaz.
 - [ ] Kullanılmayan hassas izinler/yetenekler yok; dosya seçicisindeki isteğe bağlı kamera yolunun Türkçe kullanım açıklaması ve izin ret davranışı gerçek cihazda test edildi.
 - [ ] Export-compliance yanıtları gerçek kriptografi kullanımına göre değerlendirildi.
-- [ ] [Mağaza metni](app-store-metadata.tr.md) son derlemenin gerçek özelliklerini ve çoklu hesap ücretini doğru anlatıyor.
-- [ ] Nihai cihaz ailesinin gerekli ekran görüntüleri gerçek uygulama ve örnek verilerle çekildi.
+- [x] Kanonik Türkçe [mağaza metinleri](app-store-metadata.tr.md), URL'ler, kategori ve telif App Store Connect taslağına kaydedildi; geri okuma karşılaştırması eşleşti. Gerçek cihaz/IAP kabulü ayrıca bekler.
+- [x] Gerçek uygulamadan bir iPhone **1206×2622** ve bir iPad **2064×2752** hesap ağacı görseli kaydedildi; iki Apple asset durumu `COMPLETE`.
+- [ ] Nihai cihaz ailesinin gerekli tüm görsel kapsamı ve son gönderim doğrulaması tamamlandı; iki asset'in `COMPLETE` olması bu maddeyi otomatik tamamlamaz.
 - [ ] Yaş derecelendirme anketi gerçek içerik/özelliklere göre tamamlandı.
-- [ ] App Review notları, satın alma ekranına ulaşma ve ücretsiz kullanım adımlarını açıklıyor; olmayan giriş hesabı bilgisi istenmiyor.
+- [x] [App Review notları](app-review-notes.en.txt), ücretsiz kullanım/ikinci ana hesap/geri yükleme adımlarını açıklar; notlar ve iletişim alanları kaydedildi. `demoAccountRequired=false`; özel iletişim değerleri depoda yayımlanmaz.
 
 Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı şey değildir. Şu tasarımda kullanıcı giriş hesabı yoktur. İleride giriş hesabı eklenirse Apple'ın hesap silme gereksinimleri ayrıca uygulanır.
 
@@ -91,16 +93,17 @@ Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı ş
 - [x] Kullanıcı P12/parola/profil için üç repository Secrets kaydını tamamladığını bildirdi; bağımsız Secrets listesi doğrulaması yapılmadı.
 - [x] `c4d09beeb27ef6571210b83f31ce6357a406a2e0` / [yükleme 44312503648](https://github.com/fevzicakmak/BHU/actions/runs/44312503648/job/134829998804): 15/15 Mac testi, 0 hata/0 atlama; gerçek imza/Archive/49 kontrol/export doğrulandı. [IPA artifact'ı](https://github.com/fevzicakmak/BHU/actions/runs/44312503648/artifacts/14431257071) **1.0 / build 5.1** olarak bağımsız incelendi.
 - [x] Gerçek Apple doğrulama/yükleme yanıtlarında `accepted=true`; her iki işlemde 90725 SDK bildirimi var ve mevcut kabulü engellemedi. Bildirimler boş olarak yazılmaz.
-- [x] [Canlı Apple durumu 44341875903](https://github.com/fevzicakmak/BHU/actions/runs/44341875903/job/134933774627), doğru BHU/bundle/1.0/5.1 için `found=true`, `VALID`, `expired=false`, `IN_BETA_TESTING`, dış test için `READY_FOR_BETA_SUBMISSION` ve `usesNonExemptEncryption=false` doğruladı.
+- [x] [27 Kasım canlı Apple durumu 46025212781](https://github.com/fevzicakmak/BHU/actions/runs/46025212781/job/140594750047), doğru BHU/bundle/1.0/5.1 için `found=true`, `VALID`, `expired=false`, `IN_BETA_TESTING`, dış test için `READY_FOR_BETA_SUBMISSION` ve `usesNonExemptEncryption=false` doğruladı.
 - [x] Kullanıcının ekranında dahili grup ve bir davet görüldü; bu çalışma otomatik davet/e-posta göndermedi.
-- [ ] Kendi davetinin alıcı kimliği, e-posta teslimi/kabulü ve 5.1 cihaz kurulumu doğrulandı.
+- [x] Davet alıcı adresi kullanıcı ekranından doğrulandı; teslim sorunu için mevcut destek kaydına 27 Kasım'da takip iletisi gönderildi.
+- [ ] Davetin e-posta teslimi/kabulü ve 5.1 cihaz kurulumu doğrulandı; son posta kontrolünde davet bulunmadı.
 - [ ] Gerçek cihazda TestFlight kurulum/kayıt/yeniden açma ve satın alma kabulü tamamlandı.
 - [ ] Dış test/Beta App Review tamamlandı; 5.1 için `READY_FOR_BETA_SUBMISSION` yalnız başvuruya hazırlık durumudur, inceleme onayı değildir.
 - [ ] TestFlight iç test gerçekleştirildi. Dış test seçilirse gerekli Beta App Review süreci tamamlandı.
 - [ ] Gerçek StoreKit sandbox/TestFlight satın alma ve geri yükleme akışı doğrulandı; yerel StoreKit testiyle karıştırılmadı.
 - [ ] Crash ve veri kaybı bulguları çözüldü; son test edilen build ile gönderilecek build aynı.
 
-Arşiv ve simülatör kanıtları belirtilen hash'lere aittir. Güncel 5.1 imzalı IPA, Apple kabulü ve aktif dahili dağıtım gerçek yanıtlarla doğrulandı. Önceki 4.1, 18 Kasım sorgusunda Expired görüldü; neden doğrulanmadı. Gerçek cihaz/testçi ve inceleme aşamaları ayrıdır; sonraki gönderimlerde gönderilecek arşiv ayrıca doğrulanmalıdır.
+Arşiv ve simülatör kanıtları belirtilen hash'lere aittir. Güncel 5.1 imzalı IPA/Apple kabulü, 27 Kasım aktif dahili dağıtımı, mağaza taslak kayıtları ve iki görselin `COMPLETE` durumu gerçek yanıtlarla doğrulandı. IAP inceleme görseli son raporda yoktu; ürün `MISSING_METADATA` durumundaydı. App Review gönderimi veya herkese açık yayın tetiklenmedi. Önceki 4.1, 18 Kasım sorgusunda Expired görüldü; neden doğrulanmadı. Gerçek cihaz/testçi ve inceleme aşamaları ayrıdır; sonraki gönderimlerde gönderilecek arşiv ayrıca doğrulanmalıdır.
 
 ## 6. Son gönderim
 

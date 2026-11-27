@@ -9,7 +9,8 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 | Dosya | Amaç |
 | --- | --- |
 | [app-store-metadata.tr.md](app-store-metadata.tr.md) | Türkçe mağaza metinleri, satın alma açıklaması ve inceleme notları |
-| [metadata.tr.json](metadata.tr.json) ve [kopyalanabilir alanlar](metadata/README.md) | Onaylı metinlerin 12 alanlı JSON kaynağı ve 10 düz metin kopyası; mağazaya henüz gönderilmedi |
+| [metadata.tr.json](metadata.tr.json) ve [kopyalanabilir alanlar](metadata/README.md) | Onaylı metinlerin 12 alanlı JSON kaynağı ve 10 düz metin kopyası; 27 Kasım mağaza taslağı kayıtlarının kaynağı, App Review gönderimi değil |
+| [app-review-notes.en.txt](app-review-notes.en.txt) | Türkçe arayüz adımlarıyla 5.1 için İngilizce App Review notu |
 | [app-store-connect-setup.tr.md](app-store-connect-setup.tr.md) | Hesap sahibi için kayıtlı takım, uygulama/IAP kaydı, imzalama ve TestFlight adımları |
 | [github-testflight.tr.md](github-testflight.tr.md) | Mac olmadan Codespaces, Apple sertifika/profil, GitHub Secrets, manuel IPA ve isteğe bağlı TestFlight yüklemesi |
 | [privacy-policy.tr.md](privacy-policy.tr.md) | Fevzi Çakmak ve onaylı destek adresini içeren gizlilik politikası |
@@ -22,20 +23,20 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 
 - Ücretsiz iOS kullanımında **bir ana hesap ve bu ana hesabın alt hesapları** kullanılabilir. Alt hesap başına ücret alınmaz.
 - İkinci ana hesabı açmak için **tek seferlik, kalıcı Çoklu Hesap satın alımı** gerekir. Abonelik yoktur.
-- Türkiye mağazası için güncel hedef tek seferlik fiyat **149,99 TL**. Kullanıcı bu tutarı seçip **Next → Confirm** yaptığını bildirdi; ürün ana sayfasındaki son **Save** ve satış bölgeleri henüz doğrulanmadı. Apple API ile bağımsız fiyat doğrulaması yapılmadı; uygulama Apple'ın gerçek yerelleştirilmiş `displayPrice` değerini göstermeye devam eder.
+- Türkiye mağazası için kaydedilmiş aktif tek seferlik fiyat **149,99 TRY**, 27 Kasım Apple API okumasında doğrulandı. Uygulama ve ürün 134 bölgede; Türkiye açık ve AB ülkeleri kapalıdır. Fiyat değiştirilmedi; uygulama Apple'ın gerçek yerelleştirilmiş `displayPrice` değerini göstermeye devam eder.
 - Satın alma, Apple'ın uygulama içi satın alma sistemiyle doğrulanır. Bir yerel ayar veya yedek dosyası ücretli hakkı açamaz.
 - Satın alma doğrulanamasa veya geri alınmış olsa da mevcut kayıtların görüntülenmesi, düzenlenmesi ve dışa aktarılması engellenmez. Yeni ek ana hesap açma ve aynı sonucu doğuran taşıma/geri yükleme işlemleri ayrıca denetlenir.
 - Web sürümünün mevcut tarayıcıda yerel kayıt düzeni korunur. Bu belgelerdeki StoreKit ve iOS dosya depolaması açıklamaları **native iOS sürümünü** anlatır; web sürümünde aynı satın alma altyapısının bulunduğu varsayılmaz.
 
 ## Onaylanan yayın bilgileri
 
-- App Store görünen adı: **BHU**. Mağaza adı kullanılabilirliği App Store Connect'te ayrıca kontrol edilir.
+- App Store görünen adı: **BHU**; Türkçe mağaza kaydı API'de doğrulandı.
 - Yayıncı/hizmet sağlayıcı: **Fevzi Çakmak**.
 - Apple Developer üyeliğinin etkin olduğu kullanıcı tarafından doğrulandı. **Team ID `T4F4D367KQ`** alındı ve App Debug/Release yapılandırmasına yazıldı; sertifika/profil yetkisi ayrıca doğrulanmalıdır. Kullanıcı `com.fevzicakmak.bhu` Bundle ID kaydını ve BHU App Store Connect uygulama kaydını tamamladığını bildirdi.
 - [Mac CI 43871719871 / job 133314330319](https://github.com/fevzicakmak/BHU/actions/runs/43871719871/job/133314330319), CLI Team override kullanmadan App Debug/Release ayarlarını `DEVELOPMENT_TEAM=T4F4D367KQ`, `Automatic` ve doğru Bundle ID olarak çözdü; `CODE_SIGNING_ALLOWED=NO` idi. Bu ayar kontrolü Apple takımına erişim veya dağıtım imzası kanıtı değildir.
 - [Mac CI 43874034746 / job 133322286941](https://github.com/fevzicakmak/BHU/actions/runs/43874034746/job/133322286941), kaynak `7e5943e2744fc0bb6505236429f45e224fedd28c` için **9/9 sentetik politika/P12 uyumluluk testini (0 hata, 0 atlama)** geçti; modern giriş P12 üretimdeki aynı yardımcıyla dönüştürülüp Mac keychain'e alındı ve Team ayarları tekrar doğrulandı. Gerçek Apple sertifikası/profili/API anahtarı kullanılmadı; imzalı archive/export/upload yapılmadı.
 - Kullanıcının Mac'i yoktur. İmzalama yolu, Apple portalı ve GitHub Codespaces üzerinden hazırlanan dosyalarla GitHub macOS runner kullanır; [gereken erişimler ve adımlar](github-testflight.tr.md) ayrı anlatılır.
-- Çoklu Hesap ürün kaydında `com.fevzicakmak.bhu.multipleaccounts`, ürün Apple ID'si **6835484249**, **Non-Consumable** ve **Prepare for Submission** durumu ekran görüntüsünde görüldü. Kullanıcı Türkçe adı/açıklamayı **Display Name and Description → Add** üzerinden kaydettiğini bildirdi; ürünün incelemesi/onayı henüz yok.
+- Çoklu Hesap ürünü `com.fevzicakmak.bhu.multipleaccounts` / **6835484249**, API'de **NON_CONSUMABLE** olarak doğrulandı. Türkçe yerelleştirme mevcut; 27 Kasım ürün durumu **MISSING_METADATA** ve inceleme görseli eksikti. Bu, satın alma kabulü veya ürün onayı değildir.
 - Kamuya açık destek/gizlilik iletişimi: **fvzckmk35@gmail.com**; kullanıcı bu adresin yayımlanmasını açıkça onayladı.
 - Gizlilik URL'si: https://fevzicakmak.github.io/BHU/privacy.html
 - Destek URL'si: https://fevzicakmak.github.io/BHU/support.html
@@ -43,7 +44,11 @@ Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve ma�
 
 ## Son incelenen doğrulama kanıtı
 
-**18 Kasım güncel TestFlight kanıtı:** `c4d09beeb27ef6571210b83f31ce6357a406a2e0` kaynağında [yükleme 44312503648](https://github.com/fevzicakmak/BHU/actions/runs/44312503648/job/134829998804) başarılı: **15/15 Mac testi, 0 hata/0 atlama**. Gerçek Apple doğrulama/yükleme yanıtlarında `accepted=true`; iki işlemdeki **90725 SDK bildirimi kabulü engellemedi**. [IPA artifact'ı](https://github.com/fevzicakmak/BHU/actions/runs/44312503648/artifacts/14431257071) **1.0 / build 5.1** içerir (son erişim 25 Kasım 2026, 13:24:53 UTC). [Güncel canlı Apple sorgusu 44341875903](https://github.com/fevzicakmak/BHU/actions/runs/44341875903/job/134933774627), doğru BHU/bundle için `found=true`, **processingState=VALID**, **expired=false**, **internalBuildState=IN_BETA_TESTING**, **externalBuildState=READY_FOR_BETA_SUBMISSION** ve `usesNonExemptEncryption=false` doğruladı. Yükleme/işleme tamamlandı, dahili dağıtım aktif. Kullanıcının ekranında grup ve **bir davet** görüldü; kendi alıcı hesabı, e-posta teslimi/kabulü ve cihaz kurulumu doğrulanmadı. Dış Beta App Review, gerçek satın alma, App Review ve herkese açık yayın tamamlanmış sayılmaz.
+**27 Kasım mağaza hazırlığı:** [Salt okunur son mağaza kontrolü 46033077370](https://github.com/fevzicakmak/BHU/actions/runs/46033077370), 16:22 UTC itibarıyla Türkçe ad/alt başlık/açıklama, destek ve gizlilik URL'leri, kategori, telif ve App Review alanlarının kaydını doğruladı; **5.1** sürüme bağlandı. Uygulama ve Çoklu Hesap ürünü **134 bölgede**, **Türkiye açık / AB ülkeleri kapalı**; kaydedilmiş aktif Türkiye ürün fiyatı **149,99 TRY**. Fiyat değiştirilmedi. Birer iPhone **1206×2622** ve iPad **2064×2752** hesap ağacı görseli Apple'da **COMPLETE** işlendi. Bu okuma bütün gönderim koşullarının veya görsel kapsamının tamamlandığını göstermez. IAP ürünü **MISSING_METADATA** durumunda; bu kontrolde satın alma inceleme görseli henüz yoktu.
+
+**Güncel TestFlight durumu:** [27 Kasım canlı build sorgusu 46025212781](https://github.com/fevzicakmak/BHU/actions/runs/46025212781/job/140594750047), doğru BHU/bundle/1.0/**5.1** için `VALID`, `expired=false`, `IN_BETA_TESTING` ve dış test için `READY_FOR_BETA_SUBMISSION` doğruladı. Davet teslimi için mevcut destek kaydına takip iletisi gönderildi; kullanıcının daveti posta kutusunda bulunmadı. Kabul/cihaz kurulumu, gerçek StoreKit satın alma/geri yükleme, App Privacy/yaş/yasal beyanlar bekliyor. **App Review gönderimi veya herkese açık yayın tetiklenmedi.**
+
+**İmzalı yükleme kanıtı (18 Kasım):** `c4d09beeb27ef6571210b83f31ce6357a406a2e0` / [yükleme 44312503648](https://github.com/fevzicakmak/BHU/actions/runs/44312503648/job/134829998804), **15/15 Mac testi, 0 hata/0 atlama** ile başarılıydı. Gerçek Apple doğrulama/yükleme yanıtlarında `accepted=true`; iki işlemdeki **90725 SDK bildirimi kabulü engellemedi**. Orijinal IPA artifact'ının yedi günlük saklama süresi 25 Kasım'da sona erdi; bu durum Apple'daki 5.1 build'inin süresinin dolduğu anlamına gelmez.
 
 **Önceki build:** 4.1, 17 Kasım'da hazırdı; [18 Kasım sorgusunda](https://github.com/fevzicakmak/BHU/actions/runs/44312149712/job/134828758919) **Expired** görüldü. Sona erme nedeni doğrulanmadı; güncel kurulum sürümü 5.1'dir.
 
@@ -65,27 +70,27 @@ Native depolama testlerinde ilk yazma/okuma ve yeni plugin ile kalıcılık, esk
 
 Arşiv ve simülatör kanıtları belirtilen hash'lere aittir; Team ID ayar çözümlemesi ayrı Mac CI kontrolüyle doğrulandı, ancak önceki imzasız kanıtlar yeni workflow ile gerçek imzalı arşiv/export/upload yapıldığını göstermez; son imzalı gönderim arşivi yeniden doğrulanmalıdır.
 
-[Gizlilik](https://fevzicakmak.github.io/BHU/privacy.html) ve [destek](https://fevzicakmak.github.io/BHU/support.html) sayfaları 15 Kasım 2026'da canlı HTTP 200, onaylı kimlik/e-posta ve mobil taşma kontrolünden geçti.
+[Gizlilik](https://fevzicakmak.github.io/BHU/privacy.html) ve [destek](https://fevzicakmak.github.io/BHU/support.html) sayfaları 15 Kasım 2026'da canlı HTTP 200, onaylı kimlik/e-posta ve mobil taşma kontrolünden geçti. 27 Kasım'da HTTP 200 ve onaylı yayıncı/iletişim içeriği yeniden doğrulandı.
 
 Önceki 3.1 CLI çıkış kodu yükleme kabulü sayılmadı. Güncel **5.1** Apple yükleme yanıtı ve canlı REST sorgusuyla doğrulandı; **VALID**, süresi dolmamış ve dahili dağıtımı **IN_BETA_TESTING** durumundadır. Bu, gerçek cihaz testi veya dış Beta App Review onayı değildir.
 
 ## Kopyalanabilir mağaza alanları
 
-[metadata.tr.json](metadata.tr.json), onaylı Türkçe metinlerin düz alan kaynağıdır. [metadata/tr-TR/](metadata/tr-TR/) altında uygulama adı, alt başlık, tanıtım, açıklama, anahtar kelime, inceleme notları, ürün adı/açıklaması ve destek/gizlilik URL'leri için 10 `.txt` kopyası bulunur. Bunlar bir yükleme veya mağaza onayı değildir; gerçek ürün, son build ve gerçek cihaz/StoreKit kabulünden sonra [kurulum rehberiyle](app-store-connect-setup.tr.md) kullanılmalıdır.
+[metadata.tr.json](metadata.tr.json), onaylı Türkçe metinlerin düz alan kaynağıdır. [metadata/tr-TR/](metadata/tr-TR/) altında uygulama adı, alt başlık, tanıtım, açıklama, anahtar kelime, inceleme notları, ürün adı/açıklaması ve destek/gizlilik URL'leri için 10 `.txt` kopyası bulunur. Kanonik Türkçe uygulama metinleri 27 Kasım'da mağaza taslağına kaydedildi; bu, App Review gönderimi veya onayı değildir. Son Product ID ve 5.1 arayüz yollarını içeren [İngilizce inceleme notu](app-review-notes.en.txt) da hazırdır. Gerçek cihaz/StoreKit kabulü ve son gönderim kontrolü sürer.
 
 ## Tamamlanması gereken mağaza adımları
 
-1. 5.1 yüklemesi/işlemesi tamamlandı ve dahili dağıtımı aktif; grup/bir davet görünür. Sıradaki adım kendi davetini kabul edip cihazda kurmak ve test etmektir; kullanıcı tarafından tamamlandığı bildirilen Bundle ID/BHU uygulama kaydı yeniden oluşturulmaz.
-2. Mevcut Çoklu Hesap ürününde hedef 149,99 TL fiyat seçiminin son **Save** ile kaydı ve ürünün uygulama sürümüyle incelemeye eklenmesi. Kullanıcı BHU ve satın alma ürününden AB ülkelerini çıkardığını bildirdi; diğer uygun ülkeler korunur.
-3. Gerçek cihaz/TestFlight kabulü ve son imzalı build'e ait App Privacy / export-compliance yanıtları.
-4. iPhone/iPad gerçek ekran görüntüleri, son sürüm ve mağaza gönderimi.
+1. 5.1 geçerli ve dahili dağıtımı aktif; davet teslimi için destek takibi sürüyor. Fiziksel cihazda kurulum, kayıt/yeniden açma ve StoreKit satın alma/geri yükleme kabulü tamamlanmalı.
+2. Çoklu Hesap inceleme görseli hazırlanıp kaydı doğrulanmalı; ilk ürün uygulama sürümüyle incelemeye hazırlanmalı. Kayıtlı 149,99 TRY fiyatı ve Türkiye/AB bölgeleri API ile doğrulandı; bu alanlar yeniden oluşturulmaz.
+3. Son gerçek veri akışına göre App Privacy, yaş, export-compliance ve hesap genelindeki yasal beyanların son kontrolü tamamlanmalı.
+4. Kaydedilen iPhone/iPad görsellerinin son mağaza kapsamı kontrol edilmeli. İki görselin `COMPLETE` olması inceleme onayı değildir; App Review gönderimi ve yayın ayrı aşamalardır.
 
 Mağaza metni ve kontrol listeleri bu adımları yapılmış saymaz. Gizlilik ve destek sayfaları onaylanmış kimlik/iletişim bilgisiyle yayımlandı ve canlı URL'leri kontrol edildi. İçerikleri son App Store build'inin veri akışıyla yeniden karşılaştırılmalıdır.
 
-## Hesap sahibinden sıradaki bilgiler
+## Kalan doğrulamalar
 
-1. Ürün ana sayfasındaki son **Save** adımının tamamlandığı bilgisi; 149,99 TL seçimi için **Next → Confirm** yapıldığı ve BHU/satın alma ürününden AB ülkelerinin çıkarıldığı zaten bildirildi.
-2. Diğer uygulamada da AB ülkelerinin çıkarıldığı bildirildi; hesap genelindeki DSA son onayı henüz doğrulanmadı. Paid Apps Agreement, banka ve W-8BEN için **Active** durumu önceki ekran görüntüsünde görüldü.
-3. İmzalı IPA üretiminde kullanılan sertifika/profil/Secrets yeniden hazırlanmaz; API Secrets CLI çağrılarında kullanıldı; 5.1 Apple yüklemesi/işlemesi ve aktif dahili dağıtım doğrulandı; grup/bir davet vardır, kendi alıcı hesabı/davet kabulü/cihaz kurulumu ayrıca doğrulanmalıdır; Team ID, Bundle ID, BHU uygulaması veya ürün kimliği yeniden istenmez.
+1. Gerçek iPhone kurulumu, kayıt/yeniden açma ve satın alma/geri yükleme sonuçları bekleniyor. Mağaza metinleri, inceleme notları/iletişim alanları ve build 5.1 kaydedildi; bu kayıtlar cihaz testini tamamlamaz.
+2. Kullanıcı DSA adımını tamamladığını bildirdi. Hesap genelindeki DSA/hukuki kayıtlar bu salt okunur uygulama raporuyla bağımsız doğrulanmaz; önceki tamamlanmış kullanıcı adımları tekrar istenmez. Paid Apps Agreement, banka ve W-8BEN için önceki ekranda **Active** görüldü.
+3. İmzalı IPA üretiminde kullanılan sertifika/profil/Secrets yeniden hazırlanmaz. 5.1 aktif dahili dağıtımı ve davet alıcı adresi doğrulandı; teslim/kabul ve cihaz kurulumu bekliyor. Team ID, Bundle ID, BHU uygulaması veya ürün kimliği yeniden istenmez.
 
-Team ID `T4F4D367KQ` kayıtlıdır; Bundle ID ve BHU uygulama kaydı kullanıcı bildirimine, Product ID ve ürün Apple ID'si görülen ekran görüntüsüne dayanır. BHU uygulaması/bundle eşleşmesi artık REST API ile doğrulandı; bu sorgu fiyat/bölge veya StoreKit kabulü değildir. Apple parolası, dağıtım özel anahtarı ve API özel anahtarı belgeye/sohbete yazılmaz; gereken gizli bilgiler yalnız güvenli GitHub Secrets akışıyla sağlanır.
+Team ID `T4F4D367KQ` kayıtlıdır. BHU uygulaması/bundle ve ürün eşleşmesi REST API ile doğrulandı; 27 Kasım sorgusu kaydedilmiş fiyat/bölgeleri de doğruladı. Bu, gerçek StoreKit satın alma/geri yükleme kabulü değildir. Apple parolası, dağıtım özel anahtarı ve API özel anahtarı belgeye/sohbete yazılmaz; gereken gizli bilgiler yalnız güvenli GitHub Secrets akışıyla sağlanır.

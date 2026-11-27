@@ -1,19 +1,23 @@
-# App Store Türkçe metadata taslağı
+# App Store Türkçe metadata ve gönderim durumu
 
-**Durum:** Kullanıcı Bundle ID `com.fevzicakmak.bhu` ve BHU uygulama kaydını tamamladığını bildirdi. Non-Consumable ürün `com.fevzicakmak.bhu.multipleaccounts`, ürün Apple ID'si `6835484249` ve **Prepare for Submission** durumu ekran görüntüsünde görüldü. Türkçe ürün adı/açıklamasının kaydedildiği bildirildi. 149,99 TL fiyat seçimi **Next → Confirm** aşamasında tamamlandı; kullanıcı BHU ve satın alma ürününden AB ülkelerini çıkardığını bildirdi. Son ürün **Save** ve DSA son onayı doğrulanmadı; imzalı IPA üretimi doğrulandı, gerçek cihaz/StoreKit kabulü ve mağaza gönderimi henüz tamamlanmadı. Apple API ile bağımsız fiyat/bölge doğrulaması yapılmadı.
+**Durum:** `com.fevzicakmak.bhu` uygulaması ve Non-Consumable `com.fevzicakmak.bhu.multipleaccounts` ürünü API ile doğrulandı. 27 Kasım'da mağaza taslağının Türkçe metinleri, URL'leri, kategori/telif, App Review alanları ve build **5.1** bağlantısı kaydedildi; geri okuma karşılaştırması eşleşti. Uygulama ve ürün için Türkiye açık, AB ülkeleri kapalı; kaydedilmiş aktif ürün fiyatı **149,99 TRY**. IAP ürününün durumu **MISSING_METADATA**; son kontrolde satın alma inceleme görseli yoktu. Kullanıcı DSA adımını tamamladığını bildirdi; hesap geneli DSA/hukuki doğrulama bu okumanın kapsamı değildir. Gerçek cihaz/StoreKit kabulü, App Review gönderimi ve herkese açık yayın tamamlanmadı.
 
-**18 Kasım güncel TestFlight kanıtı:** `c4d09beeb27ef6571210b83f31ce6357a406a2e0` kaynağında [yükleme 44312503648](https://github.com/fevzicakmak/BHU/actions/runs/44312503648/job/134829998804) başarılı: **15/15 Mac testi, 0 hata/0 atlama**. Gerçek Apple doğrulama/yükleme yanıtlarında `accepted=true`; iki işlemdeki **90725 SDK bildirimi kabulü engellemedi**. [IPA artifact'ı](https://github.com/fevzicakmak/BHU/actions/runs/44312503648/artifacts/14431257071) **1.0 / build 5.1** içerir (son erişim 25 Kasım 2026, 13:24:53 UTC). [Güncel canlı Apple sorgusu 44341875903](https://github.com/fevzicakmak/BHU/actions/runs/44341875903/job/134933774627), doğru BHU/bundle için `found=true`, **processingState=VALID**, **expired=false**, **internalBuildState=IN_BETA_TESTING**, **externalBuildState=READY_FOR_BETA_SUBMISSION** ve `usesNonExemptEncryption=false` doğruladı. Yükleme/işleme tamamlandı, dahili dağıtım aktif. Kullanıcının ekranında grup ve **bir davet** görüldü; kendi alıcı hesabı, e-posta teslimi/kabulü ve cihaz kurulumu doğrulanmadı. Dış Beta App Review, gerçek satın alma, App Review ve herkese açık yayın tamamlanmış sayılmaz.
+**27 Kasım mağaza hazırlığı:** [Salt okunur son mağaza kontrolü 46033077370](https://github.com/fevzicakmak/BHU/actions/runs/46033077370), 16:22 UTC itibarıyla Türkçe ad/alt başlık/açıklama, destek ve gizlilik URL'leri, kategori, telif ve App Review alanlarının kaydını doğruladı; **5.1** sürüme bağlandı. Uygulama ve Çoklu Hesap ürünü **134 bölgede**, **Türkiye açık / AB ülkeleri kapalı**; kaydedilmiş aktif Türkiye ürün fiyatı **149,99 TRY**. Fiyat değiştirilmedi. Birer iPhone **1206×2622** ve iPad **2064×2752** hesap ağacı görseli Apple'da **COMPLETE** işlendi. Bu okuma bütün gönderim koşullarının veya görsel kapsamının tamamlandığını göstermez. IAP ürünü **MISSING_METADATA** durumunda; bu kontrolde satın alma inceleme görseli henüz yoktu.
+
+**Güncel TestFlight durumu:** [27 Kasım canlı build sorgusu 46025212781](https://github.com/fevzicakmak/BHU/actions/runs/46025212781/job/140594750047), doğru BHU/bundle/1.0/**5.1** için `VALID`, `expired=false`, `IN_BETA_TESTING` ve dış test için `READY_FOR_BETA_SUBMISSION` doğruladı. Davet teslimi için mevcut destek kaydına takip iletisi gönderildi; kullanıcının daveti posta kutusunda bulunmadı. Kabul/cihaz kurulumu, gerçek StoreKit satın alma/geri yükleme, App Privacy/yaş/yasal beyanlar bekliyor. **App Review gönderimi veya herkese açık yayın tetiklenmedi.**
+
+**İmzalı yükleme kanıtı (18 Kasım):** `c4d09beeb27ef6571210b83f31ce6357a406a2e0` / [yükleme 44312503648](https://github.com/fevzicakmak/BHU/actions/runs/44312503648/job/134829998804), **15/15 Mac testi, 0 hata/0 atlama** ile başarılıydı. Gerçek Apple doğrulama/yükleme yanıtlarında `accepted=true`; iki işlemdeki **90725 SDK bildirimi kabulü engellemedi**. Orijinal IPA artifact'ının yedi günlük saklama süresi 25 Kasım'da sona erdi; bu durum Apple'daki 5.1 build'inin süresinin dolduğu anlamına gelmez.
 
 **Önceki build:** 4.1, 17 Kasım'da hazırdı; [18 Kasım sorgusunda](https://github.com/fevzicakmak/BHU/actions/runs/44312149712/job/134828758919) **Expired** görüldü. Sona erme nedeni doğrulanmadı; güncel kurulum sürümü 5.1'dir.
 
 ## Önerilen alanlar
 
-| App Store Connect alanı | Taslak / yapılacak iş |
+| App Store Connect alanı | Kaydedilen değer / kalan kontrol |
 | --- | --- |
-| Ad | `BHU` — kullanıcı uygulama kaydını tamamladığını bildirdi |
+| Ad | `BHU` — Türkçe kaydı API'de doğrulandı |
 | Alt başlık | `Ana ve alt hesaplarla kasa` |
-| Birincil kategori | Finance önerisi; nihai sınıflandırma satıcıya ait |
-| İkincil kategori | Productivity değerlendirilebilir |
+| Birincil kategori | Eksik kategori alanı kaydedildi ve API'de mevcut; nihai sınıflandırmanın uygunluğu son kontroldedir |
+| İkincil kategori | İsteğe bağlı; bu çalışmada kayıtlı olduğu iddia edilmez |
 | Birincil dil | Türkçe |
 | Yayıncı / hizmet sağlayıcı | Fevzi Çakmak |
 | Kamuya açık destek e-postası | fvzckmk35@gmail.com |
@@ -23,7 +27,7 @@
 | Gizlilik politikası URL'si | https://fevzicakmak.github.io/BHU/privacy.html |
 | Pazarlama URL'si | İsteğe bağlı; bir URL uydurulmadı |
 | Telif hakkı | 2026 Fevzi Çakmak |
-| Bundle ID / SKU | `com.fevzicakmak.bhu` kaydının tamamlandığı bildirildi; SKU `BHU-IOS-001` öneridir, gerçek kayıt değeri ayrıca karşılaştırılacak |
+| Bundle ID / SKU | `com.fevzicakmak.bhu` API'de doğrulandı; `BHU-IOS-001` rehber önerisidir, gerçek SKU bu raporda karşılaştırılmadı |
 
 Bu metinler finansal kayıt takibini anlatır. Uygulamanın banka hesabına bağlandığı, para transfer ettiği, fatura kestiği, vergi beyanı hazırladığı veya resmi muhasebe hizmeti sunduğu iddia edilmez.
 
@@ -48,7 +52,7 @@ Bu metinler finansal kayıt takibini anlatır. Uygulamanın banka hesabına bağ
 >
 > Verilerinizi düzenli olarak yedekleyin. Cihazlar arasında uygulamaya ait otomatik eşitleme yoktur. Yedek dosyası finansal kayıtlarınızı ve ekli belgelerinizi içerir; paylaşacağınız konumu ve alıcıyı siz seçersiniz.
 
-Çevrimdışı kullanım, yerel dosya depolaması ve iOS paylaşımı ifadeleri son imzalı derlemede TestFlight planıyla doğrulandıktan sonra aynen kullanılmalıdır. Uygulamayı yalnızca uzak bir web sitesini açacak şekilde paketlemek bu vaatleri sağlamaz.
+Bu metinler 27 Kasım'da mağaza sürüm taslağına kaydedildi. Paket içi dosyalar/yerel kayıt teknik olarak incelendi; metin kaydı fiziksel cihazda çevrimdışı kullanım ve dosya paylaşımı kabul testinin tamamlandığını göstermez.
 
 ## Anahtar kelime önerisi
 
@@ -60,14 +64,14 @@ Yayın öncesi App Store Connect alan sınırlarını ve son metnin uzunluğunu 
 
 - Görünen ad: **Çoklu Hesap**.
 - Açıklama: **Ek ana hesaplar için kalıcı erişim.**
-- Kullanıcı Türkçe alanları **Display Name and Description → Add** üzerinden doldurup kaydettiğini bildirdi; bu ürünün inceleme/onayı değildir.
-- Türkiye mağazası güncel hedef fiyatı **149,99 TL**. Kullanıcı tutarı seçip **Next → Confirm** yaptı; ürün ana sayfasındaki son **Save** ve **Availability** ülkeleri/bölgeleri henüz doğrulanmadı. Apple API ile bağımsız fiyat kontrolü yapılmadı; diğer para birimleri için fiyat uydurulmadı.
+- Türkçe ürün adı/açıklaması API'de mevcut. Yerelleştirme `PREPARE_FOR_SUBMISSION`, ürün `MISSING_METADATA` durumunda; satın alma inceleme görseli son kontrolde yoktu.
+- 27 Kasım UTC tarihi için kaydedilmiş aktif Türkiye fiyatı **149,99 TRY**, API'de tek geçerli fiyat olarak doğrulandı. Uygulama ve ürün 134 bölgede, Türkiye açık ve AB ülkeleri kapalıdır. Fiyat değiştirilmedi; diğer para birimleri için fiyat uydurulmadı.
 - Fiyat, StoreKit ürününden yerel para birimiyle gösterilir. Metinlere sabit veya henüz belirlenmemiş fiyat yazılmaz.
 - Paywall, ücretsiz ana hesap/alt hesap hakkını ve satın alımları geri yükleme seçeneğini açıkça gösterir.
 - Geliştirme StoreKit yapılandırması gerçek App Store Connect ürününün onaylandığını göstermez.
 - Family Sharing, kullanıcı tarafından etkinleştirilip test edilmedikçe mağaza metninde vaat edilmez.
 
-## App Review notları taslağı
+## App Review notları
 
 > Uygulama giriş hesabı gerektirmez. “Hesap”, kullanıcının cihazında tuttuğu kasa/finansal hesap anlamındadır.
 >
@@ -79,9 +83,13 @@ Yayın öncesi App Store Connect alan sınırlarını ve son metnin uzunluğunu 
 >
 > Uygulama banka bağlantısı veya gerçek para transferi yapmaz. “İşlemleri taşı”, mevcut kayıtların hesap bağlantısını değiştirir.
 
-İnceleme notuna son Product ID, derleme numarası, satın alma ekranına ulaşma adımları ve gerekirse açıklayıcı ekran görüntüsü eklenir. Gerçek kişi finansal verisi, kişisel Apple hesabı bilgisi veya gerçek makbuz eklenmez.
+Son Product ID, **1.0 (5.1)** ve gerçek Türkçe arayüz adımlarını içeren [İngilizce inceleme notu](app-review-notes.en.txt) hazırlandı; App Review notları ve iletişim alanları 27 Kasım'da kaydedilip geri okundu. İletişim değerleri bu depoda yayımlanmaz. Yukarıdaki Türkçe metin okunabilir alternatif olarak korunur. Gerçek kişi finansal verisi, kişisel Apple hesabı bilgisi veya gerçek makbuz eklenmez.
 
-## Ekran görüntüsü çekim listesi
+## Ekran görüntüleri ve son kapsam kontrolü
+
+27 Kasım'da bir iPhone **1206×2622** (`APP_IPHONE_61`) ve bir iPad **2064×2752** (`APP_IPAD_PRO_3GEN_129`) hesap ağacı görseli Apple'da `COMPLETE` işlendi. Bunlar tüm görsel kapsamının veya App Review kabulünün doğrulandığı anlamına gelmez. Satın alma inceleme görseli bu kontrolde henüz yüklenmemişti.
+
+Ek çekim ve son kapsam listesi:
 
 1. Ana hesap ve alt hesap ağacı; bir ücretsiz ana hesabın alt hesaplarının gösterimi.
 2. Gelir/gider formu ve yerel otomatik tamamlama.
