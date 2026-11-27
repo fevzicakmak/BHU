@@ -12,6 +12,14 @@ on:
           - both
           - iPhone
           - iPad
+      view:
+        description: Actual account overview or real multi-account review screen (use iPad for IAP)
+        type: choice
+        required: true
+        default: accounts
+        options:
+          - accounts
+          - iap
 
 permissions:
   contents: read
@@ -64,18 +72,19 @@ jobs:
           node scripts/ios-app-store-screenshots.mjs
           --app ios-screenshot-build/Build/Products/Debug-iphonesimulator/App.app
           --family '${{ matrix.family }}'
+          --view '${{ inputs.view || 'accounts' }}'
       - name: Keep verified screenshot candidates for visual review
         uses: actions/upload-artifact@v4
         with:
-          name: BHU-AppStore-Screenshot-Candidates-${{ matrix.family }}
-          path: test-artifacts/app-store-screenshot-candidates/${{ matrix.family }}/
+          name: BHU-AppStore-Screenshot-Candidates-${{ matrix.family }}${{ inputs.view == 'iap' && '-iap' || '' }}
+          path: test-artifacts/app-store-screenshot-candidates/${{ matrix.family }}${{ inputs.view == 'iap' && '-iap' || '' }}/
           if-no-files-found: error
           retention-days: 7
       - name: Keep bounded native simulator failure evidence
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: BHU-Screenshot-Diagnostics-${{ matrix.family }}
-          path: test-artifacts/app-store-screenshot-candidates/raw/${{ matrix.family }}/
+          name: BHU-Screenshot-Diagnostics-${{ matrix.family }}${{ inputs.view == 'iap' && '-iap' || '' }}
+          path: test-artifacts/app-store-screenshot-candidates/raw/${{ matrix.family }}${{ inputs.view == 'iap' && '-iap' || '' }}/
           if-no-files-found: ignore
           retention-days: 7
