@@ -165,9 +165,25 @@ test('cursor-only Apple catalog links preserve every original filter, fieldset a
   assert.equal(second.searchParams.get('cursor'), 'catalog-next');
 });
 
+test('Apple-sorted field and include members preserve the exact original request scope', async () => {
+  const mock = mockApple({ catalogNext: { 'fields[appPricePoints]': 'app,customerPrice,territory', include: 'territory,app' } });
+  const plan = await prepare(mock);
+  assert.equal(plan.action, 'create'); assert.equal(writes(mock).length, 0);
+  const pages = mock.calls.filter(call => new URL(call.url).pathname === `/v1/apps/${APP_ID}/appPricePoints`);
+  assert.equal(pages.length, 2);
+  const next = new URL(pages[1].url);
+  assert.equal(next.searchParams.get('fields[appPricePoints]'), 'customerPrice,app,territory');
+  assert.equal(next.searchParams.get('include'), 'app,territory');
+  assert.equal(next.searchParams.get('filter[territory]'), 'USA');
+});
+
 test('supplied conflicting pagination filters, fields, includes or limits reject before another page or write', async () => {
   for (const catalogNext of [{ 'filter[territory]': 'TUR' }, { 'fields[appPricePoints]': 'customerPrice' },
-    { 'fields[territories]': 'id' }, { 'fields[apps]': 'name' }, { include: 'territory' }, { limit: '100' }]) {
+    { 'fields[territories]': 'id' }, { 'fields[apps]': 'name' }, { include: 'territory' }, { limit: '100' },
+    { 'fields[appPricePoints]': 'app,customerPrice,territory,proceeds' }, { include: 'territory,app,appPricePoint' },
+    { 'fields[appPricePoints]': 'app,customerPrice,territory,app' }, { include: 'territory,app,app' },
+    { 'fields[appPricePoints]': 'app,customerPrice,territory,' }, { include: ',territory,app' },
+    { 'fields[appPricePoints]': '' }, { include: '' }]) {
     const mock = mockApple({ catalogNext });
     await assert.rejects(prepare(mock), /pagination changed its scope/);
     assert.equal(writes(mock).length, 0);

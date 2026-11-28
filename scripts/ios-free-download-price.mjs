@@ -53,6 +53,15 @@ export function createFreePriceClient(session, { fetchImpl = globalThis.fetch, n
     try { return await readJSON(response); } catch (_) { throw new AssetsError('Free price API response could not be verified.', { outcome: method === 'GET' ? 'read_failed' : 'unknown' }); }
   } };
 }
+function samePageParameter(key, original, returned) {
+  if (key !== 'include' && !/^fields\[[A-Za-z][A-Za-z0-9]*\]$/.test(key)) return original === returned;
+  // Apple may sort comma-separated field/include names in its next links.
+  // Only exact, nonempty, duplicate-free member sets are equivalent.
+  const expected = original.split(','), supplied = returned.split(',');
+  return expected.every(value => value.length > 0) && supplied.every(value => value.length > 0)
+    && new Set(expected).size === expected.length && new Set(supplied).size === supplied.length
+    && expected.length === supplied.length && supplied.every(value => expected.includes(value));
+}
 /** Traverse only same-endpoint ASC cursor pages, never arbitrary API-issued URLs. */
 async function all(request, path, parameters, type) {
   let params = parameters; const values = [], included = [], seenIds = new Set(), seenPages = new Set();
@@ -72,7 +81,7 @@ async function all(request, path, parameters, type) {
     const entries = [...url.searchParams]; check(entries.every(([key]) => key === 'cursor' || Object.hasOwn(parameters, key))
       && new Set(entries.map(([key]) => key)).size === entries.length && typeof url.searchParams.get('cursor') === 'string'
       && url.searchParams.get('cursor').length > 0 && url.searchParams.get('cursor').length <= 2000, 'Apple price pagination query is invalid.');
-    for (const [key, value] of entries) check(key === 'cursor' || parameters[key] === value, 'Apple price pagination changed its scope.');
+    for (const [key, value] of entries) check(key === 'cursor' || samePageParameter(key, parameters[key], value), 'Apple price pagination changed its scope.');
     // Apple's cursor links may omit sparse fieldsets or filters. Never let the
     // returned URL choose the next request's scope: keep the original query and
     // accept only its checked opaque cursor.
