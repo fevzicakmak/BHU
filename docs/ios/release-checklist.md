@@ -1,5 +1,8 @@
 # iOS / App Store yayın sırası
 
+**28 Kasım 2026, 09:05:42 UTC — Apple incelemesine gönderildi.** BHU **1.0 / build 5.1** ve ilk Non-Consumable **Çoklu Hesap** aynı mevcut inceleme taslağında ayrı öğeler olarak doğrulandı. `submitted=true` isteği kabul edildi; yeni GET ile gönderim tarihi ve uygulama, IAP sürümü, IAP ürünü için **WAITING_FOR_REVIEW** durumu doğrulandı. Önceki App Privacy/uyum engelleri, kullanıcının beyanları kaydetmesinden sonra uygulamayı pakete ekleme kontrolünü artık engellemedi. İnceleme onayı ve herkese açık yayın henüz gerçekleşmedi; mevcut **AFTER_APPROVAL** ayarı korunduğu için Apple onayından sonra otomatik yayın öngörülüyor. Ülke kapsamı, ücretsiz indirme ve Çoklu Hesap fiyatı değiştirilmedi. Bu kayıt, aşağıdaki daha eski hazırlık/gönderim engeli notlarının güncel sonucudur.
+
+
 **28 Kasım 08:43 UTC — gerçek gönderim ön kontrolü:** Kullanıcı incelemeye göndermeyi açıkça istedi. Apple inceleme taslağı oluşturuldu, ancak uygulama sürümünü ekleme isteği `409 STATE_ERROR.ENTITY_STATE_INVALID` ile reddedildi; taslak boş ve gönderilmemiştir. İçerik hakları beyanı daha sonra `DOES_NOT_USE_THIRD_PARTY_CONTENT` olarak kaydedilip yeniden doğrulandı. Diğer gerçek engeller: App Privacy yanıtlarının yayımlanmaması (`APP_DATA_USAGES_REQUIRED`) ve iki tamamlanmamış Çin uyum formu (`SECURITYASF395E`, `AIGENERATEFD1DE`).
 
 Bu formlar **Apps → BHU → General → App Compliance** sayfasındaki **Security Assessment** ve **AI-Generated or Synthetic Content** alanlarından tamamlanır. [Apple’ın güncel rehberi](https://developer.apple.com/help/app-store-connect/manage-compliance-information/view-china-mainland-compliance-information), bu özellikleri sunmayan uygulamalar için `No` seçeneğini açıklar; BHU’nun kaynaklarında bu AI/mesajlaşma özellikleri yoktur. App Privacy için ayrı `Publish` işlemi gerekir. Mevcut App Manager API bağlantısı bu uyum formlarını düzenleyemez; hesap sahibi/Admin web ekranı gerekir. Çin veya başka ülke otomatik kapatılmadı. **App Review gönderimi ve herkese açık yayın gerçekleşmedi.** İlk IAP uygulama sürümüyle aynı gönderimde tutulmalıdır; yeniden denemede yeni taslak açmadan mevcut taslak ve öğeleri yeniden okuyun.
@@ -24,7 +27,7 @@ Bu liste, kod hazırlığından mağaza gönderimine kadar yapılacak somut işl
 - [x] [Mac CI 43871719871 / job 133314330319](https://github.com/fevzicakmak/BHU/actions/runs/43871719871/job/133314330319), CLI Team override olmadan Debug/Release için kayıtlı Team ID, Automatic ve doğru Bundle ID ayarlarını çözdü (`CODE_SIGNING_ALLOWED=NO`); gerçek imzalama yapılmadı.
 - [ ] Bu takımda Apple Certificates/Identifiers/Profiles erişimi ve App Store Connect yayınlama yetkisi doğrulandı.
 - [x] `com.fevzicakmak.bhu` uygulama/bundle ve Çoklu Hesap ürün eşleşmesi Apple API ile bağımsız doğrulandı.
-- [ ] BHU uygulama kaydındaki gerçek SKU son gönderim bilgileriyle karşılaştırıldı; `BHU-IOS-001` rehberdeki öneridir.
+- [x] Canlı Apple uygulama kaydında gerçek SKU `BHU-IOS-001` ve doğru Bundle ID doğrulandı.
 - [x] Önceki ekran görüntüsünde Paid Apps Agreement, banka ve W-8BEN için **Active** durumu görüldü; başka vergi formları veya son gönderim kabulü çıkarımı yapılmaz.
 - [x] [27 Kasım mağaza raporu](https://github.com/fevzicakmak/BHU/actions/runs/46033077370): BHU ve ürün 134 bölgede, Türkiye açık ve AB ülkeleri kapalı. Türkiye uygulama erişimi diğer mevcut bölgeler değiştirilmeden kaydedildi; bu rapor başka uygulamaları denetlemez.
 - [ ] Kullanıcının tamamladığını bildirdiği hesap geneli DSA kaydının son durumu bağımsız doğrulandı. Kullanıcı adımının yeniden yapılması istenmez; hukuki sınıflama varsayılmaz.
@@ -53,7 +56,7 @@ Kod veya depo içine Apple parolası, özel anahtar, dağıtım sertifikası, pr
 
 Ürün kuralı: **1 ücretsiz ana hesap + bu ana hesabın alt hesapları; ikinci ana hesap için tek seferlik kalıcı hak.** Alt hesap başına ücret veya abonelik yok.
 
-- [x] API’de **NON_CONSUMABLE** ürün doğrulandı: `com.fevzicakmak.bhu.multipleaccounts` / **6835484249**. 28 Kasım durumu **READY_TO_SUBMIT**; yerelleştirme `PREPARE_FOR_SUBMISSION`. Bu durum ürün inceleme onayı değildir.
+- [x] API’de **NON_CONSUMABLE** ürün doğrulandı: `com.fevzicakmak.bhu.multipleaccounts` / **6835484249**. 28 Kasım 09:05:42 UTC itibarıyla ürün ve sürümü **WAITING_FOR_REVIEW**. İnceleme onayı bekleniyor.
 - [x] API'deki Product ID, kod/config ve StoreKit test dosyasıyla aynı; gerçek ürünün StoreKit'ten cihazda yüklenmesi ayrıca test edilmelidir.
 - [x] Türkçe ürün adı/açıklamasının kaydı canlı API'de doğrulandı.
 - [x] Gerçek native iPad uygulamasından alınan **2064×2752** Çoklu Hesap inceleme görseli Apple’da **COMPLETE** işlendi; mevcut kaynak dosyası yeniden doğrulandı, kopya görsel oluşturulmadı.
@@ -68,7 +71,7 @@ Kod veya depo içine Apple parolası, özel anahtar, dağıtım sertifikası, pr
 - [ ] İade veya yetki geri alınması yeni ek ana hesap oluşturmayı sınırlar; mevcut kayıtları gizlemez, silmez veya dışa aktarmayı engellemez.
 - [ ] Ürün bulunamadığında, internet yokken veya satın alma kısıtlandığında sahte fiyat/hak gösterilmiyor; finansal veri korunuyor.
 - [ ] Family Sharing vaat edilecekse hem App Store Connect ayarı hem gerçek test sonucu mevcut. Aksi halde vaat edilmiyor.
-- [ ] İlk IAP, Apple'ın güncel ilk ürün gönderim sürecine uygun şekilde uygulama sürümüyle birlikte incelemeye eklendi.
+- [x] İlk IAP ve BHU 1.0 / 5.1, aynı gönderimde iki ayrı doğru sürüm öğesi olarak doğrulandı ve 09:05:42 UTC’de incelemeye gönderildi.
 
 Geliştirme `.storekit` dosyasında başarılı satın alma görmek, gerçek ürünün App Store Connect'te oluşturulduğunu veya onaylandığını kanıtlamaz.
 
@@ -115,14 +118,14 @@ Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı ş
 - [ ] Gerçek StoreKit sandbox/TestFlight satın alma ve geri yükleme akışı doğrulandı; yerel StoreKit testiyle karıştırılmadı.
 - [ ] Crash ve veri kaybı bulguları çözüldü; son test edilen build ile gönderilecek build aynı.
 
-Arşiv ve simülatör kanıtları belirtilen hash’lere aittir. 28 Kasım’da 5.1’in `VALID`/süresi dolmamış/aktif dahili dağıtımı, mağaza taslak kayıtları, ücretsiz indirme, yaş yanıtları, iki hesap görseli ve IAP inceleme görselinin `COMPLETE` durumları doğrulandı. Çoklu Hesap ürünü **READY_TO_SUBMIT** durumundadır. App Review gönderimi veya herkese açık yayın tetiklenmedi. Önceki 4.1, 18 Kasım sorgusunda Expired görüldü; neden doğrulanmadı. Gerçek cihaz/testçi ve inceleme aşamaları ayrıdır; sonraki gönderimlerde gönderilecek arşiv ayrıca doğrulanmalıdır.
+Arşiv ve simülatör kanıtları belirtilen hash’lere aittir. 28 Kasım’da 5.1’in `VALID`/süresi dolmamış/aktif dahili dağıtımı, mağaza taslak kayıtları, ücretsiz indirme, yaş yanıtları, iki hesap görseli ve IAP inceleme görselinin `COMPLETE` durumları doğrulandı. Bu 07:40 kontrolünde Çoklu Hesap **READY_TO_SUBMIT** durumundaydı. Sonraki 09:05:42 UTC gönderimi yukarıda ayrıca doğrulandı; herkese açık yayın henüz gerçekleşmedi. Önceki 4.1, 18 Kasım sorgusunda Expired görüldü; neden doğrulanmadı. Gerçek cihaz/testçi ve inceleme aşamaları ayrıdır; sonraki gönderimlerde gönderilecek arşiv ayrıca doğrulanmalıdır.
 
 ## 6. Son gönderim
 
 - [ ] Nihai sürüm, IAP, ekran görüntüleri ve inceleme notları aynı özellik setini anlatıyor.
 - [ ] Sürümün yayımlanma yöntemi (manuel/otomatik/tarihli) hesap sahibi tarafından seçildi.
 - [ ] Sahibi son mağaza metnini, fiyatı, yasal kimliği ve üretim build'ini gözden geçirdi.
-- [ ] App Store incelemesine gönderildi; inceleme sonucu takip ediliyor.
+- [x] 28 Kasım 2026 09:05:42 UTC: BHU 1.0 / 5.1 ve Çoklu Hesap aynı pakette Apple incelemesine gönderildi; uygulama ve IAP `WAITING_FOR_REVIEW` olarak yeniden okundu. İnceleme sonucu bekleniyor.
 
 ## Resmi kaynaklar
 

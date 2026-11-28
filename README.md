@@ -1,5 +1,8 @@
 # BHU
 
+**28 Kasım 2026, 09:05:42 UTC — Apple incelemesine gönderildi.** BHU **1.0 / build 5.1** ve ilk Non-Consumable **Çoklu Hesap** aynı mevcut inceleme taslağında ayrı öğeler olarak doğrulandı. `submitted=true` isteği kabul edildi; yeni GET ile gönderim tarihi ve uygulama, IAP sürümü, IAP ürünü için **WAITING_FOR_REVIEW** durumu doğrulandı. Önceki App Privacy/uyum engelleri, kullanıcının beyanları kaydetmesinden sonra uygulamayı pakete ekleme kontrolünü artık engellemedi. İnceleme onayı ve herkese açık yayın henüz gerçekleşmedi; mevcut **AFTER_APPROVAL** ayarı korunduğu için Apple onayından sonra otomatik yayın öngörülüyor. Ülke kapsamı, ücretsiz indirme ve Çoklu Hesap fiyatı değiştirilmedi. Bu kayıt, aşağıdaki daha eski hazırlık/gönderim engeli notlarının güncel sonucudur.
+
+
 Tarayıcıda çalışan, ana hesap ve alt hesaplarla gelir/gider takibi. Mevcut hesap ağacı, sürükleyerek taşıma ve yerel kullanım düzeni korunur. Backend veya harici servis gerektirmez.
 
 
