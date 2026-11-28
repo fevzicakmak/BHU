@@ -1,5 +1,10 @@
 # iOS ve App Store yayın dosyaları
 
+**28 Kasım 08:43 UTC — gerçek gönderim ön kontrolü:** Kullanıcı incelemeye göndermeyi açıkça istedi. Apple inceleme taslağı oluşturuldu, ancak uygulama sürümünü ekleme isteği `409 STATE_ERROR.ENTITY_STATE_INVALID` ile reddedildi; taslak boş ve gönderilmemiştir. İçerik hakları beyanı daha sonra `DOES_NOT_USE_THIRD_PARTY_CONTENT` olarak kaydedilip yeniden doğrulandı. Diğer gerçek engeller: App Privacy yanıtlarının yayımlanmaması (`APP_DATA_USAGES_REQUIRED`) ve iki tamamlanmamış Çin uyum formu (`SECURITYASF395E`, `AIGENERATEFD1DE`).
+
+Bu formlar **Apps → BHU → General → App Compliance** sayfasındaki **Security Assessment** ve **AI-Generated or Synthetic Content** alanlarından tamamlanır. [Apple’ın güncel rehberi](https://developer.apple.com/help/app-store-connect/manage-compliance-information/view-china-mainland-compliance-information), bu özellikleri sunmayan uygulamalar için `No` seçeneğini açıklar; BHU’nun kaynaklarında bu AI/mesajlaşma özellikleri yoktur. App Privacy için ayrı `Publish` işlemi gerekir. Mevcut App Manager API bağlantısı bu uyum formlarını düzenleyemez; hesap sahibi/Admin web ekranı gerekir. Çin veya başka ülke otomatik kapatılmadı. **App Review gönderimi ve herkese açık yayın gerçekleşmedi.** İlk IAP uygulama sürümüyle aynı gönderimde tutulmalıdır; yeniden denemede yeni taslak açmadan mevcut taslak ve öğeleri yeniden okuyun.
+
+
 Bu klasör, BHU'nun iOS sürümü için hazırlanmış yayın belgelerini ve mağaza hazırlık notlarını içerir. Mevcut web arayüzündeki Kasa Pro adı iç dosya/depolama adlarında kalabilir. Dosyaların varlığı, uygulamanın imzalandığı, gerçek iPhone'da test edildiği veya App Store'a gönderildiği anlamına gelmez.
 
 İkonun kaynak dosyası [`assets/branding/BHU-AppIcon-1024.png`](../../assets/branding/BHU-AppIcon-1024.png) olmalıdır: 1024×1024 PNG, alfa kanalı/şeffaflık içermez. Pillow ile `python3 scripts/generate-ios-artwork.py` doğrulayıp Xcode AppIcon yuvasına aynı baytları kopyalar; `python3 scripts/generate-ios-artwork.py --check` yazmadan eşleşmeyi denetler. Bu betik yalnız uygulama ikonunu yönetir.

@@ -1,5 +1,10 @@
 # iOS / App Store yayın sırası
 
+**28 Kasım 08:43 UTC — gerçek gönderim ön kontrolü:** Kullanıcı incelemeye göndermeyi açıkça istedi. Apple inceleme taslağı oluşturuldu, ancak uygulama sürümünü ekleme isteği `409 STATE_ERROR.ENTITY_STATE_INVALID` ile reddedildi; taslak boş ve gönderilmemiştir. İçerik hakları beyanı daha sonra `DOES_NOT_USE_THIRD_PARTY_CONTENT` olarak kaydedilip yeniden doğrulandı. Diğer gerçek engeller: App Privacy yanıtlarının yayımlanmaması (`APP_DATA_USAGES_REQUIRED`) ve iki tamamlanmamış Çin uyum formu (`SECURITYASF395E`, `AIGENERATEFD1DE`).
+
+Bu formlar **Apps → BHU → General → App Compliance** sayfasındaki **Security Assessment** ve **AI-Generated or Synthetic Content** alanlarından tamamlanır. [Apple’ın güncel rehberi](https://developer.apple.com/help/app-store-connect/manage-compliance-information/view-china-mainland-compliance-information), bu özellikleri sunmayan uygulamalar için `No` seçeneğini açıklar; BHU’nun kaynaklarında bu AI/mesajlaşma özellikleri yoktur. App Privacy için ayrı `Publish` işlemi gerekir. Mevcut App Manager API bağlantısı bu uyum formlarını düzenleyemez; hesap sahibi/Admin web ekranı gerekir. Çin veya başka ülke otomatik kapatılmadı. **App Review gönderimi ve herkese açık yayın gerçekleşmedi.** İlk IAP uygulama sürümüyle aynı gönderimde tutulmalıdır; yeniden denemede yeni taslak açmadan mevcut taslak ve öğeleri yeniden okuyun.
+
+
 Bu liste, kod hazırlığından mağaza gönderimine kadar yapılacak somut işleri ayırır. İşaretlenmemiş maddeler yapılmış sayılmaz. Bir Linux kontrolü başarılı olsa bile imzalı iOS derlemesi veya gerçek cihaz kabulü yerine geçmez.
 
 **28 Kasım 2026 — güncel kayıtlar:** [Son mağaza kontrolü](https://github.com/fevzicakmak/BHU/actions/runs/46122268729) 07:40:23 UTC itibarıyla BHU 1.0 taslağındaki metinleri, kategori/URL’leri, inceleme alanlarını ve **5.1** bağlantısını doğruladı. iPhone/iPad hesap görselleri ve Çoklu Hesap inceleme görseli **COMPLETE**; Non-Consumable ürün **READY_TO_SUBMIT** durumunda. Kayıtlı Türkiye ürün fiyatı **149,99 TRY**; uygulama ve ürün **134 bölgede**, Türkiye açık ve AB ülkeleri kapalıdır.
