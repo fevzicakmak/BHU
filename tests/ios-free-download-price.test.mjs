@@ -72,6 +72,19 @@ function mockApple(options = {}) {
     }
     if (init.method === 'GET' && path === `/v1/apps/${APP_ID}/appPricePoints`) {
       assert.equal(url.searchParams.get('filter[territory]'), state.baseTerritory ?? 'USA');
+      if (state.catalogNext && !url.searchParams.has('cursor')) {
+        const next = new URL(path, url.origin);
+        next.search = new URLSearchParams({ cursor: 'catalog-next', ...state.catalogNext }).toString();
+        return json([point('zero-base', state.baseTerritory ?? 'USA')], { links: { next: next.href } });
+      }
+      if (state.catalogNext && url.searchParams.get('cursor') === 'catalog-next') {
+        assert.equal(url.searchParams.get('fields[appPricePoints]'), 'customerPrice,app,territory');
+        assert.equal(url.searchParams.get('fields[territories]'), 'currency');
+        assert.equal(url.searchParams.get('fields[apps]'), 'bundleId');
+        assert.equal(url.searchParams.get('include'), 'app,territory');
+        assert.equal(url.searchParams.get('limit'), '200');
+        return json([point('paid-base', state.baseTerritory ?? 'USA', '9.99')], { meta: { paging: { total: 2 } } });
+      }
       return json(state.catalog ?? [point('zero-base', state.baseTerritory ?? 'USA'), point('paid-base', state.baseTerritory ?? 'USA', '9.99')], { included: [
         { type: 'apps', id: APP_ID, attributes: { bundleId: BUNDLE } }, { type: 'territories', id: state.baseTerritory ?? 'USA', attributes: { currency: currencies[state.baseTerritory ?? 'USA'] } }] });
     }
@@ -139,6 +152,27 @@ test('complete pagination discovers a hidden saved price and rejects foreign lin
   assert.ok(hidden.calls.some(call => new URL(call.url).searchParams.get('cursor') === 'synthetic-next'));
   const foreign = mockApple({ foreignNext: true }); await assert.rejects(prepare(foreign), AssetsError); assert.equal(writes(foreign).length, 0);
   assert.ok(foreign.calls.every(call => new URL(call.url).origin === 'https://api.appstoreconnect.apple.com'));
+});
+
+test('cursor-only Apple catalog links preserve every original filter, fieldset and include', async () => {
+  const mock = mockApple({ catalogNext: {} }), plan = await prepare(mock);
+  assert.equal(plan.action, 'create'); assert.equal(plan.freePoint.customerPrice, '0.00');
+  assert.equal(writes(mock).length, 0);
+  const pages = mock.calls.filter(call => new URL(call.url).pathname === `/v1/apps/${APP_ID}/appPricePoints`);
+  assert.equal(pages.length, 2);
+  const first = new URL(pages[0].url), second = new URL(pages[1].url);
+  for (const [key, value] of first.searchParams) assert.equal(second.searchParams.get(key), value);
+  assert.equal(second.searchParams.get('cursor'), 'catalog-next');
+});
+
+test('supplied conflicting pagination filters, fields, includes or limits reject before another page or write', async () => {
+  for (const catalogNext of [{ 'filter[territory]': 'TUR' }, { 'fields[appPricePoints]': 'customerPrice' },
+    { 'fields[territories]': 'id' }, { 'fields[apps]': 'name' }, { include: 'territory' }, { limit: '100' }]) {
+    const mock = mockApple({ catalogNext });
+    await assert.rejects(prepare(mock), /pagination changed its scope/);
+    assert.equal(writes(mock).length, 0);
+    assert.equal(mock.calls.filter(call => new URL(call.url).pathname === `/v1/apps/${APP_ID}/appPricePoints`).length, 1);
+  }
 });
 
 test('a newly saved price or a tampered plan stops stale apply before POST', async () => {

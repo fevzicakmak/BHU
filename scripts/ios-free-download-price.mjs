@@ -72,8 +72,11 @@ async function all(request, path, parameters, type) {
     const entries = [...url.searchParams]; check(entries.every(([key]) => key === 'cursor' || Object.hasOwn(parameters, key))
       && new Set(entries.map(([key]) => key)).size === entries.length && typeof url.searchParams.get('cursor') === 'string'
       && url.searchParams.get('cursor').length > 0 && url.searchParams.get('cursor').length <= 2000, 'Apple price pagination query is invalid.');
-    for (const [key, value] of Object.entries(parameters)) check(url.searchParams.get(key) === value, 'Apple price pagination changed its scope.');
-    params = Object.fromEntries(entries);
+    for (const [key, value] of entries) check(key === 'cursor' || parameters[key] === value, 'Apple price pagination changed its scope.');
+    // Apple's cursor links may omit sparse fieldsets or filters. Never let the
+    // returned URL choose the next request's scope: keep the original query and
+    // accept only its checked opaque cursor.
+    params = { ...parameters, cursor: url.searchParams.get('cursor') };
   }
   throw new AssetsError('Apple price pagination exceeds the read budget.');
 }
