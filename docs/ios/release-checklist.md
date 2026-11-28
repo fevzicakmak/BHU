@@ -2,6 +2,12 @@
 
 Bu liste, kod hazırlığından mağaza gönderimine kadar yapılacak somut işleri ayırır. İşaretlenmemiş maddeler yapılmış sayılmaz. Bir Linux kontrolü başarılı olsa bile imzalı iOS derlemesi veya gerçek cihaz kabulü yerine geçmez.
 
+**28 Kasım 2026 — güncel kayıtlar:** [Son mağaza kontrolü](https://github.com/fevzicakmak/BHU/actions/runs/46122268729) 07:40:23 UTC itibarıyla BHU 1.0 taslağındaki metinleri, kategori/URL’leri, inceleme alanlarını ve **5.1** bağlantısını doğruladı. iPhone/iPad hesap görselleri ve Çoklu Hesap inceleme görseli **COMPLETE**; Non-Consumable ürün **READY_TO_SUBMIT** durumunda. Kayıtlı Türkiye ürün fiyatı **149,99 TRY**; uygulama ve ürün **134 bölgede**, Türkiye açık ve AB ülkeleri kapalıdır.
+
+**Ücretsiz indirme ve yaş:** Uygulamanın indirme fiyatı kaydedilip yeniden okundu: mevcut USA temeli korunarak **1 manuel + 174 otomatik fiyatın tamamı sıfır**, Türkiye de ücretsiz. Yaş anketindeki 26 boş yanıt uygulamanın mevcut özelliklerine göre doldurulup birebir geri okundu; Apple 175 ülke derecesi oluşturdu ve Türkiye için **FOUR_PLUS (4+)** hesapladı. Yaş sonucu zorlanmadı; mevcut yaş/ülke tercihleri korundu.
+
+[28 Kasım canlı build sorgusu](https://github.com/fevzicakmak/BHU/actions/runs/46122271280), **1.0 / 5.1** için `VALID`, `expired=false`, `IN_BETA_TESTING` ve dış test için `READY_FOR_BETA_SUBMISSION` doğruladı. App Privacy beyanının **Publish** durumu API’den görülemiyor; davet teslimi/kabulü, fiziksel cihaz kurulumu ve gerçek satın alma/geri yükleme testleri henüz doğrulanmadı. **App Review gönderimi veya herkese açık yayın yapılmadı.** Kayıtlı `AFTER_APPROVAL` yayın seçeneği değiştirilmedi.
+
 ## 1. Kimlik ve Apple hesabı
 
 - [x] App Store görünen adı **BHU** olarak seçildi.
@@ -24,6 +30,7 @@ Kod veya depo içine Apple parolası, özel anahtar, dağıtım sertifikası, pr
 
 ## 2. Uygulama paketi
 
+- [x] 28 Kasım’da ücretsiz uygulama indirme fiyatı kaydedildi ve geri okundu: mevcut USA temeli korundu; **1 manuel + 174 otomatik kaydın tamamı sıfır**, Türkiye de ücretsiz.
 - [x] Paketleme betiği uygulama/gizlilik/destek dosyalarını ve yerel Capacitor köprüsünü `dist/` içine alıyor; CI native senkronizasyon ve derleme başarılı. Gerçek çevrimdışı açılış aşağıdaki ayrı kontroldür.
 - [ ] Uçak modunda ilk açılış ve daha önce kaydedilmiş işlemler çalışıyor.
 - [x] Kaynak Capacitor yapılandırmasında uzak `server.url` veya canlı yeniden yükleme adresi yok.
@@ -41,10 +48,10 @@ Kod veya depo içine Apple parolası, özel anahtar, dağıtım sertifikası, pr
 
 Ürün kuralı: **1 ücretsiz ana hesap + bu ana hesabın alt hesapları; ikinci ana hesap için tek seferlik kalıcı hak.** Alt hesap başına ücret veya abonelik yok.
 
-- [x] API'de **NON_CONSUMABLE** ürün doğrulandı: `com.fevzicakmak.bhu.multipleaccounts` / **6835484249**. 27 Kasım durumu **MISSING_METADATA**; yerelleştirme `PREPARE_FOR_SUBMISSION`. Bu durum inceleme/onay değildir.
+- [x] API’de **NON_CONSUMABLE** ürün doğrulandı: `com.fevzicakmak.bhu.multipleaccounts` / **6835484249**. 28 Kasım durumu **READY_TO_SUBMIT**; yerelleştirme `PREPARE_FOR_SUBMISSION`. Bu durum ürün inceleme onayı değildir.
 - [x] API'deki Product ID, kod/config ve StoreKit test dosyasıyla aynı; gerçek ürünün StoreKit'ten cihazda yüklenmesi ayrıca test edilmelidir.
 - [x] Türkçe ürün adı/açıklamasının kaydı canlı API'de doğrulandı.
-- [ ] Satın alma inceleme ekran görüntüsü son gerçek native build'den hazırlanıp yüklendi.
+- [x] Gerçek native iPad uygulamasından alınan **2064×2752** Çoklu Hesap inceleme görseli Apple’da **COMPLETE** işlendi; mevcut kaynak dosyası yeniden doğrulandı, kopya görsel oluşturulmadı.
 - [x] 27 Kasım UTC tarihi için kaydedilmiş aktif Türkiye ürün fiyatı API'de **149,99 TRY** olarak doğrulandı; fiyat değiştirilmedi.
 - [x] Kaydedilmiş fiyat ve **Availability** bölgeleri API ile geri okundu: uygulama/ürün 134 bölgede, Türkiye açık, AB ülkeleri kapalı. Bu, gerçek satın alma kabulü değildir.
 - [ ] Paywall son gerçek üründen `Product.displayPrice` gösteriyor; hedef tutar arayüze sabit yazılmıyor.
@@ -73,7 +80,7 @@ Geliştirme `.storekit` dosyasında başarılı satın alma görmek, gerçek ür
 - [x] Kanonik Türkçe [mağaza metinleri](app-store-metadata.tr.md), URL'ler, kategori ve telif App Store Connect taslağına kaydedildi; geri okuma karşılaştırması eşleşti. Gerçek cihaz/IAP kabulü ayrıca bekler.
 - [x] Gerçek uygulamadan bir iPhone **1206×2622** ve bir iPad **2064×2752** hesap ağacı görseli kaydedildi; iki Apple asset durumu `COMPLETE`.
 - [ ] Nihai cihaz ailesinin gerekli tüm görsel kapsamı ve son gönderim doğrulaması tamamlandı; iki asset'in `COMPLETE` olması bu maddeyi otomatik tamamlamaz.
-- [ ] Yaş derecelendirme anketi gerçek içerik/özelliklere göre tamamlandı.
+- [x] Yaş anketindeki 26 boş yanıt gerçek içerik/özelliklere göre dolduruldu; tek PATCH kabul edildi ve birebir geri okundu. Apple 175 ülke derecesi oluşturdu; Türkiye **FOUR_PLUS (4+)**. Mevcut yaş/ülke tercihleri korundu, sonuç zorlanmadı.
 - [x] [App Review notları](app-review-notes.en.txt), ücretsiz kullanım/ikinci ana hesap/geri yükleme adımlarını açıklar; notlar ve iletişim alanları kaydedildi. `demoAccountRequired=false`; özel iletişim değerleri depoda yayımlanmaz.
 
 Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı şey değildir. Şu tasarımda kullanıcı giriş hesabı yoktur. İleride giriş hesabı eklenirse Apple'ın hesap silme gereksinimleri ayrıca uygulanır.
@@ -103,7 +110,7 @@ Kasa kayıtlarının silinmesi, bir giriş hesabının kapatılmasıyla aynı ş
 - [ ] Gerçek StoreKit sandbox/TestFlight satın alma ve geri yükleme akışı doğrulandı; yerel StoreKit testiyle karıştırılmadı.
 - [ ] Crash ve veri kaybı bulguları çözüldü; son test edilen build ile gönderilecek build aynı.
 
-Arşiv ve simülatör kanıtları belirtilen hash'lere aittir. Güncel 5.1 imzalı IPA/Apple kabulü, 27 Kasım aktif dahili dağıtımı, mağaza taslak kayıtları ve iki görselin `COMPLETE` durumu gerçek yanıtlarla doğrulandı. IAP inceleme görseli son raporda yoktu; ürün `MISSING_METADATA` durumundaydı. App Review gönderimi veya herkese açık yayın tetiklenmedi. Önceki 4.1, 18 Kasım sorgusunda Expired görüldü; neden doğrulanmadı. Gerçek cihaz/testçi ve inceleme aşamaları ayrıdır; sonraki gönderimlerde gönderilecek arşiv ayrıca doğrulanmalıdır.
+Arşiv ve simülatör kanıtları belirtilen hash’lere aittir. 28 Kasım’da 5.1’in `VALID`/süresi dolmamış/aktif dahili dağıtımı, mağaza taslak kayıtları, ücretsiz indirme, yaş yanıtları, iki hesap görseli ve IAP inceleme görselinin `COMPLETE` durumları doğrulandı. Çoklu Hesap ürünü **READY_TO_SUBMIT** durumundadır. App Review gönderimi veya herkese açık yayın tetiklenmedi. Önceki 4.1, 18 Kasım sorgusunda Expired görüldü; neden doğrulanmadı. Gerçek cihaz/testçi ve inceleme aşamaları ayrıdır; sonraki gönderimlerde gönderilecek arşiv ayrıca doğrulanmalıdır.
 
 ## 6. Son gönderim
 
