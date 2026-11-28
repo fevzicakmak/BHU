@@ -103,6 +103,12 @@ function summarizeAsset(resource) {
   return { id: resource.id, fileName: resource.attributes?.fileName ?? null, fileSize: resource.attributes?.fileSize ?? null,
     md5: resource.attributes?.sourceFileChecksum?.toLowerCase() ?? null, state: state(resource) };
 }
+function matchesProcessedFile(asset, image) {
+  // Apple canonicalizes this review asset's fileName to SOURCE after ingestion.
+  // The exact reviewed bytes and verified parent still identify the asset.
+  return (asset.fileName === image.fileName || asset.fileName === 'SOURCE')
+    && asset.fileSize === image.fileSize && asset.md5 === image.md5;
+}
 async function discover(request) {
   const apps = many(await request('GET', '/v1/apps', { 'filter[bundleId]': BUNDLE, 'fields[apps]': 'bundleId,primaryLocale', limit: '2' }), 'apps');
   check(apps.length === 1 && apps[0].id === APP_ID && apps[0].attributes?.bundleId === BUNDLE && apps[0].attributes?.primaryLocale === 'tr', 'Expected Turkish BHU application was not found.');
@@ -127,7 +133,7 @@ async function discover(request) {
 }
 export async function compileReviewPlan({ request, image, reviewedSha256 }) {
   const checked = reviewedImage(image, reviewedSha256), baseline = await discover(request), existing = baseline.screenshot;
-  if (existing) check(existing.fileName === checked.fileName && existing.fileSize === checked.fileSize && existing.md5 === checked.md5 && existing.state === 'COMPLETE',
+  if (existing) check(matchesProcessedFile(existing, checked) && existing.state === 'COMPLETE',
     'Existing IAP review screenshot is preserved; it is not an exact completed match.');
   const material = { schemaVersion: 1, appId: APP_ID, iapId: IAP_ID, productId: PRODUCT_ID, baseline, image: imageDescriptor(checked),
     reviewedSha256, action: existing ? 'reuse' : 'upload' };
@@ -136,7 +142,7 @@ export async function compileReviewPlan({ request, image, reviewedSha256 }) {
 function safeReceipt(plan) {
   return { schemaVersion: 1, appId: APP_ID, iapId: IAP_ID, productId: PRODUCT_ID, completed: false,
     asset: { id: plan.baseline.screenshot?.id ?? null, family: plan.image.family, fileName: plan.image.fileName, sha256: plan.image.sha256, md5: plan.image.md5,
-      created: false, state: plan.action === 'reuse' ? 'COMPLETE' : 'NOT_STARTED' },
+      storedFileName: plan.baseline.screenshot?.fileName ?? null, created: false, state: plan.action === 'reuse' ? 'COMPLETE' : 'NOT_STARTED' },
     doesNotVerify: ['Real-device StoreKit purchasing or displayed price', 'App Review submission or approval'] };
 }
 export async function applyReviewPlan({ client, plan, image, reviewedSha256, wait = ms => new Promise(resolve => setTimeout(resolve, ms)), pollAttempts = 16 }) {
@@ -162,7 +168,8 @@ export async function applyReviewPlan({ client, plan, image, reviewedSha256, wai
         check(receipt.asset.state !== 'FAILED', 'Apple reported failed review screenshot processing.'); await wait(2000);
         const processed = one(await client.request('GET', `/v1/${TYPE}/${rid(reserved.id)}`, assetFields), TYPE);
         check(processed.id === reserved.id, 'Processed review screenshot identifier changed.'); const actual = summarizeAsset(processed);
-        check(actual.fileName === image.fileName && actual.fileSize === image.fileSize && actual.md5 === image.md5, 'Processed review screenshot file differs from the reviewed original.');
+        check(matchesProcessedFile(actual, image), 'Processed review screenshot file differs from the reviewed original.');
+        receipt.asset.storedFileName = actual.fileName;
         receipt.asset.state = actual.state; if (actual.state === 'COMPLETE') break;
       }
       check(receipt.asset.state === 'COMPLETE', 'Review screenshot processing is incomplete; inspect its recorded ID before retrying.');

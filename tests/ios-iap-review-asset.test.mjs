@@ -77,6 +77,7 @@ function mockApple(options = {}) {
       const size = payload.attributes.fileSize, first = Math.floor(size / 2);
       asset = { ...payload, id: 'new-review', attributes: { ...payload.attributes, assetDeliveryState: { state: 'AWAITING_UPLOAD' }, uploadOperations: state.operations ?? [
         operation(size, { offset: first, length: size - first }), operation(size, { length: first })] } };
+      if (state.reservationFileName) asset.attributes.fileName = state.reservationFileName;
       return json(asset);
     }
     const match = path.match(/^\/v1\/inAppPurchaseAppStoreReviewScreenshots\/([^/]+)$/);
@@ -92,6 +93,8 @@ function mockApple(options = {}) {
       if (asset.id === 'new-review') {
         asset.attributes.assetDeliveryState = { state: state.failedPoll ? 'FAILED' : state.pending ? 'UPLOAD_COMPLETE' : 'COMPLETE' };
         if (state.changedChecksum) asset.attributes.sourceFileChecksum = '0'.repeat(32);
+        if (state.processedFileName) asset.attributes.fileName = state.processedFileName;
+        if (state.changedFileSize) asset.attributes.fileSize++;
         if (state.foreignProcessedParent) asset.relationships.inAppPurchaseV2 = relationship('inAppPurchases', 'other-product');
       }
       return json(asset);
@@ -139,13 +142,41 @@ test('only the exact BHU draft and editable non-consumable product can be planne
 });
 
 test('existing review images are preserved unless the exact original file is already COMPLETE', async () => {
-  for (const changes of [{ fileName: 'user-screenshot.png' }, { sourceFileChecksum: '0'.repeat(32) }, { assetDeliveryState: { state: 'AWAITING_UPLOAD' } }]) {
+  for (const changes of [{ fileName: 'user-screenshot.png' }, { sourceFileChecksum: '0'.repeat(32) }, { fileSize: image().fileSize + 1 }, { assetDeliveryState: { state: 'AWAITING_UPLOAD' } }]) {
     const mock = mockApple({ asset: shot(image(), changes) }); await assert.rejects(planWith(mock), /preserv/i); assert.equal(writes(mock).length, 0);
   }
   const foreign = shot(); foreign.relationships.inAppPurchaseV2 = relationship('inAppPurchases', 'other-product');
   const bad = mockApple({ asset: foreign }); await assert.rejects(planWith(bad), AssetsError); assert.equal(writes(bad).length, 0);
   const exact = mockApple({ asset: shot() }), prepared = await planWith(exact), receipt = await applyWith(exact, prepared);
   assert.ok(receipt.completed); assert.equal(receipt.asset.id, 'existing-review'); assert.equal(receipt.asset.created, false); assert.equal(writes(exact).length, 0);
+});
+
+test('Apple canonical SOURCE filename reuses only the exact completed reviewed iPad asset without upload', async () => {
+  const file = inspectReviewPNG(png(2064, 2752), '/synthetic/native-ipad-review.png');
+  const mock = mockApple({ asset: shot(file, { fileName: 'SOURCE' }), productState: 'READY_TO_SUBMIT' });
+  const prepared = await planWith(mock, file); assert.equal(prepared.plan.action, 'reuse');
+  const receipt = await applyWith(mock, prepared);
+  assert.equal(receipt.completed, true); assert.equal(receipt.asset.id, 'existing-review');
+  assert.equal(receipt.asset.fileName, file.fileName); assert.equal(receipt.asset.storedFileName, 'SOURCE');
+  assert.equal(receipt.asset.state, 'COMPLETE'); assert.equal(receipt.asset.created, false);
+  assert.equal(writes(mock).length, 0);
+  for (const changes of [{ fileSize: file.fileSize + 1 }, { sourceFileChecksum: '0'.repeat(32) }, { assetDeliveryState: { state: 'UPLOAD_COMPLETE' } }, { fileName: 'source' }]) {
+    const wrong = mockApple({ asset: shot(file, { fileName: 'SOURCE', ...changes }) });
+    await assert.rejects(planWith(wrong, file), /preserv/i); assert.equal(writes(wrong).length, 0);
+  }
+  const foreign = shot(file, { fileName: 'SOURCE' }); foreign.relationships.inAppPurchaseV2 = relationship('inAppPurchases', 'other-product');
+  const wrong = mockApple({ asset: foreign }); await assert.rejects(planWith(wrong, file), /another product/); assert.equal(writes(wrong).length, 0);
+});
+
+test('SOURCE is accepted after commit with exact bytes but never as a reservation filename', async () => {
+  const mock = mockApple({ processedFileName: 'SOURCE' }), prepared = await planWith(mock), receipt = await applyWith(mock, prepared);
+  assert.equal(receipt.completed, true); assert.equal(receipt.asset.storedFileName, 'SOURCE');
+  assert.equal(mock.calls.filter(x => x.method === 'POST').length, 1); assert.equal(mock.calls.filter(x => x.method === 'PUT').length, 2);
+  const early = mockApple({ reservationFileName: 'SOURCE' }), fresh = await planWith(early);
+  await assert.rejects(applyWith(early, fresh), error => {
+    assert.match(error.message, /Reserved review screenshot/); assert.equal(error.receipt.asset.created, true); return true;
+  });
+  assert.equal(early.calls.filter(x => x.method === 'PUT' || x.method === 'PATCH').length, 0);
 });
 
 test('stale product state, changed image or tampered plan stops before any POST', async () => {
@@ -209,7 +240,9 @@ test('partial upload failure retains reserved ID, never retries POST and protect
 });
 
 test('failed, pending, changed-checksum or foreign processed asset cannot report success', async () => {
-  for (const option of [{ failedPoll: true }, { pending: true }, { commitComplete: true, changedChecksum: true }, { foreignProcessedParent: true }]) {
+  for (const option of [{ failedPoll: true }, { pending: true }, { commitComplete: true, changedChecksum: true }, { foreignProcessedParent: true },
+    { processedFileName: 'SOURCE', changedChecksum: true }, { processedFileName: 'SOURCE', changedFileSize: true },
+    { processedFileName: 'SOURCE', foreignProcessedParent: true }, { processedFileName: 'other.png' }]) {
     const mock = mockApple(option), prepared = await planWith(mock);
     await assert.rejects(applyWith(mock, prepared, { pollAttempts: 2 }), error => {
       assert.equal(error.receipt.completed, false); assert.equal(error.receipt.asset.id, 'new-review'); return true;
